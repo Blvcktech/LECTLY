@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     # App
     app_name: str = "Lectly API"
     debug: bool = False
-    allowed_origins: str = "http://localhost:3000"
+    allowed_origins: str = "https://lectly.vercel.app,http://localhost:3000"
 
     # API Keys (add these to your .env file)
     openai_api_key: str = ""
