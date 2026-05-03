@@ -169,7 +169,7 @@ def _call_gemini(system_prompt: str, user_message: str) -> str:
     if not key:
         raise ValueError("No Gemini API key")
 
-    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={key}"
+    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}"
 
     payload = {
         "system_instruction": {
