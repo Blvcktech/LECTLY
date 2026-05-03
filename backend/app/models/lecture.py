@@ -112,3 +112,25 @@ class LearnModeResponse(BaseModel):
     quiz: list[QuizQuestion]
     resources: list[ResourceItem] = []
     level: str
+
+
+# ──────────────────────────────────────────────
+# Ask Tutor models
+# ──────────────────────────────────────────────
+
+class TutorMessage(BaseModel):
+    role: str  # "user" or "tutor"
+    content: str
+
+
+class TutorAskRequest(BaseModel):
+    lecture_id: str
+    question: str
+    conversation_history: list[TutorMessage] = []
+    current_section_index: Optional[int] = None
+
+
+class TutorAskResponse(BaseModel):
+    answer: str
+    lecture_id: str
+    section_referenced: Optional[str] = None

@@ -156,13 +156,40 @@ MANDATORY MINIMUMS:
 
 NEVER leave any section empty. NEVER give an example without solving it."""
 
+TUTOR_SYSTEM_PROMPT = """You are Lectly's AI Tutor — a personal, patient tutor who sat in the student's lecture and knows exactly what the professor taught.
+
+## Your Role
+You answer questions about the lecture content. You explain, clarify, solve problems, and teach — always grounded in what the lecturer actually said.
+
+## Rules
+1. ALWAYS reference the lecture content. When the student asks about a concept, connect your answer to what their lecturer said. Use phrases like "Your lecturer covered this when they discussed..." or "Building on what was taught about..."
+2. NEVER contradict the lecturer. If the lecturer simplified something, you can expand on it, but don't say they were wrong.
+3. Be conversational and warm. You're a tutor sitting next to the student, not a textbook. Use "you" and "your". Keep sentences short.
+4. ADAPT your explanation style:
+   - If the student says "I don't understand" → rephrase using a different analogy or simpler words
+   - If the student asks "solve this" → show FULL step-by-step working with formulas, substitution, and reasoning
+   - If the student asks "why does this matter" → connect to real-world applications and exam relevance
+   - If the student asks about a quiz answer → explain why the correct answer is right AND why their answer was wrong
+5. Keep responses focused and concise. 2-4 paragraphs maximum for explanations. For calculations, show every step but don't over-explain obvious arithmetic.
+6. Use markdown formatting for clarity: **bold** for key terms, numbered lists for steps, `code blocks` for formulas or code.
+7. If the student asks something NOT covered in the lecture, say so honestly: "This wasn't covered in your lecture, but here's what I know about it..." Then give a brief, helpful answer.
+8. NEVER refuse to help. If the student is confused, try harder — use a different angle, a simpler analogy, or break it into smaller pieces.
+
+## Context Awareness
+- You know which section of the learning material the student is currently on. Focus your answers around that section's topic when relevant.
+- You remember the conversation within this session. Don't repeat explanations unless asked.
+- If the student is on an early section, don't reference concepts from later sections they haven't reached yet.
+
+## Response Format
+Respond in plain text with markdown formatting. NOT JSON. Just natural, conversational text like a real tutor would speak."""
+
 
 # ──────────────────────────────────────────────
 # LLM providers — Gemini (primary) + Groq (fallback)
 # ──────────────────────────────────────────────
 
-def _call_gemini(system_prompt: str, user_message: str) -> str:
-    """Call Google Gemini 2.0 Flash."""
+def _call_gemini(system_prompt: str, user_message: str, json_mode: bool = True) -> str:
+    """Call Google Gemini 2.5 Flash. Set json_mode=False for plain text responses (e.g., tutor chat)."""
     settings = get_settings()
     key = settings.gemini_api_key
 
@@ -170,6 +197,13 @@ def _call_gemini(system_prompt: str, user_message: str) -> str:
         raise ValueError("No Gemini API key")
 
     api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}"
+
+    gen_config = {
+        "temperature": 0.3,
+        "maxOutputTokens": 32768,
+    }
+    if json_mode:
+        gen_config["responseMimeType"] = "application/json"
 
     payload = {
         "system_instruction": {
@@ -181,14 +215,10 @@ def _call_gemini(system_prompt: str, user_message: str) -> str:
                 "parts": [{"text": user_message}]
             }
         ],
-        "generationConfig": {
-            "temperature": 0.3,
-            "maxOutputTokens": 32768,
-            "responseMimeType": "application/json",
-        },
+        "generationConfig": gen_config,
     }
 
-    print(f"[Lectly] Calling Gemini 2.0 Flash...")
+    print(f"[Lectly] Calling Gemini 2.5 Flash{'(JSON)' if json_mode else ' (text)'}...")
 
     response = http_requests.post(
         api_url,
@@ -586,3 +616,86 @@ async def learn_mode(request: LearnModeRequest) -> LearnModeResponse:
     except Exception as e:
         print(f"[Lectly] Learn Mode failed: {e}")
         raise e
+
+
+# ──────────────────────────────────────────────
+# Ask Tutor
+# ──────────────────────────────────────────────
+
+async def ask_tutor(lecture_id: str, question: str, conversation_history: list = None, current_section_index: int = None) -> str:
+    """
+    Answer a student's question using lecture context.
+    The tutor knows the full lecture notes and responds conversationally.
+    """
+    lecture = db_get_lecture(lecture_id)
+
+    if not lecture:
+        raise ValueError(f"Lecture {lecture_id} not found")
+
+    notes = lecture.get("notes")
+    transcript_text = lecture.get("transcript_text", "")
+
+    if not notes and not transcript_text:
+        raise ValueError("No lecture content available. Process the lecture first.")
+
+    # Build the lecture context for Gemini
+    context_parts = []
+
+    if notes:
+        context_parts.append(f"LECTURE TITLE: {notes.get('title', 'Untitled')}")
+        context_parts.append(f"SUMMARY: {notes.get('summary', '')}")
+        context_parts.append("")
+
+        sections = notes.get("sections", [])
+        for i, section in enumerate(sections):
+            context_parts.append(f"SECTION {i + 1}: {section.get('heading', '')}")
+            context_parts.append(section.get("content", ""))
+            key_points = section.get("key_points", [])
+            if key_points:
+                context_parts.append("Key points: " + "; ".join(key_points))
+            definitions = section.get("definitions", [])
+            for d in definitions:
+                if isinstance(d, dict):
+                    context_parts.append(f"Definition — {d.get('term', '')}: {d.get('definition', '')}")
+            context_parts.append("")
+
+    # Add position context
+    position_note = ""
+    if current_section_index is not None and notes:
+        sections = notes.get("sections", [])
+        if current_section_index < len(sections):
+            current_heading = sections[current_section_index].get("heading", "")
+            position_note = f"\n\nThe student is currently studying Section {current_section_index + 1}: \"{current_heading}\". Focus your answer around this topic when relevant."
+
+    # Build conversation for Gemini
+    lecture_context = "\n".join(context_parts)
+
+    user_message_parts = [
+        f"LECTURE CONTENT:\n{lecture_context}",
+        position_note,
+        "\n\n---\n",
+    ]
+
+    # Add conversation history
+    if conversation_history:
+        user_message_parts.append("PREVIOUS CONVERSATION:")
+        for msg in conversation_history[-10:]:  # Keep last 10 messages to stay within limits
+            role_label = "Student" if msg.get("role") == "user" else "Tutor"
+            user_message_parts.append(f"{role_label}: {msg.get('content', '')}")
+        user_message_parts.append("\n---\n")
+
+    user_message_parts.append(f"STUDENT'S QUESTION: {question}")
+
+    user_message = "\n".join(user_message_parts)
+
+    print(f"[Lectly] Ask Tutor for lecture {lecture_id}: \"{question[:80]}...\"")
+
+    # Call LLM — tutor uses plain text response, not JSON
+    try:
+        response = _call_gemini(TUTOR_SYSTEM_PROMPT, user_message, json_mode=False)
+    except Exception as e:
+        print(f"[Lectly] Gemini failed for tutor: {e}, falling back to Groq")
+        response = _call_groq(TUTOR_SYSTEM_PROMPT, user_message)
+
+    print(f"[Lectly] Tutor response: {len(response)} chars")
+    return response

@@ -1,5 +1,5 @@
 """
-Lecture routes — upload, process, retrieve, explain, learn.
+Lecture routes — upload, process, retrieve, explain, learn, tutor.
 """
 
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Request
@@ -14,10 +14,12 @@ from app.models.lecture import (
     ExplainResponse,
     LearnModeRequest,
     LearnModeResponse,
+    TutorAskRequest,
+    TutorAskResponse,
 )
 import os
 from app.services.audio import save_upload, transcribe_audio, get_lecture, list_lectures
-from app.services.notes import generate_notes, explain_text, learn_mode
+from app.services.notes import generate_notes, explain_text, learn_mode, ask_tutor
 from app.services.pdf_export import generate_notes_pdf
 from app.database import delete_lecture as db_delete_lecture, ensure_clerk_user
 
@@ -139,6 +141,42 @@ async def explain_section(request: ExplainRequest):
 async def activate_learn_mode(request: LearnModeRequest):
     """Activate Learn Mode for a lecture section."""
     return await learn_mode(request)
+
+
+@router.post("/tutor/ask", response_model=TutorAskResponse)
+async def tutor_ask(request: TutorAskRequest):
+    """Ask the AI Tutor a question about a lecture. Context-aware, conversational."""
+    try:
+        # Convert conversation history to dicts for the service
+        history = [{"role": msg.role, "content": msg.content} for msg in request.conversation_history]
+
+        answer = await ask_tutor(
+            lecture_id=request.lecture_id,
+            question=request.question,
+            conversation_history=history,
+            current_section_index=request.current_section_index,
+        )
+
+        # Try to detect which section was referenced in the answer
+        section_referenced = None
+        if request.current_section_index is not None:
+            from app.database import get_lecture as db_get
+            lecture = db_get(request.lecture_id)
+            if lecture and lecture.get("notes"):
+                sections = lecture["notes"].get("sections", [])
+                if request.current_section_index < len(sections):
+                    section_referenced = sections[request.current_section_index].get("heading")
+
+        return TutorAskResponse(
+            answer=answer,
+            lecture_id=request.lecture_id,
+            section_referenced=section_referenced,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        print(f"[Lectly] Tutor ask failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Tutor error: {str(e)}")
 
 
 @router.get("/lectures/{lecture_id}/pdf")

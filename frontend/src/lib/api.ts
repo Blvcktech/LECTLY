@@ -97,6 +97,17 @@ export interface LearnResult {
   level: string;
 }
 
+export interface TutorMessage {
+  role: "user" | "tutor";
+  content: string;
+}
+
+export interface TutorAskResult {
+  answer: string;
+  lecture_id: string;
+  section_referenced?: string;
+}
+
 // ── API Functions ──────────────────────────────
 
 export async function uploadLecture(
@@ -256,6 +267,31 @@ export async function deleteLecture(lectureId: string): Promise<void> {
   if (!res.ok) {
     throw new Error("Failed to delete lecture");
   }
+}
+
+export async function askTutor(
+  lectureId: string,
+  question: string,
+  conversationHistory: TutorMessage[] = [],
+  currentSectionIndex?: number
+): Promise<TutorAskResult> {
+  const res = await fetch(`${API_URL}/api/tutor/ask`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({
+      lecture_id: lectureId,
+      question,
+      conversation_history: conversationHistory,
+      current_section_index: currentSectionIndex,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Tutor request failed" }));
+    throw new Error(err.detail || "Tutor request failed");
+  }
+
+  return res.json();
 }
 
 export async function healthCheck(): Promise<{
