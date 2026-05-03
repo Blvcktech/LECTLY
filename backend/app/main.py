@@ -25,10 +25,13 @@ app = FastAPI(
 
 # CORS — allow frontend to talk to backend
 origins = settings.allowed_origins.split(",")
+# Always include the Vercel production URL
+if "https://lectly.vercel.app" not in origins:
+    origins.append("https://lectly.vercel.app")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
