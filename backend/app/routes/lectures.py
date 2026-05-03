@@ -19,7 +19,7 @@ import os
 from app.services.audio import save_upload, transcribe_audio, get_lecture, list_lectures
 from app.services.notes import generate_notes, explain_text, learn_mode
 from app.services.pdf_export import generate_notes_pdf
-from app.database import delete_lecture as db_delete_lecture
+from app.database import delete_lecture as db_delete_lecture, ensure_clerk_user
 
 
 router = APIRouter(prefix="/api", tags=["lectures"])
@@ -58,6 +58,11 @@ async def upload_lecture(
 
     # Extract user_id from Clerk JWT (passed as Bearer token from frontend)
     user_id = _get_user_id_from_header(request)
+
+    # Ensure user exists in our database (Clerk handles real auth,
+    # but we need a users row so the foreign key on lectures works)
+    if user_id:
+        ensure_clerk_user(user_id)
 
     # Validate file extension
     allowed_exts = settings.allowed_audio_extensions.split(",")

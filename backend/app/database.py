@@ -107,6 +107,27 @@ def create_user(user_id: str, email: str, name: str, password_hash: str) -> dict
     return {"id": user_id, "email": email.lower().strip(), "name": name.strip(), "created_at": now}
 
 
+def ensure_clerk_user(user_id: str) -> dict:
+    """
+    Make sure a Clerk user exists in our local users table.
+    Creates a placeholder record if missing — Clerk handles real auth,
+    we just need the row so the foreign key on lectures works.
+    """
+    existing = get_user_by_id(user_id)
+    if existing:
+        return existing
+
+    conn = get_connection()
+    now = datetime.utcnow().isoformat()
+    conn.execute(
+        "INSERT OR IGNORE INTO users (id, email, name, password_hash, created_at) VALUES (?, ?, ?, ?, ?)",
+        (user_id, f"{user_id}@clerk.user", "Clerk User", "clerk-managed", now),
+    )
+    conn.commit()
+    conn.close()
+    return {"id": user_id, "email": f"{user_id}@clerk.user", "name": "Clerk User", "created_at": now}
+
+
 def get_user_by_email(email: str) -> Optional[dict]:
     """Get a user by email address."""
     conn = get_connection()
