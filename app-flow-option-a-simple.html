@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lectly App Flow — Option A: Simple Flow Chart</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; background: #FAFAFA; color: #222; }
+  .header { background: #fff; border-bottom: 2px solid #E0E0E0; padding: 24px 40px; }
+  .header h1 { font-size: 22px; }
+  .header p { font-size: 13px; color: #888; margin-top: 4px; }
+
+  .flow-container { max-width: 1100px; margin: 40px auto; padding: 0 24px; }
+
+  /* Section */
+  .flow-section { margin-bottom: 60px; }
+  .flow-section h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .flow-section .desc { font-size: 14px; color: #666; margin-bottom: 24px; }
+
+  /* Flow nodes */
+  .flow { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .flow-row { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; justify-content: center; }
+
+  .node { border-radius: 14px; padding: 18px 24px; min-width: 200px; max-width: 320px; text-align: center; position: relative; }
+  .node h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .node p { font-size: 12px; color: #666; line-height: 1.4; }
+
+  .node-screen { background: #fff; border: 2px solid #333; }
+  .node-action { background: #E8F4FD; border: 2px solid #2196F3; }
+  .node-api { background: #FFF3E0; border: 2px solid #FF9800; }
+  .node-decision { background: #F3E5F5; border: 2px solid #9C27B0; transform: rotate(0deg); }
+  .node-success { background: #E8F5E9; border: 2px solid #4CAF50; }
+  .node-storage { background: #ECEFF1; border: 2px solid #607D8B; }
+  .node-user { background: #FFF8E1; border: 2px solid #FFC107; }
+
+  .node-label { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; margin-bottom: 6px; }
+  .label-screen { background: #333; color: #fff; }
+  .label-action { background: #2196F3; color: #fff; }
+  .label-api { background: #FF9800; color: #fff; }
+  .label-decision { background: #9C27B0; color: #fff; }
+  .label-success { background: #4CAF50; color: #fff; }
+  .label-storage { background: #607D8B; color: #fff; }
+  .label-user { background: #FFC107; color: #333; }
+
+  /* Arrow */
+  .arrow { display: flex; flex-direction: column; align-items: center; padding: 4px 0; }
+  .arrow-line { width: 2px; height: 24px; background: #AAA; }
+  .arrow-head { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #AAA; }
+  .arrow-label { font-size: 10px; color: #999; font-weight: 600; margin-top: 2px; }
+
+  .arrow-h { display: flex; align-items: center; }
+  .arrow-h .arrow-line { width: 30px; height: 2px; }
+  .arrow-h .arrow-head { border-left: 8px solid #AAA; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-right: none; }
+
+  /* Branch */
+  .branch { display: flex; gap: 24px; align-items: flex-start; justify-content: center; flex-wrap: wrap; }
+  .branch-path { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .branch-label { font-size: 11px; font-weight: 700; color: #888; margin-bottom: 8px; padding: 2px 10px; border-radius: 10px; background: #EEE; }
+
+  /* Legend */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 32px; padding: 16px 20px; background: #fff; border-radius: 12px; border: 1px solid #E0E0E0; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  .legend-dot { width: 14px; height: 14px; border-radius: 4px; border: 2px solid; }
+
+  /* Divider */
+  .section-divider { border: none; border-top: 2px dashed #DDD; margin: 40px 0; }
+
+  /* Summary table */
+  .summary-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  .summary-table th, .summary-table td { padding: 10px 14px; text-align: left; border: 1px solid #DDD; font-size: 13px; }
+  .summary-table th { background: #333; color: #fff; font-weight: 600; }
+  .summary-table tr:nth-child(even) { background: #F5F5F5; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Lectly App Flow — Option A: Simple Flow Chart</h1>
+  <p>A clean, easy-to-follow map of how users navigate through the app and how data moves behind the scenes.</p>
+</div>
+
+<div class="flow-container">
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#fff;border-color:#333;"></div> Screen (what user sees)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#E8F4FD;border-color:#2196F3;"></div> User Action</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#FFF3E0;border-color:#FF9800;"></div> API Call (costs money)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#F3E5F5;border-color:#9C27B0;"></div> Decision Point</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#E8F5E9;border-color:#4CAF50;"></div> Success / Result</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ECEFF1;border-color:#607D8B;"></div> Storage / Database</div>
+  </div>
+
+  <!-- ============================= -->
+  <!-- FLOW 1: First-Time User -->
+  <!-- ============================= -->
+  <div class="flow-section">
+    <h2>Flow 1: New User — First Visit to First Notes</h2>
+    <p class="desc">This is the most important flow. A student discovers Lectly and goes from "what is this?" to "wow, my notes are ready."</p>
+
+    <div class="flow">
+      <div class="node node-screen">
+        <span class="node-label label-screen">SCREEN</span>
+        <h4>Landing Page</h4>
+        <p>Student sees hero, features, pricing. Clicks "Get Started Free"</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node node-screen">
+        <span class="node-label label-screen">SCREEN</span>
+        <h4>Sign Up Page</h4>
+        <p>Google/Apple sign-in or email + password. Picks university.</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node node-screen">
+        <span class="node-label label-screen">SCREEN</span>
+        <h4>Dashboard (empty)</h4>
+        <p>"No lectures yet. Upload your first one!" Big upload button.</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node node-action">
+        <span class="node-label label-action">ACTION</span>
+        <h4>Upload Audio File</h4>
+        <p>Drag & drop or tap to select. Pick subject. Optional class code.</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node node-storage">
+        <span class="node-label label-storage">STORAGE</span>
+        <h4>Save Audio File</h4>
+        <p>Audio saved to file storage. Lecture record created in database.</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node node-api">
+        <span class="node-label label-api">API CALL — $</span>
+        <h4>Transcribe Audio (Whisper)</h4>
+        <p>Speech-to-text. ~$0.36 per hour. Takes 1-4 min.</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node node-api">
+        <span class="node-label label-api">API CALL — $</span>
+        <h4>Generate Notes (LLM)</h4>
+        <p>Transcript → structured notes with headings, key points, definitions. ~$0.10</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node node-storage">
+        <span class="node-label label-storage">STORAGE</span>
+        <h4>Save Notes to Database</h4>
+        <p>Notes, transcript, and metadata stored in user's account.</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node node-success">
+        <span class="node-label label-success">SUCCESS</span>
+        <h4>Notes Ready Screen</h4>
+        <p>"Your notes are ready!" → View Notes button</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node node-screen">
+        <span class="node-label label-screen">SCREEN</span>
+        <h4>Notes Viewer</h4>
+        <p>Student reads structured notes. Can use Explain This or enter Learn Mode.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ============================= -->
+  <!-- FLOW 2: Study Session -->
+  <!-- ============================= -->
+  <div class="flow-section">
+    <h2>Flow 2: Study Session — Explain This + Learn Mode</h2>
+    <p class="desc">Student is reading their notes and wants to understand something better.</p>
+
+    <div class="flow">
+      <div class="node node-screen">
+        <span class="node-label label-screen">SCREEN</span>
+        <h4>Notes Viewer</h4>
+        <p>Student is reading Section 3: "First-Pass Metabolism"</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node node-decision">
+        <span class="node-label label-decision">DECISION</span>
+        <h4>Student is confused</h4>
+        <p>Two options: quick explanation or full learning session</p>
+      </div>
+
+      <div style="height:16px;"></div>
+      <div class="branch">
+        <div class="branch-path">
+          <span class="branch-label">Quick Answer</span>
+          <div class="node node-action">
+            <span class="node-label label-action">ACTION</span>
+            <h4>Tap "Explain This"</h4>
+            <p>Highlights confusing text. Picks difficulty level.</p>
+          </div>
+          <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+          <div class="node node-api">
+            <span class="node-label label-api">API — $0.01</span>
+            <h4>LLM Explains</h4>
+            <p>Simpler explanation + real-world analogy returned</p>
+          </div>
+          <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+          <div class="node node-success">
+            <span class="node-label label-success">RESULT</span>
+            <h4>Explanation Popup</h4>
+            <p>"Think of it like a food delivery..." Student understands. Continues reading.</p>
+          </div>
+        </div>
+
+        <div class="branch-path">
+          <span class="branch-label">Deep Learning</span>
+          <div class="node node-action">
+            <span class="node-label label-action">ACTION</span>
+            <h4>Tap "Learn Mode"</h4>
+            <p>Enters interactive learning for this section</p>
+          </div>
+          <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+          <div class="node node-api">
+            <span class="node-label label-api">API — $0.02</span>
+            <h4>LLM Generates Lesson</h4>
+            <p>Step-by-step explanation, analogy, examples, 3 quiz questions</p>
+          </div>
+          <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+          <div class="node node-screen">
+            <span class="node-label label-screen">SCREEN</span>
+            <h4>Learn Mode</h4>
+            <p>Student reads lesson, attempts quiz, sees score</p>
+          </div>
+          <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+          <div class="node node-success">
+            <span class="node-label label-success">RESULT</span>
+            <h4>Quiz Complete</h4>
+            <p>3/3 correct! "Topic Mastered" badge. Back to notes.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ============================= -->
+  <!-- FLOW 3: Sharing -->
+  <!-- ============================= -->
+  <div class="flow-section">
+    <h2>Flow 3: Sharing — One Upload, Whole Class Gets Notes</h2>
+    <p class="desc">The viral growth loop. One student uploads, shares via WhatsApp, classmates join.</p>
+
+    <div class="flow">
+      <div class="node node-success">
+        <span class="node-label label-success">START</span>
+        <h4>Student A's Notes are Ready</h4>
+        <p>Pharmacology lecture processed. Notes look great.</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node node-action">
+        <span class="node-label label-action">ACTION</span>
+        <h4>Tap "Share Notes"</h4>
+        <p>Gets a share link or class code. Sends via WhatsApp.</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node node-user">
+        <span class="node-label label-user">OTHER USER</span>
+        <h4>Student B Opens Link</h4>
+        <p>Sees notes preview. Prompted to sign up for full access.</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node node-screen">
+        <span class="node-label label-screen">SCREEN</span>
+        <h4>Sign Up (from share)</h4>
+        <p>Quick Google sign-in. Automatically joined to the shared lecture.</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node node-success">
+        <span class="node-label label-success">RESULT</span>
+        <h4>Student B Gets Notes</h4>
+        <p>Same notes, zero API cost. Can use Explain This and Learn Mode.</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div><div class="arrow-label">repeats for every classmate</div></div>
+
+      <div class="node node-user" style="background:#E8F5E9;border-color:#4CAF50;">
+        <span class="node-label label-success">GROWTH</span>
+        <h4>200 Students Join from 1 Upload</h4>
+        <p>Cost: ₦320 once. Value: 200 new users. This is your growth engine.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ============================= -->
+  <!-- FLOW 4: Upgrade -->
+  <!-- ============================= -->
+  <div class="flow-section">
+    <h2>Flow 4: Free → Paid Upgrade</h2>
+    <p class="desc">What happens when a free user hits their limit.</p>
+
+    <div class="flow">
+      <div class="node node-screen">
+        <span class="node-label label-screen">SCREEN</span>
+        <h4>Upload Page</h4>
+        <p>Student tries to upload 3rd lecture this month</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node node-decision">
+        <span class="node-label label-decision">LIMIT CHECK</span>
+        <h4>Free Limit Reached (2/2)</h4>
+        <p>"You've used all your free lectures this month"</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node node-screen">
+        <span class="node-label label-screen">SCREEN</span>
+        <h4>Upgrade Prompt</h4>
+        <p>"Upgrade to Standard for ₦1,500/month and get 10 lectures"</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node node-screen">
+        <span class="node-label label-screen">SCREEN</span>
+        <h4>Pricing Page</h4>
+        <p>Compare plans. Select Standard or Pro.</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node node-api">
+        <span class="node-label label-api">PAYMENT</span>
+        <h4>Paystack Checkout</h4>
+        <p>Card, bank transfer, or USSD. Naira payment.</p>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+      <div class="node node-success">
+        <span class="node-label label-success">SUCCESS</span>
+        <h4>Plan Upgraded!</h4>
+        <p>Redirected back to upload page. 10 lectures now available.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ============================= -->
+  <!-- SCREEN MAP -->
+  <!-- ============================= -->
+  <div class="flow-section">
+    <h2>Complete Screen Map</h2>
+    <p class="desc">Every screen in the app and how they connect.</p>
+
+    <table class="summary-table">
+      <tr>
+        <th>Screen</th>
+        <th>User Gets Here By...</th>
+        <th>User Can Go To...</th>
+        <th>Key Actions</th>
+      </tr>
+      <tr>
+        <td><strong>Landing Page</strong></td>
+        <td>Direct URL / first visit</td>
+        <td>Sign Up, Sign In, Pricing</td>
+        <td>Learn about Lectly, start sign up</td>
+      </tr>
+      <tr>
+        <td><strong>Sign Up</strong></td>
+        <td>Landing page CTA</td>
+        <td>Dashboard</td>
+        <td>Create account (Google/Apple/email)</td>
+      </tr>
+      <tr>
+        <td><strong>Sign In</strong></td>
+        <td>Landing page nav, or returning user</td>
+        <td>Dashboard</td>
+        <td>Log in to existing account</td>
+      </tr>
+      <tr>
+        <td><strong>Dashboard</strong></td>
+        <td>After sign in, bottom nav (Home)</td>
+        <td>Upload, Notes Viewer, Profile, Pricing</td>
+        <td>See stats, browse lectures, search</td>
+      </tr>
+      <tr>
+        <td><strong>Upload</strong></td>
+        <td>Dashboard button, bottom nav</td>
+        <td>Processing → Notes Viewer</td>
+        <td>Upload audio, select subject, add class code</td>
+      </tr>
+      <tr>
+        <td><strong>Processing</strong></td>
+        <td>After upload (automatic)</td>
+        <td>Notes Viewer (when done)</td>
+        <td>Wait, watch progress steps</td>
+      </tr>
+      <tr>
+        <td><strong>Notes Viewer</strong></td>
+        <td>Processing complete, or lecture list</td>
+        <td>Learn Mode, Dashboard, Share</td>
+        <td>Read notes, Explain This, flag issues, edit, share</td>
+      </tr>
+      <tr>
+        <td><strong>Learn Mode</strong></td>
+        <td>Notes Viewer button</td>
+        <td>Back to Notes Viewer</td>
+        <td>Read lesson, attempt quiz, see results</td>
+      </tr>
+      <tr>
+        <td><strong>Profile</strong></td>
+        <td>Bottom nav, top nav</td>
+        <td>Pricing, Dashboard</td>
+        <td>Edit info, see usage, manage subscription</td>
+      </tr>
+      <tr>
+        <td><strong>Pricing</strong></td>
+        <td>Landing page, profile, upgrade prompt</td>
+        <td>Paystack checkout → Dashboard</td>
+        <td>Compare plans, upgrade</td>
+      </tr>
+    </table>
+  </div>
+
+</div>
+
+<div style="padding:40px;text-align:center;color:#999;font-size:13px;border-top:2px solid #EEE;">
+  Lectly App Flow — Option A: Simple Flow Chart · 4 user flows + complete screen map
+</div>
+
+</body>
+</html>

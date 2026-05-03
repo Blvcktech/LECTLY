@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lectly App Flow — Option B: Interactive Visual Map</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:#0F172A;
+    color:#E2E8F0;
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+
+  /* ── Header ── */
+  .header{
+    text-align:center;
+    padding:40px 20px 10px;
+  }
+  .header h1{
+    font-size:28px;
+    font-weight:700;
+    background:linear-gradient(135deg,#3B82F6,#8B5CF6);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    letter-spacing:-0.5px;
+  }
+  .header p{
+    color:#94A3B8;
+    margin-top:8px;
+    font-size:14px;
+  }
+
+  /* ── Legend ── */
+  .legend{
+    display:flex;
+    justify-content:center;
+    gap:20px;
+    flex-wrap:wrap;
+    padding:16px 20px 30px;
+  }
+  .legend-item{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+    color:#94A3B8;
+  }
+  .legend-dot{
+    width:10px;height:10px;border-radius:50%;
+  }
+
+  /* ── Canvas ── */
+  .canvas-wrapper{
+    position:relative;
+    width:1200px;
+    max-width:100%;
+    margin:0 auto;
+    padding:0 20px;
+    overflow-x:auto;
+  }
+  .canvas{
+    position:relative;
+    width:1160px;
+    height:720px;
+  }
+
+  /* ── SVG connections ── */
+  .connections-svg{
+    position:absolute;
+    top:0;left:0;
+    width:100%;height:100%;
+    pointer-events:none;
+    z-index:1;
+  }
+  .conn-line{
+    stroke:#334155;
+    stroke-width:2;
+    fill:none;
+    transition:stroke 0.3s, stroke-width 0.3s;
+  }
+  .conn-line.highlighted{
+    stroke:#3B82F6;
+    stroke-width:3;
+  }
+  .conn-line.growth{
+    stroke:#22C55E;
+    stroke-dasharray:6 4;
+  }
+  .conn-arrow{
+    fill:#334155;
+    transition:fill 0.3s;
+  }
+  .conn-arrow.highlighted{
+    fill:#3B82F6;
+  }
+
+  /* ── Nodes ── */
+  .node{
+    position:absolute;
+    width:150px;
+    background:#1E293B;
+    border:1px solid #334155;
+    border-radius:12px;
+    padding:16px 14px;
+    text-align:center;
+    cursor:pointer;
+    z-index:2;
+    transition:transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+  }
+  .node:hover{
+    transform:translateY(-4px) scale(1.04);
+    border-color:#3B82F6;
+    box-shadow:0 0 20px rgba(59,130,246,0.25), 0 8px 30px rgba(0,0,0,0.4);
+    z-index:10;
+  }
+  .node.cat-core{border-left:3px solid #3B82F6}
+  .node.cat-success{border-left:3px solid #22C55E}
+  .node.cat-api{border-left:3px solid #F97316}
+  .node.cat-decision{border-left:3px solid #A855F7}
+  .node.cat-action{border-left:3px solid #EAB308}
+
+  .node-icon{font-size:28px;margin-bottom:6px;display:block}
+  .node-name{font-size:13px;font-weight:600;color:#F1F5F9;line-height:1.3}
+  .node-desc{font-size:10px;color:#94A3B8;margin-top:4px}
+
+  /* ── Tooltip ── */
+  .tooltip{
+    position:fixed;
+    width:300px;
+    background:#1E293B;
+    border:1px solid #475569;
+    border-radius:14px;
+    padding:20px;
+    box-shadow:0 16px 48px rgba(0,0,0,0.6);
+    z-index:1000;
+    pointer-events:none;
+    opacity:0;
+    transform:translateY(8px);
+    transition:opacity 0.2s, transform 0.2s;
+  }
+  .tooltip.visible{
+    opacity:1;
+    transform:translateY(0);
+  }
+  .tooltip-header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .tooltip-icon{font-size:32px}
+  .tooltip-title{font-size:16px;font-weight:700;color:#F8FAFC}
+  .tooltip-body{font-size:12px;color:#CBD5E1;line-height:1.6}
+  .tooltip-section{margin-top:12px}
+  .tooltip-section-title{
+    font-size:10px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:#64748B;
+    margin-bottom:4px;
+  }
+  .tooltip-api{color:#F97316}
+  .tooltip-cost{
+    display:inline-block;
+    background:#F9731622;
+    color:#F97316;
+    padding:2px 8px;
+    border-radius:6px;
+    font-size:11px;
+    font-weight:600;
+    margin-top:4px;
+  }
+  .tooltip-nav{
+    display:flex;
+    flex-wrap:wrap;
+    gap:4px;
+    margin-top:4px;
+  }
+  .tooltip-nav span{
+    background:#334155;
+    color:#94A3B8;
+    padding:2px 8px;
+    border-radius:6px;
+    font-size:10px;
+  }
+
+  /* ── Summary Panels ── */
+  .summary-section{
+    display:flex;
+    gap:24px;
+    max-width:1160px;
+    margin:50px auto 60px;
+    padding:0 20px;
+    flex-wrap:wrap;
+  }
+  .summary-panel{
+    flex:1;
+    min-width:300px;
+    background:#1E293B;
+    border:1px solid #334155;
+    border-radius:16px;
+    padding:28px;
+  }
+  .summary-panel h2{
+    font-size:18px;
+    font-weight:700;
+    margin-bottom:16px;
+  }
+  .summary-panel.money h2{color:#F97316}
+  .summary-panel.growth h2{color:#22C55E}
+
+  .money-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px 0;
+    border-bottom:1px solid #1a2744;
+    font-size:13px;
+  }
+  .money-row:last-child{border-bottom:none;font-weight:700;color:#F97316}
+  .money-label{color:#CBD5E1}
+  .money-cost{color:#F97316;font-weight:600}
+
+  .growth-step{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px 0;
+  }
+  .growth-num{
+    width:28px;height:28px;
+    background:#22C55E22;
+    color:#22C55E;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:700;
+    flex-shrink:0;
+  }
+  .growth-text{font-size:13px;color:#CBD5E1;line-height:1.5}
+  .growth-text strong{color:#22C55E}
+
+  /* ── Footer ── */
+  .footer{
+    text-align:center;
+    padding:20px;
+    color:#475569;
+    font-size:11px;
+    border-top:1px solid #1E293B;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Lectly App Flow &mdash; Option B: Interactive Visual Map</h1>
+  <p>Hover over any screen to see details, API calls, and navigation paths</p>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#3B82F6"></div> Core Screen</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#22C55E"></div> Success State</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#F97316"></div> API Call</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#A855F7"></div> Decision Point</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#EAB308"></div> User Action</div>
+</div>
+
+<div class="canvas-wrapper">
+  <div class="canvas" id="canvas">
+    <svg class="connections-svg" id="svg"></svg>
+    <!-- Nodes injected by JS -->
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip">
+  <div class="tooltip-header">
+    <span class="tooltip-icon" id="tt-icon"></span>
+    <span class="tooltip-title" id="tt-title"></span>
+  </div>
+  <div class="tooltip-body" id="tt-body"></div>
+  <div class="tooltip-section" id="tt-api-section">
+    <div class="tooltip-section-title">API Calls</div>
+    <div class="tooltip-api" id="tt-api"></div>
+    <div class="tooltip-cost" id="tt-cost"></div>
+  </div>
+  <div class="tooltip-section">
+    <div class="tooltip-section-title">Navigate To</div>
+    <div class="tooltip-nav" id="tt-nav"></div>
+  </div>
+</div>
+
+<!-- Summary -->
+<div class="summary-section">
+  <div class="summary-panel money">
+    <h2>The Money Trail</h2>
+    <div class="money-row"><span class="money-label">Upload &amp; Processing (GPT-4o)</span><span class="money-cost">~$0.02 - $0.08</span></div>
+    <div class="money-row"><span class="money-label">Learn Mode quiz generation</span><span class="money-cost">~$0.01 - $0.03</span></div>
+    <div class="money-row"><span class="money-label">Explain This (per question)</span><span class="money-cost">~$0.005 - $0.01</span></div>
+    <div class="money-row"><span class="money-label">Share link generation</span><span class="money-cost">Free (internal)</span></div>
+    <div class="money-row"><span class="money-label">Total per full session</span><span class="money-cost">~$0.04 - $0.12</span></div>
+  </div>
+  <div class="summary-panel growth">
+    <h2>The Growth Loop</h2>
+    <div class="growth-step"><div class="growth-num">1</div><div class="growth-text">User creates notes from a lecture in <strong>Notes Viewer</strong></div></div>
+    <div class="growth-step"><div class="growth-num">2</div><div class="growth-text">Taps <strong>Share</strong> to generate a unique link</div></div>
+    <div class="growth-step"><div class="growth-num">3</div><div class="growth-text">Sends link via <strong>WhatsApp</strong> to classmates</div></div>
+    <div class="growth-step"><div class="growth-num">4</div><div class="growth-text">New user opens link, sees notes preview, hits <strong>Sign Up</strong></div></div>
+    <div class="growth-step"><div class="growth-num">5</div><div class="growth-text">New user uploads their own lecture &mdash; <strong>loop repeats</strong></div></div>
+  </div>
+</div>
+
+<div class="footer">Lectly &mdash; App Flow Diagram &mdash; Option B: Interactive Visual Map</div>
+
+<script>
+// ── Node data ──
+const nodes = [
+  {
+    id:'landing', icon:'🏠', name:'Landing Page', desc:'First impression',
+    cat:'core', x:30, y:40,
+    detail:'Marketing landing page with hero section, feature highlights, social proof, and CTA. Optimized for mobile-first university students.',
+    api:null, cost:null,
+    nav:['Sign Up','Sign In','Pricing']
+  },
+  {
+    id:'signup', icon:'✍️', name:'Sign Up / Sign In', desc:'Auth gateway',
+    cat:'action', x:230, y:40,
+    detail:'Email + password or Google OAuth. Collects university name for analytics. Returns JWT token stored in secure cookie.',
+    api:'POST /auth/register, POST /auth/login, Google OAuth2', cost:null,
+    nav:['Dashboard']
+  },
+  {
+    id:'dashboard', icon:'📋', name:'Dashboard', desc:'Home base',
+    cat:'core', x:80, y:220,
+    detail:'Shows all uploaded lectures as cards with status indicators. Recent notes, quick upload button, usage stats. Sorted by most recent.',
+    api:'GET /notes (paginated)', cost:null,
+    nav:['Upload','Notes Viewer','Profile','Pricing']
+  },
+  {
+    id:'upload', icon:'📤', name:'Upload', desc:'Add content',
+    cat:'action', x:310, y:220,
+    detail:'Drag-and-drop or tap to upload lecture recordings (audio/video). Supports MP3, M4A, MP4, WAV up to 120 min. Shows progress bar.',
+    api:'POST /upload (multipart), Cloudflare R2 storage', cost:null,
+    nav:['Processing']
+  },
+  {
+    id:'processing', icon:'⚙️', name:'Processing', desc:'AI pipeline',
+    cat:'api', x:530, y:220,
+    detail:'Three-stage pipeline: (1) Whisper transcription, (2) GPT-4o structuring into topic-based notes with headers, (3) Key concept extraction. User sees animated progress.',
+    api:'Whisper API, GPT-4o (structuring + extraction)', cost:'~$0.02 - $0.08 per lecture',
+    nav:['Notes Viewer']
+  },
+  {
+    id:'notes', icon:'📝', name:'Notes Viewer', desc:'Core product',
+    cat:'success', x:760, y:220,
+    detail:'Beautiful rendered notes with topic headers, bullet points, key terms highlighted. Supports scroll, search, and section collapse. This is the "aha moment" screen.',
+    api:'GET /notes/:id', cost:null,
+    nav:['Learn Mode','Explain This','Share','Dashboard']
+  },
+  {
+    id:'learn', icon:'🧠', name:'Learn Mode', desc:'Active recall',
+    cat:'api', x:880, y:400,
+    detail:'AI generates flashcard-style questions from the notes. Spaced repetition scoring. Tracks which concepts need review. Gamified with streaks.',
+    api:'POST /learn/generate (GPT-4o)', cost:'~$0.01 - $0.03 per session',
+    nav:['Notes Viewer']
+  },
+  {
+    id:'explain', icon:'💡', name:'Explain This', desc:'Inline popup',
+    cat:'api', x:620, y:400,
+    detail:'User highlights any text and taps "Explain This". GPT-4o returns a simplified explanation, analogy, or example. Appears as an inline popup overlay.',
+    api:'POST /explain (GPT-4o)', cost:'~$0.005 - $0.01 per question',
+    nav:['Notes Viewer']
+  },
+  {
+    id:'share', icon:'🔗', name:'Share', desc:'Generate link',
+    cat:'success', x:760, y:400,
+    detail:'Generates a unique shareable link to a read-only version of the notes. Tracks click-throughs for growth analytics. No API cost — internal route only.',
+    api:'POST /share/create (internal)', cost:'Free',
+    nav:['WhatsApp Link']
+  },
+  {
+    id:'whatsapp', icon:'💬', name:'WhatsApp Link', desc:'Viral channel',
+    cat:'success', x:760, y:555,
+    detail:'Pre-formatted WhatsApp share with preview text: "Check out my lecture notes on [Topic]!" Deep link opens the shared notes with a sign-up prompt for full access.',
+    api:null, cost:null,
+    nav:['New User Sign Up']
+  },
+  {
+    id:'newuser', icon:'🔄', name:'New User Sign Up', desc:'Growth loop',
+    cat:'success', x:470, y:555,
+    detail:'New user arrives via shared link. Sees read-only notes preview with a blurred section and CTA: "Sign up to get full notes + make your own." Completes the viral loop.',
+    api:null, cost:null,
+    nav:['Sign Up']
+  },
+  {
+    id:'profile', icon:'👤', name:'Profile', desc:'User settings',
+    cat:'core', x:30, y:400,
+    detail:'University, display name, notification preferences, usage history. Shows total notes created, study streak, and subscription tier.',
+    api:'GET /user/profile, PUT /user/profile', cost:null,
+    nav:['Dashboard','Pricing']
+  },
+  {
+    id:'pricing', icon:'💎', name:'Pricing', desc:'Monetization',
+    cat:'decision', x:30, y:555,
+    detail:'Free tier (3 lectures/month) vs Pro ($5.99/month unlimited). Comparison table, FAQ, and Stripe checkout. Student discount available.',
+    api:'POST /checkout (Stripe)', cost:null,
+    nav:['Dashboard','Sign Up']
+  }
+];
+
+// ── Connections ──
+const connections = [
+  {from:'landing', to:'signup', growth:false},
+  {from:'signup', to:'dashboard', growth:false},
+  {from:'dashboard', to:'upload', growth:false},
+  {from:'upload', to:'processing', growth:false},
+  {from:'processing', to:'notes', growth:false},
+  {from:'notes', to:'learn', growth:false},
+  {from:'notes', to:'explain', growth:false},
+  {from:'notes', to:'share', growth:true},
+  {from:'share', to:'whatsapp', growth:true},
+  {from:'whatsapp', to:'newuser', growth:true},
+  {from:'newuser', to:'signup', growth:true},
+  {from:'dashboard', to:'profile', growth:false},
+  {from:'profile', to:'pricing', growth:false},
+  {from:'dashboard', to:'pricing', growth:false},
+  {from:'learn', to:'notes', growth:false},
+  {from:'explain', to:'notes', growth:false},
+];
+
+// ── Render nodes ──
+const canvas = document.getElementById('canvas');
+const svg = document.getElementById('svg');
+const tooltip = document.getElementById('tooltip');
+
+const catClass = {core:'cat-core',success:'cat-success',api:'cat-api',decision:'cat-decision',action:'cat-action'};
+
+const nodeEls = {};
+nodes.forEach(n => {
+  const el = document.createElement('div');
+  el.className = 'node ' + (catClass[n.cat]||'');
+  el.style.left = n.x + 'px';
+  el.style.top = n.y + 'px';
+  el.dataset.id = n.id;
+  el.innerHTML = `<span class="node-icon">${n.icon}</span><div class="node-name">${n.name}</div><div class="node-desc">${n.desc}</div>`;
+  canvas.appendChild(el);
+  nodeEls[n.id] = el;
+});
+
+// ── Draw SVG lines ──
+function getCenter(el){
+  const r = el.getBoundingClientRect();
+  const cr = canvas.getBoundingClientRect();
+  return { x: r.left - cr.left + r.width/2, y: r.top - cr.top + r.height/2 };
+}
+
+function drawConnections(){
+  svg.innerHTML = '<defs><marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" class="conn-arrow"/></marker><marker id="ah-hl" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" class="conn-arrow highlighted"/></marker><marker id="ah-gr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#22C55E"/></marker></defs>';
+
+  connections.forEach((c,i) => {
+    const fromEl = nodeEls[c.from];
+    const toEl = nodeEls[c.to];
+    if(!fromEl || !toEl) return;
+
+    const a = getCenter(fromEl);
+    const b = getCenter(toEl);
+
+    // Shorten line so arrow doesn't overlap node
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    const shrink = 40;
+    const ux = dx/dist, uy = dy/dist;
+    const ax = a.x + ux*shrink, ay = a.y + uy*shrink;
+    const bx = b.x - ux*shrink, by = b.y - uy*shrink;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg','line');
+    path.setAttribute('x1', ax);
+    path.setAttribute('y1', ay);
+    path.setAttribute('x2', bx);
+    path.setAttribute('y2', by);
+    path.classList.add('conn-line');
+    if(c.growth) path.classList.add('growth');
+    path.setAttribute('marker-end', c.growth ? 'url(#ah-gr)' : 'url(#ah)');
+    path.dataset.from = c.from;
+    path.dataset.to = c.to;
+    svg.appendChild(path);
+  });
+}
+
+drawConnections();
+window.addEventListener('resize', drawConnections);
+
+// ── Tooltip logic ──
+nodes.forEach(n => {
+  const el = nodeEls[n.id];
+
+  el.addEventListener('mouseenter', e => {
+    // Fill tooltip
+    document.getElementById('tt-icon').textContent = n.icon;
+    document.getElementById('tt-title').textContent = n.name;
+    document.getElementById('tt-body').textContent = n.detail;
+
+    const apiSection = document.getElementById('tt-api-section');
+    if(n.api){
+      apiSection.style.display = 'block';
+      document.getElementById('tt-api').textContent = n.api;
+      document.getElementById('tt-cost').textContent = n.cost || 'No direct cost';
+      document.getElementById('tt-cost').style.display = n.cost ? 'inline-block' : 'none';
+    } else {
+      apiSection.style.display = 'none';
+    }
+
+    const navContainer = document.getElementById('tt-nav');
+    navContainer.innerHTML = '';
+    (n.nav||[]).forEach(t => {
+      const s = document.createElement('span');
+      s.textContent = t;
+      navContainer.appendChild(s);
+    });
+
+    // Highlight connected lines
+    svg.querySelectorAll('.conn-line').forEach(line => {
+      if(line.dataset.from === n.id || line.dataset.to === n.id){
+        if(!line.classList.contains('growth')){
+          line.classList.add('highlighted');
+          line.setAttribute('marker-end','url(#ah-hl)');
+        }
+      }
+    });
+
+    tooltip.classList.add('visible');
+  });
+
+  el.addEventListener('mousemove', e => {
+    let tx = e.clientX + 16;
+    let ty = e.clientY + 16;
+    if(tx + 320 > window.innerWidth) tx = e.clientX - 316;
+    if(ty + 300 > window.innerHeight) ty = e.clientY - 300;
+    tooltip.style.left = tx + 'px';
+    tooltip.style.top = ty + 'px';
+  });
+
+  el.addEventListener('mouseleave', () => {
+    tooltip.classList.remove('visible');
+    svg.querySelectorAll('.conn-line.highlighted').forEach(line => {
+      line.classList.remove('highlighted');
+      line.setAttribute('marker-end','url(#ah)');
+    });
+  });
+});
+</script>
+</body>
+</html>

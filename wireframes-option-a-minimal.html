@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lectly Wireframes — Option A: Minimal</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; background: #F5F5F5; color: #222; }
+
+  /* Header */
+  .page-header { background: #fff; border-bottom: 2px solid #E0E0E0; padding: 20px 40px; position: sticky; top: 0; z-index: 100; }
+  .page-header h1 { font-size: 22px; font-weight: 700; }
+  .page-header p { font-size: 13px; color: #888; margin-top: 4px; }
+
+  /* Navigation */
+  .screen-nav { background: #fff; border-bottom: 1px solid #E0E0E0; padding: 12px 40px; display: flex; gap: 8px; flex-wrap: wrap; position: sticky; top: 68px; z-index: 99; }
+  .screen-nav a { padding: 6px 14px; border-radius: 20px; font-size: 13px; text-decoration: none; color: #555; border: 1px solid #DDD; transition: all 0.2s; }
+  .screen-nav a:hover, .screen-nav a.active { background: #222; color: #fff; border-color: #222; }
+
+  /* Screen Section */
+  .screen-section { padding: 40px; max-width: 1400px; margin: 0 auto; }
+  .screen-section h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; padding-top: 20px; }
+  .screen-section .desc { font-size: 14px; color: #666; margin-bottom: 24px; }
+
+  /* Device Frames */
+  .device-row { display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 60px; }
+  .device-frame { background: #fff; border: 2px solid #CCC; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .device-label { text-align: center; font-size: 12px; color: #999; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+
+  /* Mobile Frame */
+  .mobile-frame { width: 375px; min-height: 700px; }
+
+  /* Desktop Frame */
+  .desktop-frame { width: 900px; min-height: 500px; }
+
+  /* Wireframe Elements */
+  .wf-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1.5px solid #DDD; }
+  .wf-logo { display: flex; align-items: center; gap: 8px; }
+  .wf-logo-icon { width: 28px; height: 28px; border-radius: 6px; border: 2px solid #888; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .wf-logo-text { font-weight: 700; font-size: 16px; }
+  .wf-nav-links { display: flex; gap: 16px; font-size: 13px; color: #888; }
+  .wf-nav-btn { padding: 6px 14px; border: 1.5px solid #888; border-radius: 8px; font-size: 12px; font-weight: 600; }
+
+  .wf-hero { padding: 32px 20px; text-align: center; }
+  .wf-hero h3 { font-size: 22px; font-weight: 800; margin-bottom: 8px; line-height: 1.3; }
+  .wf-hero p { font-size: 13px; color: #777; margin-bottom: 20px; line-height: 1.5; }
+  .wf-btn { display: inline-block; padding: 12px 28px; border: 2px solid #222; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; }
+  .wf-btn-filled { background: #222; color: #fff; }
+  .wf-btn-outline { background: transparent; color: #222; }
+
+  .wf-section { padding: 24px 20px; }
+  .wf-section h4 { font-size: 15px; font-weight: 700; margin-bottom: 12px; text-align: center; }
+
+  /* Placeholder boxes */
+  .wf-placeholder { border: 1.5px dashed #BBB; border-radius: 10px; padding: 20px; text-align: center; color: #999; font-size: 12px; margin-bottom: 12px; }
+  .wf-placeholder.tall { min-height: 160px; display: flex; align-items: center; justify-content: center; }
+
+  /* Card grid */
+  .wf-card-grid { display: grid; gap: 12px; }
+  .wf-card-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .wf-card-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .wf-card { border: 1.5px solid #DDD; border-radius: 10px; padding: 16px; }
+  .wf-card h5 { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .wf-card p { font-size: 11px; color: #888; line-height: 1.4; }
+
+  /* Steps */
+  .wf-steps { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; padding: 8px 0; }
+  .wf-step { text-align: center; flex: 1; min-width: 80px; }
+  .wf-step-num { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #888; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-weight: 700; font-size: 14px; }
+  .wf-step-label { font-size: 11px; color: #666; }
+
+  /* Upload zone */
+  .wf-upload-zone { border: 2px dashed #BBB; border-radius: 12px; padding: 40px 20px; text-align: center; margin: 16px 0; }
+  .wf-upload-zone .icon { font-size: 32px; margin-bottom: 12px; }
+  .wf-upload-zone p { font-size: 13px; color: #777; }
+  .wf-upload-zone .formats { font-size: 11px; color: #AAA; margin-top: 8px; }
+
+  /* Form elements */
+  .wf-select { width: 100%; padding: 10px 14px; border: 1.5px solid #CCC; border-radius: 8px; font-size: 13px; margin: 8px 0; background: #FAFAFA; }
+
+  /* Notes viewer */
+  .wf-notes-layout { display: flex; gap: 0; min-height: 400px; }
+  .wf-sidebar { width: 220px; border-right: 1.5px solid #DDD; padding: 16px; flex-shrink: 0; }
+  .wf-sidebar-item { padding: 8px 12px; font-size: 12px; border-radius: 6px; margin-bottom: 4px; cursor: pointer; }
+  .wf-sidebar-item.active { background: #EEE; font-weight: 600; }
+  .wf-main-content { flex: 1; padding: 20px; }
+  .wf-main-content h3 { font-size: 18px; margin-bottom: 12px; }
+
+  /* Key points */
+  .wf-key-point { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; font-size: 12px; color: #555; }
+  .wf-key-point .dot { width: 6px; height: 6px; border-radius: 50%; background: #888; margin-top: 5px; flex-shrink: 0; }
+
+  /* Definition */
+  .wf-definition { border-left: 3px solid #CCC; padding: 8px 12px; margin: 8px 0; font-size: 12px; }
+  .wf-definition strong { font-size: 12px; }
+
+  /* Stats */
+  .wf-stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+  .wf-stat { border: 1.5px solid #DDD; border-radius: 10px; padding: 16px; text-align: center; }
+  .wf-stat .num { font-size: 24px; font-weight: 800; }
+  .wf-stat .label { font-size: 11px; color: #888; margin-top: 4px; }
+
+  /* Lecture list */
+  .wf-lecture-item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1.5px solid #DDD; border-radius: 10px; margin-bottom: 8px; }
+  .wf-lecture-icon { width: 40px; height: 40px; border-radius: 8px; border: 1.5px solid #CCC; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .wf-lecture-info { flex: 1; }
+  .wf-lecture-info h5 { font-size: 13px; font-weight: 600; }
+  .wf-lecture-info p { font-size: 11px; color: #888; }
+  .wf-badge { padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; border: 1px solid #CCC; }
+
+  /* Pricing */
+  .wf-pricing-grid { display: grid; gap: 16px; }
+  .wf-pricing-card { border: 1.5px solid #DDD; border-radius: 12px; padding: 20px; text-align: center; }
+  .wf-pricing-card.featured { border-color: #222; border-width: 2.5px; }
+  .wf-pricing-card h5 { font-size: 14px; font-weight: 700; }
+  .wf-pricing-card .price { font-size: 28px; font-weight: 800; margin: 8px 0; }
+  .wf-pricing-card .period { font-size: 12px; color: #888; }
+  .wf-pricing-card ul { list-style: none; text-align: left; margin: 16px 0; }
+  .wf-pricing-card li { font-size: 12px; padding: 4px 0; color: #555; }
+  .wf-pricing-card li::before { content: "✓ "; font-weight: 700; }
+
+  /* Learn Mode */
+  .wf-learn-panel { border: 1.5px solid #DDD; border-radius: 10px; padding: 16px; margin: 12px 0; }
+  .wf-quiz-option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1.5px solid #DDD; border-radius: 8px; margin-bottom: 6px; font-size: 12px; }
+  .wf-quiz-radio { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #999; flex-shrink: 0; }
+
+  /* Bottom nav (mobile) */
+  .wf-bottom-nav { display: flex; justify-content: space-around; padding: 10px 0; border-top: 1.5px solid #DDD; background: #fff; }
+  .wf-bottom-nav-item { text-align: center; font-size: 10px; color: #888; }
+  .wf-bottom-nav-item .icon { font-size: 20px; margin-bottom: 2px; }
+  .wf-bottom-nav-item.active { color: #222; font-weight: 600; }
+
+  /* Tag */
+  .wf-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; border: 1px solid #CCC; color: #777; margin-left: 6px; }
+
+  /* Search bar */
+  .wf-search { width: 100%; padding: 10px 14px; border: 1.5px solid #CCC; border-radius: 8px; font-size: 13px; margin-bottom: 16px; background: #FAFAFA; }
+
+  /* Mobile tab bar */
+  .wf-tabs { display: flex; border-bottom: 1.5px solid #DDD; }
+  .wf-tab { flex: 1; text-align: center; padding: 10px; font-size: 12px; font-weight: 600; color: #888; border-bottom: 2px solid transparent; }
+  .wf-tab.active { color: #222; border-bottom-color: #222; }
+
+  /* Separator */
+  .wf-divider { border: none; border-top: 1px solid #EEE; margin: 16px 0; }
+
+  /* Explain This popup */
+  .wf-explain-popup { border: 1.5px solid #DDD; border-radius: 10px; padding: 16px; margin: 12px 0; background: #FAFAFA; }
+  .wf-explain-popup h5 { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .wf-explain-popup p { font-size: 12px; color: #555; line-height: 1.5; }
+
+  /* Profile */
+  .wf-avatar { width: 64px; height: 64px; border-radius: 50%; border: 2px solid #CCC; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 12px; }
+  .wf-input { width: 100%; padding: 10px 14px; border: 1.5px solid #CCC; border-radius: 8px; font-size: 13px; margin-bottom: 10px; }
+  .wf-input-label { font-size: 12px; font-weight: 600; color: #555; margin-bottom: 4px; display: block; }
+
+  @media (max-width: 900px) {
+    .device-row { flex-direction: column; align-items: center; }
+    .desktop-frame { width: 100%; max-width: 900px; }
+    .screen-section { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Lectly Wireframes — Option A: Clean & Minimal</h1>
+  <p>Black & white wireframes focused on layout, flow, and structure. Mobile + Desktop side by side.</p>
+</div>
+
+<div class="screen-nav">
+  <a href="#landing">Landing Page</a>
+  <a href="#upload">Upload</a>
+  <a href="#processing">Processing</a>
+  <a href="#notes">Notes Viewer</a>
+  <a href="#learn">Learn Mode</a>
+  <a href="#dashboard">Dashboard</a>
+  <a href="#pricing">Pricing</a>
+  <a href="#profile">Profile</a>
+  <a href="#auth">Sign In/Up</a>
+</div>
+
+<!-- ============================== -->
+<!-- 1. LANDING PAGE -->
+<!-- ============================== -->
+<div class="screen-section" id="landing">
+  <h2>1. Landing Page</h2>
+  <p class="desc">First thing users see. Must instantly communicate what Lectly does and make them want to try it.</p>
+
+  <div class="device-row">
+    <!-- Mobile -->
+    <div>
+      <p class="device-label">Mobile (375px)</p>
+      <div class="device-frame mobile-frame">
+        <div class="wf-nav">
+          <div class="wf-logo">
+            <div class="wf-logo-icon">L</div>
+            <span class="wf-logo-text">Lectly</span>
+          </div>
+          <span class="wf-nav-btn">Sign In</span>
+        </div>
+        <div class="wf-hero">
+          <h3>Your Lectures,<br>Actually Understood</h3>
+          <p>Upload a recording. Get structured notes. Learn it back with AI.</p>
+          <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+            <span class="wf-btn wf-btn-filled">Upload Lecture</span>
+            <span class="wf-btn wf-btn-outline">See How It Works</span>
+          </div>
+        </div>
+        <div class="wf-section">
+          <h4>How It Works</h4>
+          <div class="wf-steps">
+            <div class="wf-step"><div class="wf-step-num">1</div><div class="wf-step-label">Upload Audio</div></div>
+            <div class="wf-step"><div class="wf-step-num">2</div><div class="wf-step-label">AI Transcribes</div></div>
+            <div class="wf-step"><div class="wf-step-num">3</div><div class="wf-step-label">Get Notes</div></div>
+          </div>
+        </div>
+        <div class="wf-section">
+          <h4>Features</h4>
+          <div class="wf-card-grid cols-2">
+            <div class="wf-card"><h5>Smart Notes</h5><p>Organized with headings, key points & definitions</p></div>
+            <div class="wf-card"><h5>Explain This</h5><p>Highlight anything confusing, get it simplified</p></div>
+            <div class="wf-card"><h5>Learn Mode</h5><p>AI teaches you step-by-step with quizzes</p></div>
+            <div class="wf-card"><h5>Share Notes</h5><p>One upload, entire class gets the notes</p></div>
+          </div>
+        </div>
+        <div class="wf-section" style="text-align:center;padding:24px 20px;border-top:1.5px solid #DDD;">
+          <h4>Ready to Study Smarter?</h4>
+          <p style="font-size:13px;color:#777;margin:8px 0 16px;">Join thousands of Nigerian students</p>
+          <span class="wf-btn wf-btn-filled">Get Started Free</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Desktop -->
+    <div style="flex:1;">
+      <p class="device-label">Desktop (1200px+)</p>
+      <div class="device-frame desktop-frame">
+        <div class="wf-nav" style="padding:12px 32px;">
+          <div class="wf-logo">
+            <div class="wf-logo-icon">L</div>
+            <span class="wf-logo-text">Lectly</span>
+          </div>
+          <div class="wf-nav-links">
+            <span>Features</span>
+            <span>Pricing</span>
+            <span>How It Works</span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <span class="wf-nav-btn">Sign In</span>
+            <span class="wf-nav-btn" style="background:#222;color:#fff;">Get Started</span>
+          </div>
+        </div>
+        <div class="wf-hero" style="padding:48px 60px;">
+          <h3 style="font-size:32px;">Your Lectures, Actually Understood</h3>
+          <p style="max-width:500px;margin:0 auto 24px;">Upload a recording. Get clean, structured notes. Then let AI teach it back to you step-by-step.</p>
+          <div style="display:flex;gap:12px;justify-content:center;">
+            <span class="wf-btn wf-btn-filled">Upload Your First Lecture</span>
+            <span class="wf-btn wf-btn-outline">Watch Demo</span>
+          </div>
+        </div>
+        <div class="wf-section">
+          <div class="wf-steps" style="max-width:600px;margin:0 auto;">
+            <div class="wf-step"><div class="wf-step-num">1</div><div class="wf-step-label">Upload Audio</div></div>
+            <div class="wf-step"><div class="wf-step-num">2</div><div class="wf-step-label">AI Transcribes</div></div>
+            <div class="wf-step"><div class="wf-step-num">3</div><div class="wf-step-label">Structured Notes</div></div>
+            <div class="wf-step"><div class="wf-step-num">4</div><div class="wf-step-label">Learn & Quiz</div></div>
+          </div>
+        </div>
+        <div class="wf-section" style="padding:24px 60px;">
+          <div class="wf-card-grid cols-3" style="max-width:800px;margin:0 auto;">
+            <div class="wf-card"><h5>Smart Notes</h5><p>Organized headings, key points, definitions</p></div>
+            <div class="wf-card"><h5>Explain This</h5><p>Highlight confusing text, get it simplified</p></div>
+            <div class="wf-card"><h5>Learn Mode</h5><p>AI tutors you with quizzes</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== -->
+<!-- 2. UPLOAD PAGE -->
+<!-- ============================== -->
+<div class="screen-section" id="upload">
+  <h2>2. Upload Page</h2>
+  <p class="desc">Where students upload their lecture recording. Must feel simple and not overwhelming.</p>
+
+  <div class="device-row">
+    <div>
+      <p class="device-label">Mobile</p>
+      <div class="device-frame mobile-frame">
+        <div class="wf-nav">
+          <div class="wf-logo"><div class="wf-logo-icon">L</div><span class="wf-logo-text">Lectly</span></div>
+          <span style="font-size:12px;color:#888;">My Lectures</span>
+        </div>
+        <div style="padding:24px 20px;">
+          <h3 style="font-size:20px;text-align:center;margin-bottom:4px;">Upload Your Lecture</h3>
+          <p style="font-size:13px;color:#777;text-align:center;margin-bottom:20px;">Drop in a recording and we'll handle the rest.</p>
+          <div class="wf-upload-zone">
+            <div class="icon">↑</div>
+            <p><strong>Tap to select audio file</strong></p>
+            <p class="formats">MP3 · WAV · M4A · AAC · OGG</p>
+            <p style="font-size:10px;color:#BBB;margin-top:6px;">Max 500MB · Up to 2 hours</p>
+          </div>
+          <div style="margin-top:16px;">
+            <div class="wf-input-label">Subject (optional)</div>
+            <select class="wf-select">
+              <option>Auto-detect</option>
+            </select>
+          </div>
+          <div style="margin-top:16px;">
+            <div class="wf-input-label">Class Code (optional)</div>
+            <input class="wf-input" placeholder="Share with classmates" />
+          </div>
+        </div>
+        <div class="wf-bottom-nav">
+          <div class="wf-bottom-nav-item"><div class="icon">⌂</div>Home</div>
+          <div class="wf-bottom-nav-item active"><div class="icon">↑</div>Upload</div>
+          <div class="wf-bottom-nav-item"><div class="icon">📚</div>Lectures</div>
+          <div class="wf-bottom-nav-item"><div class="icon">👤</div>Profile</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1;">
+      <p class="device-label">Desktop</p>
+      <div class="device-frame desktop-frame">
+        <div class="wf-nav" style="padding:12px 32px;">
+          <div class="wf-logo"><div class="wf-logo-icon">L</div><span class="wf-logo-text">Lectly</span></div>
+          <div class="wf-nav-links"><span>Dashboard</span><span>My Lectures</span></div>
+          <span class="wf-nav-btn">Account</span>
+        </div>
+        <div style="max-width:600px;margin:40px auto;padding:0 20px;">
+          <h3 style="font-size:24px;text-align:center;margin-bottom:4px;">Upload Your Lecture</h3>
+          <p style="font-size:14px;color:#777;text-align:center;margin-bottom:24px;">Drop in a recording and Lectly will handle the rest.</p>
+          <div class="wf-upload-zone" style="padding:60px 20px;">
+            <div class="icon">↑</div>
+            <p><strong>Drag & drop your audio file here</strong></p>
+            <p style="font-size:13px;color:#999;">or click to browse files</p>
+            <p class="formats">MP3 · WAV · M4A · AAC · OGG</p>
+            <p style="font-size:10px;color:#BBB;margin-top:8px;">Max 500MB · Up to 2 hours</p>
+          </div>
+          <div style="display:flex;gap:16px;margin-top:16px;">
+            <div style="flex:1;">
+              <div class="wf-input-label">Subject</div>
+              <select class="wf-select"><option>Auto-detect</option></select>
+            </div>
+            <div style="flex:1;">
+              <div class="wf-input-label">Class Code (optional)</div>
+              <input class="wf-input" placeholder="Share with classmates" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== -->
+<!-- 3. PROCESSING -->
+<!-- ============================== -->
+<div class="screen-section" id="processing">
+  <h2>3. Processing State</h2>
+  <p class="desc">What students see while their lecture is being transcribed and notes are generated.</p>
+
+  <div class="device-row">
+    <div>
+      <p class="device-label">Mobile</p>
+      <div class="device-frame mobile-frame">
+        <div class="wf-nav">
+          <div class="wf-logo"><div class="wf-logo-icon">L</div><span class="wf-logo-text">Lectly</span></div>
+        </div>
+        <div style="padding:60px 20px;text-align:center;">
+          <div style="font-size:40px;margin-bottom:16px;">⏳</div>
+          <h3 style="font-size:18px;margin-bottom:8px;">Processing Your Lecture...</h3>
+          <p style="font-size:13px;color:#777;margin-bottom:24px;">This may take a few minutes.</p>
+          <div style="text-align:left;max-width:250px;margin:0 auto;">
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;font-size:13px;">
+              <span style="color:green;font-weight:700;">✓</span> Uploading audio
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;font-size:13px;">
+              <span style="font-weight:700;">◎</span> <strong>Transcribing with AI</strong>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;font-size:13px;color:#BBB;">
+              <span>○</span> Generating structured notes
+            </div>
+          </div>
+          <div style="margin-top:24px;">
+            <div style="background:#EEE;border-radius:8px;height:8px;width:100%;max-width:250px;margin:0 auto;">
+              <div style="background:#888;border-radius:8px;height:8px;width:55%;"></div>
+            </div>
+            <p style="font-size:11px;color:#999;margin-top:6px;">pharmacology-lecture-5.mp3</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1;">
+      <p class="device-label">Desktop</p>
+      <div class="device-frame desktop-frame">
+        <div class="wf-nav" style="padding:12px 32px;">
+          <div class="wf-logo"><div class="wf-logo-icon">L</div><span class="wf-logo-text">Lectly</span></div>
+          <div class="wf-nav-links"><span>Dashboard</span><span>My Lectures</span></div>
+          <span class="wf-nav-btn">Account</span>
+        </div>
+        <div style="max-width:500px;margin:60px auto;text-align:center;">
+          <div style="font-size:48px;margin-bottom:16px;">⏳</div>
+          <h3 style="font-size:22px;margin-bottom:8px;">Processing Your Lecture...</h3>
+          <p style="font-size:14px;color:#777;margin-bottom:32px;">This may take a few minutes depending on the lecture length.</p>
+          <div style="text-align:left;max-width:300px;margin:0 auto;">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 0;font-size:14px;">
+              <span style="color:green;font-weight:700;">✓</span> Uploading audio
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 0;font-size:14px;">
+              <span style="font-weight:700;">◎</span> <strong>Transcribing with AI</strong>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 0;font-size:14px;color:#BBB;">
+              <span>○</span> Generating structured notes
+            </div>
+          </div>
+          <div style="margin-top:32px;">
+            <div style="background:#EEE;border-radius:8px;height:8px;max-width:300px;margin:0 auto;">
+              <div style="background:#888;border-radius:8px;height:8px;width:55%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== -->
+<!-- 4. NOTES VIEWER -->
+<!-- ============================== -->
+<div class="screen-section" id="notes">
+  <h2>4. Notes Viewer</h2>
+  <p class="desc">The main screen where students read their structured notes. Includes Explain This feature.</p>
+
+  <div class="device-row">
+    <div>
+      <p class="device-label">Mobile</p>
+      <div class="device-frame mobile-frame">
+        <div class="wf-nav">
+          <div class="wf-logo"><span style="font-size:14px;">← Back</span></div>
+          <span style="font-size:12px;color:#888;">Learn Mode</span>
+        </div>
+        <div class="wf-tabs">
+          <div class="wf-tab active">Notes</div>
+          <div class="wf-tab">Transcript</div>
+          <div class="wf-tab">Quiz</div>
+        </div>
+        <div style="padding:16px 20px;">
+          <h3 style="font-size:18px;margin-bottom:4px;">Pharmacology — Drug Absorption</h3>
+          <div style="display:flex;gap:6px;margin-bottom:16px;">
+            <span class="wf-tag">Medicine</span>
+            <span class="wf-tag">45 min</span>
+            <span class="wf-tag">AI Notes</span>
+          </div>
+
+          <div style="background:#F8F8F8;border-radius:8px;padding:12px;margin-bottom:12px;">
+            <p style="font-size:12px;color:#555;line-height:1.5;"><strong>Summary:</strong> This lecture covers the mechanisms of drug absorption in the GI tract, including passive diffusion, active transport, and factors affecting bioavailability.</p>
+          </div>
+
+          <h4 style="font-size:15px;margin-bottom:8px;">1. Introduction to Drug Absorption</h4>
+          <p style="font-size:12px;color:#555;line-height:1.6;margin-bottom:12px;">Drug absorption refers to the process by which a drug moves from its site of administration to the bloodstream...</p>
+
+          <div style="margin-bottom:12px;">
+            <div class="wf-key-point"><div class="dot"></div><span>Oral administration is the most common route</span></div>
+            <div class="wf-key-point"><div class="dot"></div><span>Absorption primarily occurs in the small intestine</span></div>
+          </div>
+
+          <div class="wf-definition">
+            <strong>Bioavailability:</strong> The fraction of an administered drug that reaches systemic circulation unchanged.
+          </div>
+
+          <div style="margin-top:12px;">
+            <span class="wf-btn wf-btn-outline" style="font-size:12px;padding:8px 16px;">Explain This Section</span>
+          </div>
+
+          <div class="wf-explain-popup" style="margin-top:12px;">
+            <h5>Simplified Explanation</h5>
+            <p>Think of it like food delivery. When you order food (take a pill), it has to travel from the restaurant (your stomach) to your house (your blood). Not all the food arrives hot and fresh — some gets cold or lost on the way. Bioavailability is how much of the food actually arrives good.</p>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <span style="font-size:10px;padding:4px 8px;border:1px solid #CCC;border-radius:4px;">Beginner</span>
+              <span style="font-size:10px;padding:4px 8px;border:1px solid #222;border-radius:4px;background:#222;color:#fff;">Intermediate</span>
+              <span style="font-size:10px;padding:4px 8px;border:1px solid #CCC;border-radius:4px;">Advanced</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1;">
+      <p class="device-label">Desktop</p>
+      <div class="device-frame desktop-frame" style="min-height:600px;">
+        <div class="wf-nav" style="padding:12px 32px;">
+          <div class="wf-logo"><div class="wf-logo-icon">L</div><span class="wf-logo-text">Lectly</span></div>
+          <div class="wf-nav-links"><span>Dashboard</span><span>My Lectures</span></div>
+          <span class="wf-nav-btn">Account</span>
+        </div>
+        <div class="wf-notes-layout">
+          <div class="wf-sidebar">
+            <p style="font-size:11px;color:#999;font-weight:600;margin-bottom:8px;">SECTIONS</p>
+            <div class="wf-sidebar-item active">1. Introduction to Drug Absorption</div>
+            <div class="wf-sidebar-item">2. Passive Diffusion</div>
+            <div class="wf-sidebar-item">3. Active Transport</div>
+            <div class="wf-sidebar-item">4. Factors Affecting Absorption</div>
+            <div class="wf-sidebar-item">5. First-Pass Metabolism</div>
+            <div class="wf-sidebar-item">6. Bioavailability</div>
+            <hr class="wf-divider">
+            <p style="font-size:11px;color:#999;font-weight:600;margin-bottom:8px;">TOOLS</p>
+            <div class="wf-sidebar-item">Full Transcript</div>
+            <div class="wf-sidebar-item">Learn Mode</div>
+            <div class="wf-sidebar-item">Download PDF</div>
+            <div class="wf-sidebar-item">Share Notes</div>
+          </div>
+          <div class="wf-main-content">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <div>
+                <h3 style="margin-bottom:4px;">Pharmacology — Drug Absorption</h3>
+                <div style="display:flex;gap:6px;">
+                  <span class="wf-tag">Medicine</span>
+                  <span class="wf-tag">45 min</span>
+                  <span class="wf-tag">6 sections</span>
+                </div>
+              </div>
+              <span class="wf-btn wf-btn-outline" style="font-size:12px;padding:8px 16px;">Edit Notes</span>
+            </div>
+            <div style="background:#F8F8F8;border-radius:8px;padding:12px 16px;margin-bottom:20px;">
+              <p style="font-size:13px;color:#555;line-height:1.5;"><strong>Summary:</strong> This lecture covers the mechanisms of drug absorption in the GI tract, including passive diffusion, active transport, and factors affecting bioavailability.</p>
+            </div>
+            <h4 style="font-size:16px;margin-bottom:10px;">1. Introduction to Drug Absorption <span class="wf-tag">Original</span></h4>
+            <p style="font-size:13px;color:#555;line-height:1.7;margin-bottom:16px;">Drug absorption refers to the process by which a drug moves from its site of administration to the bloodstream. The rate and extent of absorption depend on the drug's physicochemical properties, the dosage form, and the physiology of the absorption site.</p>
+            <div style="margin-bottom:16px;">
+              <p style="font-size:12px;font-weight:600;margin-bottom:6px;">Key Points:</p>
+              <div class="wf-key-point"><div class="dot"></div><span>Oral administration is the most common route for drug delivery</span></div>
+              <div class="wf-key-point"><div class="dot"></div><span>Absorption primarily occurs in the small intestine due to large surface area</span></div>
+              <div class="wf-key-point"><div class="dot"></div><span>Drug must cross at least one biological membrane to reach systemic circulation</span></div>
+            </div>
+            <div class="wf-definition">
+              <strong>Bioavailability:</strong> The fraction of an administered drug that reaches systemic circulation in unchanged form.
+            </div>
+            <div style="margin-top:16px;">
+              <span class="wf-btn wf-btn-outline" style="font-size:12px;padding:8px 16px;">Explain This Section</span>
+              <span class="wf-btn wf-btn-outline" style="font-size:12px;padding:8px 16px;margin-left:8px;">Flag Issue</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== -->
+<!-- 5. LEARN MODE -->
+<!-- ============================== -->
+<div class="screen-section" id="learn">
+  <h2>5. Learn Mode</h2>
+  <p class="desc">AI teaches the student step-by-step with analogies, examples, and interactive quizzes.</p>
+
+  <div class="device-row">
+    <div>
+      <p class="device-label">Mobile</p>
+      <div class="device-frame mobile-frame">
+        <div class="wf-nav">
+          <span style="font-size:14px;">← Back to Notes</span>
+        </div>
+        <div style="padding:16px 20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="font-size:16px;">Learn: Drug Absorption</h3>
+            <div style="display:flex;gap:4px;">
+              <span style="font-size:10px;padding:3px 8px;border:1px solid #CCC;border-radius:4px;">Easy</span>
+              <span style="font-size:10px;padding:3px 8px;border:1px solid #222;border-radius:4px;background:#222;color:#fff;">Medium</span>
+              <span style="font-size:10px;padding:3px 8px;border:1px solid #CCC;border-radius:4px;">Hard</span>
+            </div>
+          </div>
+
+          <div class="wf-learn-panel">
+            <h5 style="font-size:13px;font-weight:700;margin-bottom:8px;">Step-by-Step Explanation</h5>
+            <p style="font-size:12px;color:#555;line-height:1.6;">When you swallow a pill, it travels to your stomach and then your small intestine. The drug molecules need to pass through the intestinal wall and into your blood vessels...</p>
+          </div>
+
+          <div class="wf-learn-panel">
+            <h5 style="font-size:13px;font-weight:700;margin-bottom:8px;">Real-World Analogy</h5>
+            <p style="font-size:12px;color:#555;line-height:1.6;">Think of your intestine as a security checkpoint at an airport. The drug molecules are passengers trying to get through...</p>
+          </div>
+
+          <div class="wf-learn-panel">
+            <h5 style="font-size:13px;font-weight:700;margin-bottom:8px;">Quick Quiz (1 of 3)</h5>
+            <p style="font-size:12px;color:#555;margin-bottom:10px;">Where does most oral drug absorption occur?</p>
+            <div class="wf-quiz-option"><div class="wf-quiz-radio"></div>Stomach</div>
+            <div class="wf-quiz-option"><div class="wf-quiz-radio"></div>Small intestine</div>
+            <div class="wf-quiz-option"><div class="wf-quiz-radio"></div>Large intestine</div>
+            <div class="wf-quiz-option"><div class="wf-quiz-radio"></div>Esophagus</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1;">
+      <p class="device-label">Desktop</p>
+      <div class="device-frame desktop-frame" style="min-height:550px;">
+        <div class="wf-nav" style="padding:12px 32px;">
+          <div class="wf-logo"><div class="wf-logo-icon">L</div><span class="wf-logo-text">Lectly</span></div>
+          <span style="font-size:14px;color:#888;">← Back to Notes</span>
+          <span class="wf-nav-btn">Account</span>
+        </div>
+        <div style="display:flex;max-width:900px;margin:24px auto;gap:24px;padding:0 24px;">
+          <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <h3 style="font-size:20px;">Learn: Drug Absorption</h3>
+              <div style="display:flex;gap:6px;">
+                <span style="font-size:11px;padding:4px 10px;border:1px solid #CCC;border-radius:4px;">Beginner</span>
+                <span style="font-size:11px;padding:4px 10px;border:1px solid #222;border-radius:4px;background:#222;color:#fff;">Intermediate</span>
+                <span style="font-size:11px;padding:4px 10px;border:1px solid #CCC;border-radius:4px;">Advanced</span>
+              </div>
+            </div>
+            <div class="wf-learn-panel">
+              <h5 style="font-size:14px;font-weight:700;margin-bottom:8px;">Step-by-Step Explanation</h5>
+              <p style="font-size:13px;color:#555;line-height:1.7;">When you swallow a pill, it travels to your stomach and then your small intestine. The drug molecules need to pass through the intestinal wall and into your blood vessels. This is called absorption. The small intestine is the main site because it has a huge surface area — about the size of a tennis court when unfolded.</p>
+            </div>
+            <div class="wf-learn-panel">
+              <h5 style="font-size:14px;font-weight:700;margin-bottom:8px;">Real-World Analogy</h5>
+              <p style="font-size:13px;color:#555;line-height:1.7;">Think of your intestine as a security checkpoint at an airport. The drug molecules are passengers trying to get through. Some walk right through (passive diffusion), while others need a special escort (active transport). The more gates open, the faster everyone gets through — that's why the small intestine, with millions of "gates" (villi), is so efficient.</p>
+            </div>
+            <div class="wf-learn-panel">
+              <h5 style="font-size:14px;font-weight:700;margin-bottom:8px;">Examples</h5>
+              <div class="wf-key-point"><div class="dot"></div><span>Aspirin is absorbed mainly by passive diffusion in the stomach (acidic environment)</span></div>
+              <div class="wf-key-point"><div class="dot"></div><span>Iron supplements use active transport (carrier-mediated)</span></div>
+            </div>
+          </div>
+          <div style="width:300px;flex-shrink:0;">
+            <div class="wf-learn-panel">
+              <h5 style="font-size:14px;font-weight:700;margin-bottom:12px;">Quick Quiz (1 of 3)</h5>
+              <p style="font-size:13px;color:#555;margin-bottom:12px;">Where does most oral drug absorption occur?</p>
+              <div class="wf-quiz-option"><div class="wf-quiz-radio"></div>A. Stomach</div>
+              <div class="wf-quiz-option"><div class="wf-quiz-radio"></div>B. Small intestine</div>
+              <div class="wf-quiz-option"><div class="wf-quiz-radio"></div>C. Large intestine</div>
+              <div class="wf-quiz-option"><div class="wf-quiz-radio"></div>D. Esophagus</div>
+              <div style="margin-top:12px;text-align:center;">
+                <span class="wf-btn wf-btn-filled" style="font-size:12px;padding:8px 20px;">Check Answer</span>
+              </div>
+            </div>
+            <div style="text-align:center;margin-top:12px;">
+              <p style="font-size:12px;color:#888;">Progress: 1 of 3 questions</p>
+              <div style="background:#EEE;border-radius:8px;height:6px;margin-top:6px;">
+                <div style="background:#222;border-radius:8px;height:6px;width:33%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== -->
+<!-- 6. DASHBOARD -->
+<!-- ============================== -->
+<div class="screen-section" id="dashboard">
+  <h2>6. Dashboard</h2>
+  <p class="desc">Student's home base. Shows all their lectures, quick stats, and easy access to everything.</p>
+
+  <div class="device-row">
+    <div>
+      <p class="device-label">Mobile</p>
+      <div class="device-frame mobile-frame">
+        <div class="wf-nav">
+          <div class="wf-logo"><div class="wf-logo-icon">L</div><span class="wf-logo-text">Lectly</span></div>
+          <div style="width:28px;height:28px;border-radius:50%;border:1.5px solid #CCC;display:flex;align-items:center;justify-content:center;font-size:12px;">M</div>
+        </div>
+        <div style="padding:16px 20px;">
+          <h3 style="font-size:18px;margin-bottom:16px;">Welcome back, Menance</h3>
+          <div class="wf-stat-grid">
+            <div class="wf-stat"><div class="num">12</div><div class="label">Lectures</div></div>
+            <div class="wf-stat"><div class="num">8.5h</div><div class="label">Hours Processed</div></div>
+            <div class="wf-stat"><div class="num">24</div><div class="label">Learn Sessions</div></div>
+            <div class="wf-stat"><div class="num">6</div><div class="label">Topics Mastered</div></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <h4 style="font-size:15px;">Recent Lectures</h4>
+            <span style="font-size:12px;color:#888;">View All</span>
+          </div>
+          <input class="wf-search" placeholder="Search lectures..." />
+          <div class="wf-lecture-item">
+            <div class="wf-lecture-icon">📚</div>
+            <div class="wf-lecture-info"><h5>Pharmacology — Drug Absorption</h5><p>45 min · 2 hours ago</p></div>
+            <span class="wf-badge">Ready</span>
+          </div>
+          <div class="wf-lecture-item">
+            <div class="wf-lecture-icon">📚</div>
+            <div class="wf-lecture-info"><h5>Constitutional Law — Week 3</h5><p>1h 20min · Yesterday</p></div>
+            <span class="wf-badge">Ready</span>
+          </div>
+          <div class="wf-lecture-item">
+            <div class="wf-lecture-icon">📚</div>
+            <div class="wf-lecture-info"><h5>Organic Chemistry</h5><p>55 min · 3 days ago</p></div>
+            <span class="wf-badge" style="color:#888;">Processing</span>
+          </div>
+        </div>
+        <div class="wf-bottom-nav">
+          <div class="wf-bottom-nav-item active"><div class="icon">⌂</div>Home</div>
+          <div class="wf-bottom-nav-item"><div class="icon">↑</div>Upload</div>
+          <div class="wf-bottom-nav-item"><div class="icon">📚</div>Lectures</div>
+          <div class="wf-bottom-nav-item"><div class="icon">👤</div>Profile</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1;">
+      <p class="device-label">Desktop</p>
+      <div class="device-frame desktop-frame" style="min-height:500px;">
+        <div class="wf-nav" style="padding:12px 32px;">
+          <div class="wf-logo"><div class="wf-logo-icon">L</div><span class="wf-logo-text">Lectly</span></div>
+          <div class="wf-nav-links"><span style="font-weight:600;color:#222;">Dashboard</span><span>My Lectures</span><span>Upload</span></div>
+          <span class="wf-nav-btn">Menance</span>
+        </div>
+        <div style="padding:32px 40px;max-width:900px;margin:0 auto;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+            <h3 style="font-size:22px;">Welcome back, Menance</h3>
+            <span class="wf-btn wf-btn-filled" style="font-size:13px;">+ Upload New Lecture</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;">
+            <div class="wf-stat"><div class="num">12</div><div class="label">Total Lectures</div></div>
+            <div class="wf-stat"><div class="num">8.5h</div><div class="label">Hours Processed</div></div>
+            <div class="wf-stat"><div class="num">24</div><div class="label">Learn Sessions</div></div>
+            <div class="wf-stat"><div class="num">6</div><div class="label">Topics Mastered</div></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <h4 style="font-size:16px;">Recent Lectures</h4>
+            <input class="wf-search" placeholder="Search..." style="width:250px;margin:0;" />
+          </div>
+          <div class="wf-lecture-item">
+            <div class="wf-lecture-icon">📚</div>
+            <div class="wf-lecture-info"><h5>Pharmacology — Drug Absorption</h5><p>Medicine · 45 min · 6 sections · 2 hours ago</p></div>
+            <span class="wf-badge">Ready</span>
+            <span class="wf-btn wf-btn-outline" style="font-size:11px;padding:5px 12px;margin-left:8px;">View Notes</span>
+          </div>
+          <div class="wf-lecture-item">
+            <div class="wf-lecture-icon">📚</div>
+            <div class="wf-lecture-info"><h5>Constitutional Law — Week 3</h5><p>Law · 1h 20min · 8 sections · Yesterday</p></div>
+            <span class="wf-badge">Ready</span>
+            <span class="wf-btn wf-btn-outline" style="font-size:11px;padding:5px 12px;margin-left:8px;">View Notes</span>
+          </div>
+          <div class="wf-lecture-item">
+            <div class="wf-lecture-icon">📚</div>
+            <div class="wf-lecture-info"><h5>Organic Chemistry — Reactions</h5><p>Science · 55 min · Processing...</p></div>
+            <span class="wf-badge" style="color:#888;">Processing</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== -->
+<!-- 7. PRICING -->
+<!-- ============================== -->
+<div class="screen-section" id="pricing">
+  <h2>7. Pricing Page</h2>
+  <p class="desc">Shows the free and paid tiers with clear feature comparison.</p>
+
+  <div class="device-row">
+    <div>
+      <p class="device-label">Mobile</p>
+      <div class="device-frame mobile-frame">
+        <div class="wf-nav">
+          <div class="wf-logo"><div class="wf-logo-icon">L</div><span class="wf-logo-text">Lectly</span></div>
+          <span style="font-size:12px;color:#888;">Back</span>
+        </div>
+        <div style="padding:20px;">
+          <h3 style="font-size:20px;text-align:center;margin-bottom:4px;">Choose Your Plan</h3>
+          <p style="font-size:13px;color:#777;text-align:center;margin-bottom:20px;">Start free. Upgrade when you need more.</p>
+          <div class="wf-pricing-grid">
+            <div class="wf-pricing-card">
+              <h5>Free</h5>
+              <div class="price">₦0</div>
+              <div class="period">forever</div>
+              <ul>
+                <li>2 lectures / month</li>
+                <li>3 Explain This / lecture</li>
+                <li>1 Learn Mode / lecture</li>
+                <li>30-day audio storage</li>
+              </ul>
+              <span class="wf-btn wf-btn-outline" style="width:100%;text-align:center;display:block;">Current Plan</span>
+            </div>
+            <div class="wf-pricing-card featured">
+              <h5>Standard</h5>
+              <div class="price">₦1,500</div>
+              <div class="period">/ month</div>
+              <ul>
+                <li>10 lectures / month</li>
+                <li>Unlimited Explain This</li>
+                <li>Unlimited Learn Mode</li>
+                <li>90-day audio storage</li>
+              </ul>
+              <span class="wf-btn wf-btn-filled" style="width:100%;text-align:center;display:block;">Upgrade</span>
+            </div>
+            <div class="wf-pricing-card">
+              <h5>Pro</h5>
+              <div class="price">₦3,500</div>
+              <div class="period">/ month</div>
+              <ul>
+                <li>30 lectures / month</li>
+                <li>Everything unlimited</li>
+                <li>Priority processing</li>
+                <li>Unlimited storage</li>
+                <li>3-hour lecture max</li>
+              </ul>
+              <span class="wf-btn wf-btn-filled" style="width:100%;text-align:center;display:block;">Upgrade</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1;">
+      <p class="device-label">Desktop</p>
+      <div class="device-frame desktop-frame">
+        <div class="wf-nav" style="padding:12px 32px;">
+          <div class="wf-logo"><div class="wf-logo-icon">L</div><span class="wf-logo-text">Lectly</span></div>
+          <div class="wf-nav-links"><span>Features</span><span style="font-weight:600;color:#222;">Pricing</span><span>How It Works</span></div>
+          <span class="wf-nav-btn">Sign In</span>
+        </div>
+        <div style="padding:40px;text-align:center;">
+          <h3 style="font-size:26px;margin-bottom:6px;">Choose Your Plan</h3>
+          <p style="font-size:14px;color:#777;margin-bottom:32px;">Start free. Upgrade when you need more power.</p>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:800px;margin:0 auto;">
+            <div class="wf-pricing-card">
+              <h5>Free</h5>
+              <div class="price">₦0</div>
+              <div class="period">forever</div>
+              <ul>
+                <li>2 lectures / month</li>
+                <li>3 Explain This / lecture</li>
+                <li>1 Learn Mode / lecture</li>
+                <li>30-day audio storage</li>
+                <li>60 min max lecture</li>
+              </ul>
+              <span class="wf-btn wf-btn-outline" style="width:100%;text-align:center;display:block;">Get Started</span>
+            </div>
+            <div class="wf-pricing-card featured">
+              <h5>Standard <span class="wf-tag" style="background:#222;color:#fff;border:none;">Popular</span></h5>
+              <div class="price">₦1,500</div>
+              <div class="period">/ month</div>
+              <ul>
+                <li>10 lectures / month</li>
+                <li>Unlimited Explain This</li>
+                <li>Unlimited Learn Mode</li>
+                <li>90-day audio storage</li>
+                <li>90 min max lecture</li>
+              </ul>
+              <span class="wf-btn wf-btn-filled" style="width:100%;text-align:center;display:block;">Upgrade</span>
+            </div>
+            <div class="wf-pricing-card">
+              <h5>Pro</h5>
+              <div class="price">₦3,500</div>
+              <div class="period">/ month</div>
+              <ul>
+                <li>30 lectures / month</li>
+                <li>Everything unlimited</li>
+                <li>Priority processing</li>
+                <li>Unlimited storage</li>
+                <li>3-hour lecture max</li>
+              </ul>
+              <span class="wf-btn wf-btn-filled" style="width:100%;text-align:center;display:block;">Upgrade</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== -->
+<!-- 8. PROFILE -->
+<!-- ============================== -->
+<div class="screen-section" id="profile">
+  <h2>8. Profile / Settings</h2>
+  <p class="desc">Where students manage their account, subscription, and preferences.</p>
+
+  <div class="device-row">
+    <div>
+      <p class="device-label">Mobile</p>
+      <div class="device-frame mobile-frame">
+        <div class="wf-nav">
+          <div class="wf-logo"><div class="wf-logo-icon">L</div><span class="wf-logo-text">Lectly</span></div>
+        </div>
+        <div style="padding:24px 20px;text-align:center;">
+          <div class="wf-avatar">M</div>
+          <h3 style="font-size:18px;">Menance</h3>
+          <p style="font-size:12px;color:#888;">Free Plan · 2 lectures remaining</p>
+          <span class="wf-btn wf-btn-filled" style="font-size:12px;padding:6px 16px;margin-top:8px;display:inline-block;">Upgrade Plan</span>
+        </div>
+        <div style="padding:0 20px;">
+          <div class="wf-input-label">Full Name</div>
+          <input class="wf-input" value="Menance" />
+          <div class="wf-input-label">Email</div>
+          <input class="wf-input" value="davidgates605@gmail.com" />
+          <div class="wf-input-label">University</div>
+          <input class="wf-input" placeholder="e.g. UNILAG" />
+          <div class="wf-input-label">Default Subject</div>
+          <select class="wf-select"><option>Auto-detect</option></select>
+          <hr class="wf-divider">
+          <div class="wf-lecture-item" style="border:none;padding:8px 0;">
+            <span style="font-size:13px;">Notification Settings</span>
+            <span style="font-size:12px;color:#888;">→</span>
+          </div>
+          <div class="wf-lecture-item" style="border:none;padding:8px 0;">
+            <span style="font-size:13px;">Offline Downloads</span>
+            <span style="font-size:12px;color:#888;">→</span>
+          </div>
+          <div class="wf-lecture-item" style="border:none;padding:8px 0;">
+            <span style="font-size:13px;color:red;">Sign Out</span>
+          </div>
+        </div>
+        <div class="wf-bottom-nav">
+          <div class="wf-bottom-nav-item"><div class="icon">⌂</div>Home</div>
+          <div class="wf-bottom-nav-item"><div class="icon">↑</div>Upload</div>
+          <div class="wf-bottom-nav-item"><div class="icon">📚</div>Lectures</div>
+          <div class="wf-bottom-nav-item active"><div class="icon">👤</div>Profile</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1;">
+      <p class="device-label">Desktop</p>
+      <div class="device-frame desktop-frame">
+        <div class="wf-nav" style="padding:12px 32px;">
+          <div class="wf-logo"><div class="wf-logo-icon">L</div><span class="wf-logo-text">Lectly</span></div>
+          <div class="wf-nav-links"><span>Dashboard</span><span>My Lectures</span></div>
+          <span class="wf-nav-btn" style="font-weight:600;">Menance</span>
+        </div>
+        <div style="display:flex;max-width:800px;margin:32px auto;gap:32px;padding:0 24px;">
+          <div style="width:200px;flex-shrink:0;text-align:center;">
+            <div class="wf-avatar" style="width:80px;height:80px;font-size:32px;">M</div>
+            <h4 style="font-size:16px;">Menance</h4>
+            <p style="font-size:12px;color:#888;">Free Plan</p>
+            <span class="wf-btn wf-btn-filled" style="font-size:11px;padding:6px 14px;margin-top:8px;display:inline-block;">Upgrade</span>
+            <hr class="wf-divider">
+            <div style="text-align:left;">
+              <div style="padding:6px 0;font-size:13px;font-weight:600;">Profile</div>
+              <div style="padding:6px 0;font-size:13px;color:#888;">Subscription</div>
+              <div style="padding:6px 0;font-size:13px;color:#888;">Notifications</div>
+              <div style="padding:6px 0;font-size:13px;color:#888;">Offline Settings</div>
+              <div style="padding:6px 0;font-size:13px;color:red;">Sign Out</div>
+            </div>
+          </div>
+          <div style="flex:1;">
+            <h3 style="font-size:20px;margin-bottom:20px;">Profile Settings</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div><div class="wf-input-label">Full Name</div><input class="wf-input" value="Menance" /></div>
+              <div><div class="wf-input-label">Email</div><input class="wf-input" value="davidgates605@gmail.com" /></div>
+              <div><div class="wf-input-label">University</div><input class="wf-input" placeholder="e.g. UNILAG" /></div>
+              <div><div class="wf-input-label">Default Subject</div><select class="wf-select"><option>Auto-detect</option></select></div>
+            </div>
+            <div style="margin-top:16px;display:flex;justify-content:flex-end;">
+              <span class="wf-btn wf-btn-filled" style="font-size:13px;padding:10px 24px;">Save Changes</span>
+            </div>
+            <hr class="wf-divider">
+            <h4 style="font-size:15px;margin-bottom:8px;">Usage This Month</h4>
+            <p style="font-size:13px;color:#555;">Lectures: 1 of 2 used · Resets in 23 days</p>
+            <div style="background:#EEE;border-radius:8px;height:8px;margin-top:6px;max-width:300px;">
+              <div style="background:#222;border-radius:8px;height:8px;width:50%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== -->
+<!-- 9. SIGN IN / SIGN UP -->
+<!-- ============================== -->
+<div class="screen-section" id="auth">
+  <h2>9. Sign In / Sign Up</h2>
+  <p class="desc">Authentication screens. Clean and fast — students shouldn't spend time here.</p>
+
+  <div class="device-row">
+    <div>
+      <p class="device-label">Mobile — Sign In</p>
+      <div class="device-frame mobile-frame">
+        <div style="padding:60px 24px;text-align:center;">
+          <div class="wf-logo" style="justify-content:center;margin-bottom:32px;">
+            <div class="wf-logo-icon" style="width:40px;height:40px;font-size:20px;">L</div>
+            <span class="wf-logo-text" style="font-size:22px;">Lectly</span>
+          </div>
+          <h3 style="font-size:20px;margin-bottom:4px;">Welcome Back</h3>
+          <p style="font-size:13px;color:#777;margin-bottom:24px;">Sign in to access your notes</p>
+          <span class="wf-btn wf-btn-outline" style="width:100%;text-align:center;display:block;margin-bottom:10px;">Continue with Google</span>
+          <span class="wf-btn wf-btn-outline" style="width:100%;text-align:center;display:block;margin-bottom:20px;">Continue with Apple</span>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+            <hr style="flex:1;border:none;border-top:1px solid #DDD;">
+            <span style="font-size:12px;color:#999;">or</span>
+            <hr style="flex:1;border:none;border-top:1px solid #DDD;">
+          </div>
+          <div style="text-align:left;">
+            <div class="wf-input-label">Email</div>
+            <input class="wf-input" placeholder="you@email.com" />
+            <div class="wf-input-label">Password</div>
+            <input class="wf-input" type="password" placeholder="••••••••" />
+          </div>
+          <span class="wf-btn wf-btn-filled" style="width:100%;text-align:center;display:block;margin-top:16px;">Sign In</span>
+          <p style="font-size:12px;color:#888;margin-top:16px;">Don't have an account? <strong>Sign Up</strong></p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p class="device-label">Mobile — Sign Up</p>
+      <div class="device-frame mobile-frame">
+        <div style="padding:48px 24px;text-align:center;">
+          <div class="wf-logo" style="justify-content:center;margin-bottom:24px;">
+            <div class="wf-logo-icon" style="width:40px;height:40px;font-size:20px;">L</div>
+            <span class="wf-logo-text" style="font-size:22px;">Lectly</span>
+          </div>
+          <h3 style="font-size:20px;margin-bottom:4px;">Create Your Account</h3>
+          <p style="font-size:13px;color:#777;margin-bottom:24px;">Start turning lectures into notes</p>
+          <span class="wf-btn wf-btn-outline" style="width:100%;text-align:center;display:block;margin-bottom:10px;">Continue with Google</span>
+          <span class="wf-btn wf-btn-outline" style="width:100%;text-align:center;display:block;margin-bottom:20px;">Continue with Apple</span>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+            <hr style="flex:1;border:none;border-top:1px solid #DDD;">
+            <span style="font-size:12px;color:#999;">or</span>
+            <hr style="flex:1;border:none;border-top:1px solid #DDD;">
+          </div>
+          <div style="text-align:left;">
+            <div class="wf-input-label">Full Name</div>
+            <input class="wf-input" placeholder="Your name" />
+            <div class="wf-input-label">Email</div>
+            <input class="wf-input" placeholder="you@email.com" />
+            <div class="wf-input-label">Password</div>
+            <input class="wf-input" type="password" placeholder="••••••••" />
+            <div class="wf-input-label">University (optional)</div>
+            <input class="wf-input" placeholder="e.g. UNILAG, UI, OAU" />
+          </div>
+          <span class="wf-btn wf-btn-filled" style="width:100%;text-align:center;display:block;margin-top:16px;">Create Account</span>
+          <p style="font-size:12px;color:#888;margin-top:16px;">Already have an account? <strong>Sign In</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="padding:40px;text-align:center;color:#999;font-size:13px;border-top:2px solid #EEE;">
+  Lectly Wireframes — Option A: Clean & Minimal · All screens · Mobile + Desktop
+</div>
+
+</body>
+</html>

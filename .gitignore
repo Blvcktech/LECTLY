@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Environment files
+.env
+.env.local
+.env*.local
+
+# Next.js
+frontend/.next/
+frontend/out/
+
+# Build
+frontend/build/
+dist/
+
+# Database
+backend/*.db
+
+# Uploads & processed files
+backend/uploads/
+backend/processed/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+.fuse_hidden*
+
+# Dead code
+backend/app/auth.py
+backend/app/routes/auth.py

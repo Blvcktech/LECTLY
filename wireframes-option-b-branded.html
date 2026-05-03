@@ -1,0 +1,1799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lectly Wireframes — Option B: Polished &amp; Branded</title>
+<style>
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: #0a0f1c;
+  color: #e2e8f0;
+  line-height: 1.5;
+}
+
+/* ── Sticky Header ── */
+.page-header {
+  position: sticky; top: 0; z-index: 1000;
+  background: rgba(15,23,42,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid #334155;
+  padding: 14px 24px;
+  text-align: center;
+}
+.page-header h1 {
+  font-size: 18px; font-weight: 700; color: #fff;
+  letter-spacing: -0.3px;
+}
+.page-header h1 span { color: #94A3B8; font-weight: 400; }
+
+/* ── Sticky Nav ── */
+.page-nav {
+  position: sticky; top: 52px; z-index: 999;
+  background: rgba(15,23,42,0.88);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid #1e293b;
+  padding: 0 16px;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+.page-nav::-webkit-scrollbar { height: 0; }
+.page-nav a {
+  display: inline-block;
+  padding: 10px 14px;
+  font-size: 13px; font-weight: 500;
+  color: #94A3B8;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: color .2s, border-color .2s;
+}
+.page-nav a:hover, .page-nav a:focus { color: #3B82F6; border-bottom-color: #3B82F6; }
+
+/* ── Section ── */
+.screen-section {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 48px 24px 64px;
+  border-bottom: 1px solid #1e293b;
+}
+.screen-section:last-child { border-bottom: none; }
+.section-label {
+  font-size: 12px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1.5px; color: #3B82F6; margin-bottom: 6px;
+}
+.section-title { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.section-desc { font-size: 14px; color: #94A3B8; margin-bottom: 32px; max-width: 600px; }
+
+/* ── Frame Layout ── */
+.frames { display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap; }
+
+/* ── Mobile Frame ── */
+.mobile-frame-wrap { flex-shrink: 0; }
+.mobile-frame-wrap .frame-label,
+.desktop-frame-wrap .frame-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1px; color: #64748b; margin-bottom: 8px;
+}
+.mobile-frame {
+  width: 375px;
+  min-height: 700px;
+  background: #0F172A;
+  border-radius: 40px;
+  border: 3px solid #334155;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 20px 60px rgba(0,0,0,0.5);
+}
+.mobile-frame .notch {
+  width: 150px; height: 28px;
+  background: #000;
+  border-radius: 0 0 20px 20px;
+  margin: 0 auto;
+}
+.mobile-frame .screen-content { padding: 0 20px 90px 20px; }
+
+/* ── Desktop Frame ── */
+.desktop-frame-wrap { flex: 1; min-width: 700px; max-width: 920px; }
+.desktop-frame {
+  width: 100%;
+  min-height: 560px;
+  background: #0F172A;
+  border-radius: 12px;
+  border: 2px solid #334155;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 20px 60px rgba(0,0,0,0.5);
+}
+.desktop-frame .browser-bar {
+  height: 36px;
+  background: #1E293B;
+  display: flex; align-items: center; padding: 0 12px; gap: 6px;
+  border-bottom: 1px solid #334155;
+}
+.browser-dot { width: 10px; height: 10px; border-radius: 50%; }
+.browser-dot.r { background: #ef4444; }
+.browser-dot.y { background: #eab308; }
+.browser-dot.g { background: #22c55e; }
+.browser-url {
+  flex: 1; margin-left: 12px;
+  height: 22px; background: #0F172A; border-radius: 4px;
+  display: flex; align-items: center; padding: 0 10px;
+  font-size: 11px; color: #64748b;
+}
+.desktop-frame .screen-content { padding: 0; }
+
+/* ── Shared UI Components ── */
+.lectly-logo {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, #2563EB, #22C55E);
+  border-radius: 10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 800; color: #fff;
+  flex-shrink: 0;
+}
+.lectly-logo-sm {
+  width: 28px; height: 28px; border-radius: 8px; font-size: 15px;
+}
+
+.top-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0; margin-bottom: 8px;
+}
+.top-bar-desktop {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 24px;
+  border-bottom: 1px solid #1e293b;
+  background: rgba(15,23,42,0.95);
+}
+.top-bar-desktop .nav-links { display: flex; gap: 24px; }
+.top-bar-desktop .nav-links a {
+  font-size: 13px; color: #94A3B8; text-decoration: none; font-weight: 500;
+}
+.top-bar-desktop .nav-links a:hover { color: #fff; }
+
+.btn-primary {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #2563EB, #3B82F6);
+  color: #fff; font-size: 14px; font-weight: 600;
+  border-radius: 10px; border: none;
+  box-shadow: 0 2px 12px rgba(37,99,235,0.3);
+  cursor: pointer;
+}
+.btn-primary-lg { padding: 14px 28px; font-size: 15px; border-radius: 12px; }
+.btn-secondary {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 10px 20px;
+  background: rgba(30,41,59,0.8);
+  color: #e2e8f0; font-size: 14px; font-weight: 500;
+  border-radius: 10px; border: 1px solid #334155;
+}
+.btn-ghost {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 8px 16px;
+  background: transparent;
+  color: #94A3B8; font-size: 13px; font-weight: 500;
+  border-radius: 8px; border: 1px solid #334155;
+}
+
+.card {
+  background: rgba(30,41,59,0.6);
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+}
+.card-sm { padding: 12px; border-radius: 10px; }
+
+.input-field {
+  width: 100%;
+  padding: 11px 14px;
+  background: #0F172A;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  color: #e2e8f0;
+  font-size: 14px;
+}
+.input-label {
+  display: block; font-size: 12px; font-weight: 600; color: #94A3B8;
+  margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+.badge {
+  display: inline-block; padding: 3px 10px;
+  border-radius: 20px; font-size: 11px; font-weight: 600;
+}
+.badge-green { background: rgba(34,197,94,0.15); color: #22C55E; }
+.badge-blue { background: rgba(59,130,246,0.15); color: #3B82F6; }
+.badge-yellow { background: rgba(234,179,8,0.15); color: #eab308; }
+
+/* ── Bottom Nav ── */
+.bottom-nav {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 72px;
+  background: rgba(15,23,42,0.95);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid #1e293b;
+  display: flex; align-items: center; justify-content: space-around;
+  padding-bottom: 8px;
+}
+.bottom-nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  font-size: 10px; color: #64748b; font-weight: 500;
+}
+.bottom-nav-item.active { color: #3B82F6; }
+.bottom-nav-item .nav-icon { font-size: 20px; line-height: 1; }
+
+/* ── Progress Bar ── */
+.progress-bar {
+  width: 100%; height: 6px;
+  background: #1e293b; border-radius: 3px; overflow: hidden;
+}
+.progress-bar .fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, #2563EB, #3B82F6);
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex; gap: 0; border-bottom: 1px solid #1e293b; margin-bottom: 16px;
+}
+.tab {
+  flex: 1; text-align: center; padding: 10px 0;
+  font-size: 13px; font-weight: 600; color: #64748b;
+  border-bottom: 2px solid transparent;
+}
+.tab.active { color: #3B82F6; border-bottom-color: #3B82F6; }
+
+/* ── Utility ── */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; }
+.gap-20 { gap: 20px; }
+.gap-24 { gap: 24px; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mt-20 { margin-top: 20px; }
+.mt-24 { margin-top: 24px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.text-xs { font-size: 12px; }
+.text-sm { font-size: 13px; }
+.text-base { font-size: 14px; }
+.text-lg { font-size: 18px; }
+.text-xl { font-size: 22px; }
+.text-2xl { font-size: 28px; }
+.text-3xl { font-size: 34px; }
+.font-bold { font-weight: 700; }
+.font-semibold { font-weight: 600; }
+.text-white { color: #fff; }
+.text-muted { color: #94A3B8; }
+.text-blue { color: #3B82F6; }
+.text-green { color: #22C55E; }
+.text-center { text-align: center; }
+.w-full { width: 100%; }
+.rounded-lg { border-radius: 12px; }
+.overflow-hidden { overflow: hidden; }
+
+/* ── Desktop sidebar ── */
+.desktop-layout { display: flex; min-height: 520px; }
+.desktop-sidebar {
+  width: 240px; flex-shrink: 0;
+  background: #0F172A;
+  border-right: 1px solid #1e293b;
+  padding: 20px 0;
+}
+.desktop-sidebar .sidebar-item {
+  padding: 10px 20px; font-size: 13px; color: #94A3B8; cursor: pointer;
+}
+.desktop-sidebar .sidebar-item.active {
+  color: #fff; background: rgba(59,130,246,0.1);
+  border-right: 2px solid #3B82F6;
+}
+.desktop-main { flex: 1; padding: 24px; overflow-y: auto; }
+
+/* ── Specific screen helpers ── */
+.upload-zone {
+  border: 2px dashed #334155;
+  border-radius: 16px;
+  padding: 40px 20px;
+  text-align: center;
+  background: rgba(30,41,59,0.3);
+  transition: border-color .2s;
+}
+.upload-zone:hover { border-color: #3B82F6; }
+
+.pricing-card {
+  background: rgba(30,41,59,0.5);
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 28px 24px;
+  flex: 1;
+  min-width: 200px;
+  backdrop-filter: blur(8px);
+}
+.pricing-card.featured {
+  border-color: #3B82F6;
+  background: rgba(37,99,235,0.08);
+  box-shadow: 0 0 0 1px rgba(59,130,246,0.2), 0 8px 32px rgba(37,99,235,0.15);
+  position: relative;
+}
+.pricing-card.featured::before {
+  content: 'Most Popular';
+  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+  background: linear-gradient(135deg, #2563EB, #3B82F6);
+  color: #fff; font-size: 11px; font-weight: 700;
+  padding: 4px 14px; border-radius: 20px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+.stat-card {
+  background: rgba(30,41,59,0.5);
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 14px 16px;
+  backdrop-filter: blur(8px);
+}
+
+.explain-popup {
+  background: #1E293B;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+
+.avatar {
+  width: 64px; height: 64px;
+  background: linear-gradient(135deg, #2563EB, #22C55E);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: 700; color: #fff;
+}
+.avatar-sm { width: 32px; height: 32px; font-size: 13px; border-radius: 50%; }
+
+.social-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 12px;
+  background: #1E293B;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  color: #e2e8f0; font-size: 14px; font-weight: 500;
+}
+
+.feature-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+
+.quiz-option {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px;
+  background: rgba(30,41,59,0.5);
+  border: 1px solid #334155;
+  border-radius: 10px;
+  font-size: 13px; color: #e2e8f0;
+  cursor: pointer;
+}
+.quiz-option.selected {
+  border-color: #3B82F6;
+  background: rgba(59,130,246,0.1);
+}
+.radio {
+  width: 18px; height: 18px;
+  border: 2px solid #64748b;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.radio.checked { border-color: #3B82F6; }
+.radio.checked::after {
+  content: '';
+  width: 8px; height: 8px;
+  background: #3B82F6;
+  border-radius: 50%;
+}
+
+.difficulty-selector {
+  display: flex; gap: 6px;
+}
+.diff-btn {
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 11px; font-weight: 600;
+  border: 1px solid #334155;
+  color: #94A3B8;
+  background: transparent;
+}
+.diff-btn.active {
+  background: rgba(59,130,246,0.15);
+  border-color: #3B82F6;
+  color: #3B82F6;
+}
+
+.usage-meter {
+  width: 100%; height: 8px;
+  background: #1e293b; border-radius: 4px;
+  overflow: hidden;
+}
+.usage-meter .fill {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, #2563EB, #22C55E);
+}
+
+.setting-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid #1e293b;
+}
+.toggle {
+  width: 40px; height: 22px;
+  background: #334155; border-radius: 11px;
+  position: relative;
+}
+.toggle.on { background: #2563EB; }
+.toggle::after {
+  content: '';
+  width: 16px; height: 16px;
+  background: #fff; border-radius: 50%;
+  position: absolute; top: 3px; left: 3px;
+}
+.toggle.on::after { left: 21px; }
+
+.search-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px;
+  background: #0F172A;
+  border: 1px solid #334155;
+  border-radius: 10px;
+}
+.search-bar span { color: #64748b; font-size: 14px; }
+.search-bar-text { color: #64748b; font-size: 13px; }
+
+.lecture-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  background: rgba(30,41,59,0.4);
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+}
+.lecture-icon {
+  width: 40px; height: 40px;
+  background: rgba(59,130,246,0.1);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.lecture-info { flex: 1; min-width: 0; }
+.lecture-title { font-size: 14px; font-weight: 600; color: #fff; }
+.lecture-meta { font-size: 12px; color: #64748b; }
+
+/* Step indicator */
+.step-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+.step-icon { font-size: 16px; width: 22px; text-align: center; }
+.step-text { font-size: 13px; }
+.step-done { color: #22C55E; }
+.step-active { color: #3B82F6; }
+.step-pending { color: #64748b; }
+
+/* Features grid */
+.features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.features-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+/* How it works */
+.how-step {
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.how-num {
+  width: 28px; height: 28px;
+  background: rgba(59,130,246,0.15);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #3B82F6;
+  flex-shrink: 0;
+}
+
+/* Key point */
+.key-point {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 10px 12px;
+  background: rgba(59,130,246,0.06);
+  border-left: 3px solid #3B82F6;
+  border-radius: 0 8px 8px 0;
+}
+.definition-box {
+  padding: 12px 14px;
+  background: rgba(34,197,94,0.06);
+  border-left: 3px solid #22C55E;
+  border-radius: 0 8px 8px 0;
+}
+
+/* Landing hero gradient overlay */
+.hero-glow {
+  position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+  width: 300px; height: 200px;
+  background: radial-gradient(ellipse, rgba(37,99,235,0.2) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Pricing grid desktop */
+.pricing-grid { display: flex; gap: 20px; align-items: flex-start; }
+</style>
+</head>
+<body>
+
+<!-- ═══════ HEADER ═══════ -->
+<header class="page-header">
+  <h1>Lectly Wireframes <span>— Option B: Polished &amp; Branded</span></h1>
+</header>
+
+<!-- ═══════ NAV ═══════ -->
+<nav class="page-nav">
+  <a href="#landing">Landing</a>
+  <a href="#upload">Upload</a>
+  <a href="#processing">Processing</a>
+  <a href="#notes">Notes Viewer</a>
+  <a href="#learn">Learn Mode</a>
+  <a href="#dashboard">Dashboard</a>
+  <a href="#pricing">Pricing</a>
+  <a href="#profile">Profile</a>
+  <a href="#auth">Sign In / Up</a>
+</nav>
+
+
+<!-- ═══════════════════════════════════════════════════
+     1. LANDING PAGE
+     ═══════════════════════════════════════════════════ -->
+<section id="landing" class="screen-section">
+  <div class="section-label">Screen 1 of 9</div>
+  <h2 class="section-title">Landing Page</h2>
+  <p class="section-desc">Hero section with value proposition, how-it-works flow, feature grid, and call-to-action.</p>
+
+  <div class="frames">
+    <!-- MOBILE -->
+    <div class="mobile-frame-wrap">
+      <div class="frame-label">Mobile — 375px</div>
+      <div class="mobile-frame">
+        <div class="notch"></div>
+        <div class="screen-content" style="position:relative;">
+          <div class="hero-glow"></div>
+          <!-- Top bar -->
+          <div class="top-bar">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="lectly-logo lectly-logo-sm">L</div>
+              <span style="font-size:16px;font-weight:700;color:#fff;">Lectly</span>
+            </div>
+            <div class="btn-primary" style="padding:8px 16px;font-size:12px;">Sign In</div>
+          </div>
+          <!-- Hero -->
+          <div style="text-align:center;padding:24px 0 20px;position:relative;z-index:1;">
+            <h2 style="font-size:26px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:8px;">Your Lectures,<br>Actually Understood</h2>
+            <p style="font-size:13px;color:#94A3B8;margin-bottom:20px;">AI-powered notes from your lecture recordings. Built for Nigerian university students.</p>
+            <div class="btn-primary btn-primary-lg" style="width:100%;">Get Started Free</div>
+          </div>
+          <!-- How it works -->
+          <div style="margin-top:24px;">
+            <h3 style="font-size:15px;font-weight:700;color:#fff;margin-bottom:14px;">How It Works</h3>
+            <div class="flex flex-col gap-12">
+              <div class="how-step"><div class="how-num">1</div><div><span style="font-size:13px;font-weight:600;color:#fff;">Upload</span><br><span style="font-size:12px;color:#94A3B8;">Record or upload your lecture audio</span></div></div>
+              <div class="how-step"><div class="how-num">2</div><div><span style="font-size:13px;font-weight:600;color:#fff;">Process</span><br><span style="font-size:12px;color:#94A3B8;">AI transcribes &amp; generates smart notes</span></div></div>
+              <div class="how-step"><div class="how-num">3</div><div><span style="font-size:13px;font-weight:600;color:#fff;">Learn</span><br><span style="font-size:12px;color:#94A3B8;">Study with explanations, quizzes &amp; more</span></div></div>
+            </div>
+          </div>
+          <!-- Features -->
+          <div style="margin-top:28px;">
+            <h3 style="font-size:15px;font-weight:700;color:#fff;margin-bottom:14px;">Features</h3>
+            <div class="features-grid">
+              <div class="card card-sm">
+                <div class="feature-icon" style="background:rgba(59,130,246,0.1);margin-bottom:8px;">📝</div>
+                <div style="font-size:13px;font-weight:600;color:#fff;">Smart Notes</div>
+                <div style="font-size:11px;color:#94A3B8;">Auto-generated, organized notes</div>
+              </div>
+              <div class="card card-sm">
+                <div class="feature-icon" style="background:rgba(168,85,247,0.1);margin-bottom:8px;">💡</div>
+                <div style="font-size:13px;font-weight:600;color:#fff;">Explain This</div>
+                <div style="font-size:11px;color:#94A3B8;">Tap any concept for clarity</div>
+              </div>
+              <div class="card card-sm">
+                <div class="feature-icon" style="background:rgba(34,197,94,0.1);margin-bottom:8px;">🎓</div>
+                <div style="font-size:13px;font-weight:600;color:#fff;">Learn Mode</div>
+                <div style="font-size:11px;color:#94A3B8;">Step-by-step mastery</div>
+              </div>
+              <div class="card card-sm">
+                <div class="feature-icon" style="background:rgba(234,179,8,0.1);margin-bottom:8px;">🔗</div>
+                <div style="font-size:13px;font-weight:600;color:#fff;">Share Notes</div>
+                <div style="font-size:11px;color:#94A3B8;">Collaborate with classmates</div>
+              </div>
+            </div>
+          </div>
+          <!-- CTA -->
+          <div style="margin-top:28px;text-align:center;">
+            <div class="btn-primary btn-primary-lg" style="width:100%;">Start Learning Smarter</div>
+            <p style="font-size:11px;color:#64748b;margin-top:8px;">Free for up to 2 lectures/month</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESKTOP -->
+    <div class="desktop-frame-wrap">
+      <div class="frame-label">Desktop — 900px</div>
+      <div class="desktop-frame">
+        <div class="browser-bar">
+          <div class="browser-dot r"></div><div class="browser-dot y"></div><div class="browser-dot g"></div>
+          <div class="browser-url">lectly.ng</div>
+        </div>
+        <div class="screen-content">
+          <!-- Desktop Nav -->
+          <div class="top-bar-desktop">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="lectly-logo lectly-logo-sm">L</div>
+              <span style="font-size:17px;font-weight:700;color:#fff;">Lectly</span>
+            </div>
+            <div class="nav-links">
+              <a href="#">Features</a><a href="#">Pricing</a><a href="#">About</a>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <div class="btn-ghost">Sign In</div>
+              <div class="btn-primary" style="padding:8px 18px;font-size:13px;">Get Started</div>
+            </div>
+          </div>
+          <!-- Hero -->
+          <div style="text-align:center;padding:56px 60px 40px;position:relative;">
+            <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:500px;height:250px;background:radial-gradient(ellipse,rgba(37,99,235,0.15) 0%,transparent 70%);pointer-events:none;"></div>
+            <h1 style="font-size:42px;font-weight:800;color:#fff;line-height:1.15;margin-bottom:12px;position:relative;">Your Lectures, Actually Understood</h1>
+            <p style="font-size:16px;color:#94A3B8;max-width:480px;margin:0 auto 28px;position:relative;">AI-powered notes from your lecture recordings. Built for Nigerian university students.</p>
+            <div style="display:flex;gap:12px;justify-content:center;position:relative;">
+              <div class="btn-primary btn-primary-lg">Get Started Free</div>
+              <div class="btn-secondary" style="padding:14px 28px;">Watch Demo</div>
+            </div>
+          </div>
+          <!-- How it works -->
+          <div style="padding:0 60px 36px;">
+            <h3 style="font-size:18px;font-weight:700;color:#fff;text-align:center;margin-bottom:24px;">How It Works</h3>
+            <div style="display:flex;gap:32px;justify-content:center;">
+              <div style="text-align:center;flex:1;max-width:200px;">
+                <div class="how-num" style="margin:0 auto 10px;">1</div>
+                <div style="font-size:14px;font-weight:600;color:#fff;">Upload</div>
+                <div style="font-size:12px;color:#94A3B8;">Record or upload lecture audio</div>
+              </div>
+              <div style="text-align:center;flex:1;max-width:200px;">
+                <div class="how-num" style="margin:0 auto 10px;">2</div>
+                <div style="font-size:14px;font-weight:600;color:#fff;">Process</div>
+                <div style="font-size:12px;color:#94A3B8;">AI transcribes &amp; generates notes</div>
+              </div>
+              <div style="text-align:center;flex:1;max-width:200px;">
+                <div class="how-num" style="margin:0 auto 10px;">3</div>
+                <div style="font-size:14px;font-weight:600;color:#fff;">Learn</div>
+                <div style="font-size:12px;color:#94A3B8;">Study with quizzes &amp; explanations</div>
+              </div>
+            </div>
+          </div>
+          <!-- Features grid -->
+          <div style="padding:0 60px 40px;">
+            <div class="features-grid-4">
+              <div class="card" style="text-align:center;padding:24px 16px;">
+                <div style="font-size:28px;margin-bottom:10px;">📝</div>
+                <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:4px;">Smart Notes</div>
+                <div style="font-size:12px;color:#94A3B8;">Auto-generated, organized notes from any lecture</div>
+              </div>
+              <div class="card" style="text-align:center;padding:24px 16px;">
+                <div style="font-size:28px;margin-bottom:10px;">💡</div>
+                <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:4px;">Explain This</div>
+                <div style="font-size:12px;color:#94A3B8;">Tap any concept for instant clarity</div>
+              </div>
+              <div class="card" style="text-align:center;padding:24px 16px;">
+                <div style="font-size:28px;margin-bottom:10px;">🎓</div>
+                <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:4px;">Learn Mode</div>
+                <div style="font-size:12px;color:#94A3B8;">Step-by-step mastery of topics</div>
+              </div>
+              <div class="card" style="text-align:center;padding:24px 16px;">
+                <div style="font-size:28px;margin-bottom:10px;">🔗</div>
+                <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:4px;">Share Notes</div>
+                <div style="font-size:12px;color:#94A3B8;">Collaborate with your classmates</div>
+              </div>
+            </div>
+          </div>
+          <!-- CTA -->
+          <div style="text-align:center;padding:20px 60px 40px;border-top:1px solid #1e293b;">
+            <div class="btn-primary btn-primary-lg" style="margin-top:20px;">Start Learning Smarter</div>
+            <p style="font-size:12px;color:#64748b;margin-top:8px;">Free for up to 2 lectures/month. No credit card required.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════
+     2. UPLOAD PAGE
+     ═══════════════════════════════════════════════════ -->
+<section id="upload" class="screen-section">
+  <div class="section-label">Screen 2 of 9</div>
+  <h2 class="section-title">Upload Page</h2>
+  <p class="section-desc">Drag-and-drop upload zone with subject and class code inputs. Bottom nav on mobile.</p>
+
+  <div class="frames">
+    <!-- MOBILE -->
+    <div class="mobile-frame-wrap">
+      <div class="frame-label">Mobile — 375px</div>
+      <div class="mobile-frame">
+        <div class="notch"></div>
+        <div class="screen-content">
+          <div class="top-bar">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="lectly-logo lectly-logo-sm">L</div>
+              <span style="font-size:16px;font-weight:700;color:#fff;">Upload</span>
+            </div>
+          </div>
+          <!-- Upload zone -->
+          <div class="upload-zone" style="margin-bottom:20px;">
+            <div style="font-size:40px;margin-bottom:8px;">📁</div>
+            <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:4px;">Drag &amp; drop your file</div>
+            <div style="font-size:12px;color:#94A3B8;margin-bottom:14px;">or tap to browse. MP3, M4A, WAV up to 100MB</div>
+            <div class="btn-primary" style="padding:10px 24px;font-size:13px;">Choose File</div>
+          </div>
+          <!-- Subject -->
+          <div style="margin-bottom:14px;">
+            <label class="input-label">Subject</label>
+            <div class="input-field" style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="color:#64748b;">Select subject...</span>
+              <span style="color:#64748b;">▾</span>
+            </div>
+          </div>
+          <!-- Class code -->
+          <div style="margin-bottom:14px;">
+            <label class="input-label">Class Code (Optional)</label>
+            <div class="input-field" style="color:#64748b;">e.g. CSC301</div>
+          </div>
+          <!-- Record option -->
+          <div class="card" style="text-align:center;margin-top:20px;">
+            <div style="font-size:28px;margin-bottom:6px;">🎙</div>
+            <div style="font-size:13px;font-weight:600;color:#fff;">Record Live Lecture</div>
+            <div style="font-size:11px;color:#94A3B8;">Tap to start recording</div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="bottom-nav-item"><span class="nav-icon">🏠</span>Home</div>
+          <div class="bottom-nav-item active"><span class="nav-icon">📤</span>Upload</div>
+          <div class="bottom-nav-item"><span class="nav-icon">📚</span>Lectures</div>
+          <div class="bottom-nav-item"><span class="nav-icon">👤</span>Profile</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESKTOP -->
+    <div class="desktop-frame-wrap">
+      <div class="frame-label">Desktop — 900px</div>
+      <div class="desktop-frame">
+        <div class="browser-bar">
+          <div class="browser-dot r"></div><div class="browser-dot y"></div><div class="browser-dot g"></div>
+          <div class="browser-url">lectly.ng/upload</div>
+        </div>
+        <div class="screen-content">
+          <div class="top-bar-desktop">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="lectly-logo lectly-logo-sm">L</div>
+              <span style="font-size:17px;font-weight:700;color:#fff;">Lectly</span>
+            </div>
+            <div class="nav-links">
+              <a href="#">Dashboard</a><a href="#" style="color:#3B82F6;">Upload</a><a href="#">Lectures</a><a href="#">Profile</a>
+            </div>
+            <div class="avatar-sm" style="background:linear-gradient(135deg,#2563EB,#22C55E);display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-size:12px;font-weight:700;color:#fff;">DG</div>
+          </div>
+          <div style="padding:40px 80px;">
+            <h2 style="font-size:22px;font-weight:700;color:#fff;margin-bottom:6px;">Upload Lecture</h2>
+            <p style="font-size:13px;color:#94A3B8;margin-bottom:28px;">Upload your audio file and we'll generate smart notes.</p>
+            <div style="display:flex;gap:32px;">
+              <div style="flex:1;">
+                <div class="upload-zone" style="padding:60px 40px;">
+                  <div style="font-size:48px;margin-bottom:10px;">📁</div>
+                  <div style="font-size:16px;font-weight:600;color:#fff;margin-bottom:4px;">Drag &amp; drop your file here</div>
+                  <div style="font-size:13px;color:#94A3B8;margin-bottom:16px;">or click to browse. Supports MP3, M4A, WAV up to 100MB</div>
+                  <div class="btn-primary">Choose File</div>
+                </div>
+              </div>
+              <div style="width:280px;flex-shrink:0;">
+                <div style="margin-bottom:18px;">
+                  <label class="input-label">Subject</label>
+                  <div class="input-field" style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="color:#64748b;">Select subject...</span>
+                    <span style="color:#64748b;">▾</span>
+                  </div>
+                </div>
+                <div style="margin-bottom:18px;">
+                  <label class="input-label">Class Code (Optional)</label>
+                  <div class="input-field" style="color:#64748b;">e.g. CSC301</div>
+                </div>
+                <div class="card" style="text-align:center;margin-top:16px;">
+                  <div style="font-size:28px;margin-bottom:6px;">🎙</div>
+                  <div style="font-size:13px;font-weight:600;color:#fff;">Record Live</div>
+                  <div style="font-size:11px;color:#94A3B8;">Start recording a lecture</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════
+     3. PROCESSING STATE
+     ═══════════════════════════════════════════════════ -->
+<section id="processing" class="screen-section">
+  <div class="section-label">Screen 3 of 9</div>
+  <h2 class="section-title">Processing State</h2>
+  <p class="section-desc">Loading spinner with step-by-step progress indicators and progress bar.</p>
+
+  <div class="frames">
+    <!-- MOBILE -->
+    <div class="mobile-frame-wrap">
+      <div class="frame-label">Mobile — 375px</div>
+      <div class="mobile-frame">
+        <div class="notch"></div>
+        <div class="screen-content" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:600px;text-align:center;">
+          <!-- Spinner -->
+          <div style="width:64px;height:64px;border:3px solid #1e293b;border-top-color:#3B82F6;border-radius:50%;margin-bottom:24px;animation:none;position:relative;">
+            <div style="position:absolute;inset:6px;border:3px solid transparent;border-top-color:#22C55E;border-radius:50%;"></div>
+          </div>
+          <h3 style="font-size:18px;font-weight:700;color:#fff;margin-bottom:6px;">Processing Your Lecture</h3>
+          <p style="font-size:13px;color:#94A3B8;margin-bottom:28px;">This usually takes 2-3 minutes</p>
+          <!-- Steps -->
+          <div style="text-align:left;width:100%;max-width:260px;">
+            <div class="step-row step-done"><span class="step-icon">✓</span><span class="step-text">Uploading audio file</span></div>
+            <div class="step-row step-active"><span class="step-icon">◎</span><span class="step-text" style="font-weight:600;">Transcribing audio...</span></div>
+            <div class="step-row step-pending"><span class="step-icon">○</span><span class="step-text">Generating smart notes</span></div>
+          </div>
+          <!-- Progress bar -->
+          <div style="width:100%;max-width:260px;margin-top:24px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:11px;color:#94A3B8;">Progress</span>
+              <span style="font-size:11px;color:#3B82F6;font-weight:600;">45%</span>
+            </div>
+            <div class="progress-bar"><div class="fill" style="width:45%;"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESKTOP -->
+    <div class="desktop-frame-wrap">
+      <div class="frame-label">Desktop — 900px</div>
+      <div class="desktop-frame">
+        <div class="browser-bar">
+          <div class="browser-dot r"></div><div class="browser-dot y"></div><div class="browser-dot g"></div>
+          <div class="browser-url">lectly.ng/processing/abc123</div>
+        </div>
+        <div class="screen-content">
+          <div class="top-bar-desktop">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="lectly-logo lectly-logo-sm">L</div>
+              <span style="font-size:17px;font-weight:700;color:#fff;">Lectly</span>
+            </div>
+            <div class="nav-links"><a href="#">Dashboard</a><a href="#">Upload</a><a href="#">Lectures</a></div>
+            <div class="avatar-sm" style="background:linear-gradient(135deg,#2563EB,#22C55E);display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-size:12px;font-weight:700;color:#fff;">DG</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:480px;text-align:center;padding:40px;">
+            <div style="width:80px;height:80px;border:3px solid #1e293b;border-top-color:#3B82F6;border-radius:50%;margin-bottom:28px;position:relative;">
+              <div style="position:absolute;inset:8px;border:3px solid transparent;border-top-color:#22C55E;border-radius:50%;"></div>
+            </div>
+            <h2 style="font-size:24px;font-weight:700;color:#fff;margin-bottom:6px;">Processing Your Lecture</h2>
+            <p style="font-size:14px;color:#94A3B8;margin-bottom:32px;">This usually takes 2-3 minutes. Feel free to leave this page.</p>
+            <div style="display:flex;gap:48px;margin-bottom:36px;">
+              <div class="step-row step-done" style="gap:8px;"><span class="step-icon">✓</span><span class="step-text">Uploading audio file</span></div>
+              <div class="step-row step-active" style="gap:8px;"><span class="step-icon">◎</span><span class="step-text" style="font-weight:600;">Transcribing audio...</span></div>
+              <div class="step-row step-pending" style="gap:8px;"><span class="step-icon">○</span><span class="step-text">Generating smart notes</span></div>
+            </div>
+            <div style="width:400px;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <span style="font-size:12px;color:#94A3B8;">Progress</span>
+                <span style="font-size:12px;color:#3B82F6;font-weight:600;">45%</span>
+              </div>
+              <div class="progress-bar" style="height:8px;"><div class="fill" style="width:45%;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════
+     4. NOTES VIEWER
+     ═══════════════════════════════════════════════════ -->
+<section id="notes" class="screen-section">
+  <div class="section-label">Screen 4 of 9</div>
+  <h2 class="section-title">Notes Viewer</h2>
+  <p class="section-desc">Notes content with key points, definitions, "Explain This" popup with difficulty selector, and "Flag Issue" button. Desktop has sidebar; mobile has tabs.</p>
+
+  <div class="frames">
+    <!-- MOBILE -->
+    <div class="mobile-frame-wrap">
+      <div class="frame-label">Mobile — 375px</div>
+      <div class="mobile-frame">
+        <div class="notch"></div>
+        <div class="screen-content">
+          <div class="top-bar">
+            <span style="font-size:14px;color:#64748b;">← Back</span>
+            <span style="font-size:15px;font-weight:700;color:#fff;">CSC301 Notes</span>
+            <span style="font-size:14px;color:#64748b;">⋮</span>
+          </div>
+          <!-- Tabs -->
+          <div class="tabs">
+            <div class="tab active">Notes</div>
+            <div class="tab">Transcript</div>
+            <div class="tab">Quiz</div>
+          </div>
+          <!-- Content -->
+          <div>
+            <h3 style="font-size:16px;font-weight:700;color:#fff;margin-bottom:12px;">Introduction to Data Structures</h3>
+            <p style="font-size:13px;color:#c8d0dc;margin-bottom:14px;">Data structures are ways of organizing and storing data so that they can be accessed and modified efficiently.</p>
+            <!-- Key point -->
+            <div class="key-point mb-12">
+              <span style="font-size:14px;">🔑</span>
+              <div><span style="font-size:12px;font-weight:600;color:#3B82F6;">Key Point</span><br><span style="font-size:12px;color:#c8d0dc;">Arrays provide O(1) access time but O(n) insertion time.</span></div>
+            </div>
+            <!-- Definition -->
+            <div class="definition-box mb-12">
+              <div style="font-size:12px;font-weight:600;color:#22C55E;margin-bottom:2px;">Definition: Array</div>
+              <div style="font-size:12px;color:#c8d0dc;">A collection of elements identified by index or key, stored in contiguous memory locations.</div>
+            </div>
+            <p style="font-size:13px;color:#c8d0dc;margin-bottom:16px;">Linked lists offer O(1) insertion but require O(n) for access. The choice depends on your use case.</p>
+            <!-- Explain This button -->
+            <div style="display:flex;gap:8px;margin-bottom:16px;">
+              <div class="btn-primary" style="padding:8px 14px;font-size:12px;">💡 Explain This</div>
+              <div class="btn-ghost" style="padding:8px 14px;font-size:12px;">🚩 Flag Issue</div>
+            </div>
+            <!-- Explain popup -->
+            <div class="explain-popup">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <span style="font-size:13px;font-weight:700;color:#fff;">💡 Explain This</span>
+                <span style="font-size:12px;color:#64748b;">✕</span>
+              </div>
+              <div class="difficulty-selector mb-12">
+                <div class="diff-btn active">Beginner</div>
+                <div class="diff-btn">Intermediate</div>
+                <div class="diff-btn">Advanced</div>
+              </div>
+              <p style="font-size:12px;color:#c8d0dc;line-height:1.6;">Think of an <strong style="color:#fff;">array</strong> like numbered seats in a lecture hall. You can find seat #5 instantly (fast access), but if you want to add a seat in the middle, everyone has to shift over (slow insertion).</p>
+            </div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="bottom-nav-item"><span class="nav-icon">🏠</span>Home</div>
+          <div class="bottom-nav-item"><span class="nav-icon">📤</span>Upload</div>
+          <div class="bottom-nav-item active"><span class="nav-icon">📚</span>Lectures</div>
+          <div class="bottom-nav-item"><span class="nav-icon">👤</span>Profile</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESKTOP -->
+    <div class="desktop-frame-wrap">
+      <div class="frame-label">Desktop — 900px</div>
+      <div class="desktop-frame">
+        <div class="browser-bar">
+          <div class="browser-dot r"></div><div class="browser-dot y"></div><div class="browser-dot g"></div>
+          <div class="browser-url">lectly.ng/notes/abc123</div>
+        </div>
+        <div class="screen-content">
+          <div class="top-bar-desktop">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="lectly-logo lectly-logo-sm">L</div>
+              <span style="font-size:17px;font-weight:700;color:#fff;">Lectly</span>
+            </div>
+            <div class="nav-links"><a href="#">Dashboard</a><a href="#">Upload</a><a href="#" style="color:#3B82F6;">Lectures</a></div>
+            <div class="avatar-sm" style="background:linear-gradient(135deg,#2563EB,#22C55E);display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-size:12px;font-weight:700;color:#fff;">DG</div>
+          </div>
+          <div class="desktop-layout">
+            <!-- Sidebar -->
+            <div class="desktop-sidebar">
+              <div style="padding:0 20px 16px;font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Sections</div>
+              <div class="sidebar-item active">📄 Introduction</div>
+              <div class="sidebar-item">📄 Arrays</div>
+              <div class="sidebar-item">📄 Linked Lists</div>
+              <div class="sidebar-item">📄 Stacks &amp; Queues</div>
+              <div class="sidebar-item">📄 Summary</div>
+              <div style="border-top:1px solid #1e293b;margin:16px 0;"></div>
+              <div class="sidebar-item">📝 Transcript</div>
+              <div class="sidebar-item">🧩 Quiz</div>
+            </div>
+            <!-- Main -->
+            <div class="desktop-main">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">
+                <div>
+                  <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:4px;">Introduction to Data Structures</h2>
+                  <p style="font-size:12px;color:#64748b;">CSC301 &middot; Apr 18, 2026 &middot; 45 min</p>
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <div class="btn-primary" style="padding:8px 14px;font-size:12px;">💡 Explain This</div>
+                  <div class="btn-ghost" style="padding:8px 14px;font-size:12px;">🚩 Flag Issue</div>
+                </div>
+              </div>
+              <p style="font-size:14px;color:#c8d0dc;margin-bottom:16px;line-height:1.7;">Data structures are ways of organizing and storing data so that they can be accessed and modified efficiently. The choice of data structure often depends on the type of operations you need to perform.</p>
+              <div class="key-point mb-16">
+                <span style="font-size:14px;">🔑</span>
+                <div><span style="font-size:13px;font-weight:600;color:#3B82F6;">Key Point</span><br><span style="font-size:13px;color:#c8d0dc;">Arrays provide O(1) access time but O(n) insertion time in the worst case.</span></div>
+              </div>
+              <div class="definition-box mb-16">
+                <div style="font-size:13px;font-weight:600;color:#22C55E;margin-bottom:2px;">Definition: Array</div>
+                <div style="font-size:13px;color:#c8d0dc;">A collection of elements identified by index or key, stored in contiguous memory locations.</div>
+              </div>
+              <p style="font-size:14px;color:#c8d0dc;margin-bottom:20px;line-height:1.7;">Linked lists offer O(1) insertion at the head but require O(n) traversal for access. The optimal choice depends on your specific use case and performance requirements.</p>
+              <!-- Explain popup -->
+              <div class="explain-popup" style="max-width:420px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                  <span style="font-size:14px;font-weight:700;color:#fff;">💡 Explain This</span>
+                  <span style="font-size:13px;color:#64748b;cursor:pointer;">✕</span>
+                </div>
+                <div class="difficulty-selector mb-12">
+                  <div class="diff-btn active">Beginner</div>
+                  <div class="diff-btn">Intermediate</div>
+                  <div class="diff-btn">Advanced</div>
+                </div>
+                <p style="font-size:13px;color:#c8d0dc;line-height:1.7;">Think of an <strong style="color:#fff;">array</strong> like numbered seats in a lecture hall. You can find seat #5 instantly (fast access), but if you want to add a seat in the middle, everyone has to shift over (slow insertion). A <strong style="color:#fff;">linked list</strong> is more like a chain — easy to add a new link anywhere, but you have to walk the chain to find a specific one.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════
+     5. LEARN MODE
+     ═══════════════════════════════════════════════════ -->
+<section id="learn" class="screen-section">
+  <div class="section-label">Screen 5 of 9</div>
+  <h2 class="section-title">Learn Mode</h2>
+  <p class="section-desc">Step-by-step explanations, real-world analogies, multiple-choice quiz with radio buttons, difficulty selector, and progress bar.</p>
+
+  <div class="frames">
+    <!-- MOBILE -->
+    <div class="mobile-frame-wrap">
+      <div class="frame-label">Mobile — 375px</div>
+      <div class="mobile-frame">
+        <div class="notch"></div>
+        <div class="screen-content">
+          <div class="top-bar">
+            <span style="font-size:14px;color:#64748b;">← Back</span>
+            <span style="font-size:15px;font-weight:700;color:#fff;">Learn Mode</span>
+            <span></span>
+          </div>
+          <!-- Progress -->
+          <div style="margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:11px;color:#94A3B8;">Step 2 of 5</span>
+              <span style="font-size:11px;color:#3B82F6;font-weight:600;">40%</span>
+            </div>
+            <div class="progress-bar"><div class="fill" style="width:40%;"></div></div>
+          </div>
+          <!-- Difficulty -->
+          <div class="difficulty-selector mb-16">
+            <div class="diff-btn">Beginner</div>
+            <div class="diff-btn active">Intermediate</div>
+            <div class="diff-btn">Advanced</div>
+          </div>
+          <!-- Step content -->
+          <div class="card mb-16">
+            <div style="font-size:12px;font-weight:600;color:#3B82F6;margin-bottom:6px;">Step 2: Understanding Arrays</div>
+            <p style="font-size:13px;color:#c8d0dc;line-height:1.6;">An array stores elements in contiguous memory. Each element is accessible by its numerical index, starting from 0.</p>
+          </div>
+          <!-- Analogy -->
+          <div class="card mb-16" style="border-color:rgba(234,179,8,0.3);background:rgba(234,179,8,0.05);">
+            <div style="font-size:12px;font-weight:600;color:#eab308;margin-bottom:6px;">🌍 Real-World Analogy</div>
+            <p style="font-size:13px;color:#c8d0dc;line-height:1.6;">Think of an array like the lockers in your department building. Each locker has a number, and you can go directly to locker #15 without checking all the others.</p>
+          </div>
+          <!-- Quiz -->
+          <div style="margin-top:8px;">
+            <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:12px;">Quick Check</div>
+            <p style="font-size:13px;color:#c8d0dc;margin-bottom:12px;">What is the time complexity of accessing an element by index in an array?</p>
+            <div class="flex flex-col gap-8">
+              <div class="quiz-option"><div class="radio"></div><span>O(n)</span></div>
+              <div class="quiz-option selected"><div class="radio checked"></div><span>O(1)</span></div>
+              <div class="quiz-option"><div class="radio"></div><span>O(log n)</span></div>
+              <div class="quiz-option"><div class="radio"></div><span>O(n²)</span></div>
+            </div>
+            <div class="btn-primary mt-16" style="width:100%;padding:12px;">Check Answer</div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="bottom-nav-item"><span class="nav-icon">🏠</span>Home</div>
+          <div class="bottom-nav-item"><span class="nav-icon">📤</span>Upload</div>
+          <div class="bottom-nav-item active"><span class="nav-icon">📚</span>Lectures</div>
+          <div class="bottom-nav-item"><span class="nav-icon">👤</span>Profile</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESKTOP -->
+    <div class="desktop-frame-wrap">
+      <div class="frame-label">Desktop — 900px</div>
+      <div class="desktop-frame">
+        <div class="browser-bar">
+          <div class="browser-dot r"></div><div class="browser-dot y"></div><div class="browser-dot g"></div>
+          <div class="browser-url">lectly.ng/learn/abc123</div>
+        </div>
+        <div class="screen-content">
+          <div class="top-bar-desktop">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="lectly-logo lectly-logo-sm">L</div>
+              <span style="font-size:17px;font-weight:700;color:#fff;">Lectly</span>
+            </div>
+            <div class="nav-links"><a href="#">Dashboard</a><a href="#">Upload</a><a href="#" style="color:#3B82F6;">Lectures</a></div>
+            <div class="avatar-sm" style="background:linear-gradient(135deg,#2563EB,#22C55E);display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-size:12px;font-weight:700;color:#fff;">DG</div>
+          </div>
+          <div style="padding:32px 60px;max-width:760px;margin:0 auto;">
+            <!-- Header -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+              <div>
+                <h2 style="font-size:20px;font-weight:700;color:#fff;">Learn: Data Structures</h2>
+                <p style="font-size:12px;color:#64748b;">CSC301 &middot; Step 2 of 5</p>
+              </div>
+              <div class="difficulty-selector">
+                <div class="diff-btn">Beginner</div>
+                <div class="diff-btn active">Intermediate</div>
+                <div class="diff-btn">Advanced</div>
+              </div>
+            </div>
+            <!-- Progress -->
+            <div style="margin-bottom:28px;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <span style="font-size:12px;color:#94A3B8;">Progress</span>
+                <span style="font-size:12px;color:#3B82F6;font-weight:600;">40%</span>
+              </div>
+              <div class="progress-bar" style="height:8px;"><div class="fill" style="width:40%;"></div></div>
+            </div>
+            <div style="display:flex;gap:24px;">
+              <!-- Left: explanation -->
+              <div style="flex:1;">
+                <div class="card mb-16">
+                  <div style="font-size:13px;font-weight:600;color:#3B82F6;margin-bottom:8px;">Step 2: Understanding Arrays</div>
+                  <p style="font-size:14px;color:#c8d0dc;line-height:1.7;">An array stores elements in contiguous memory locations. Each element is directly accessible by its numerical index, starting from 0. This makes random access very efficient.</p>
+                </div>
+                <div class="card" style="border-color:rgba(234,179,8,0.3);background:rgba(234,179,8,0.05);">
+                  <div style="font-size:13px;font-weight:600;color:#eab308;margin-bottom:8px;">🌍 Real-World Analogy</div>
+                  <p style="font-size:14px;color:#c8d0dc;line-height:1.7;">Think of an array like the lockers in your department building. Each locker has a number, and you can go directly to locker #15 without checking all the others. But if you want to add a locker between #7 and #8, you'd have to renumber everything after it.</p>
+                </div>
+              </div>
+              <!-- Right: quiz -->
+              <div style="width:300px;flex-shrink:0;">
+                <div class="card">
+                  <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:12px;">Quick Check</div>
+                  <p style="font-size:13px;color:#c8d0dc;margin-bottom:14px;">What is the time complexity of accessing an element by index in an array?</p>
+                  <div class="flex flex-col gap-8">
+                    <div class="quiz-option"><div class="radio"></div><span>O(n)</span></div>
+                    <div class="quiz-option selected"><div class="radio checked"></div><span>O(1)</span></div>
+                    <div class="quiz-option"><div class="radio"></div><span>O(log n)</span></div>
+                    <div class="quiz-option"><div class="radio"></div><span>O(n²)</span></div>
+                  </div>
+                  <div class="btn-primary mt-16" style="width:100%;">Check Answer</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════
+     6. DASHBOARD
+     ═══════════════════════════════════════════════════ -->
+<section id="dashboard" class="screen-section">
+  <div class="section-label">Screen 6 of 9</div>
+  <h2 class="section-title">Dashboard</h2>
+  <p class="section-desc">Welcome greeting, 4 stat cards, lecture list with status badges, search bar, and bottom nav on mobile.</p>
+
+  <div class="frames">
+    <!-- MOBILE -->
+    <div class="mobile-frame-wrap">
+      <div class="frame-label">Mobile — 375px</div>
+      <div class="mobile-frame">
+        <div class="notch"></div>
+        <div class="screen-content">
+          <div class="top-bar">
+            <div>
+              <div style="font-size:13px;color:#94A3B8;">Good morning,</div>
+              <div style="font-size:18px;font-weight:700;color:#fff;">David 👋</div>
+            </div>
+            <div class="avatar-sm" style="background:linear-gradient(135deg,#2563EB,#22C55E);display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;font-size:13px;font-weight:700;color:#fff;">DG</div>
+          </div>
+          <!-- Stats -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+            <div class="stat-card">
+              <div style="font-size:11px;color:#94A3B8;">Lectures</div>
+              <div style="font-size:22px;font-weight:700;color:#fff;">12</div>
+            </div>
+            <div class="stat-card">
+              <div style="font-size:11px;color:#94A3B8;">Processed</div>
+              <div style="font-size:22px;font-weight:700;color:#fff;">8.5h</div>
+            </div>
+            <div class="stat-card">
+              <div style="font-size:11px;color:#94A3B8;">Learn Sessions</div>
+              <div style="font-size:22px;font-weight:700;color:#fff;">24</div>
+            </div>
+            <div class="stat-card">
+              <div style="font-size:11px;color:#94A3B8;">Mastered</div>
+              <div style="font-size:22px;font-weight:700;color:#fff;">6</div>
+            </div>
+          </div>
+          <!-- Search -->
+          <div class="search-bar mb-16">
+            <span>🔍</span><span class="search-bar-text">Search lectures...</span>
+          </div>
+          <!-- Lectures -->
+          <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:12px;">Recent Lectures</div>
+          <div class="flex flex-col gap-8">
+            <div class="lecture-row">
+              <div class="lecture-icon">📄</div>
+              <div class="lecture-info">
+                <div class="lecture-title">Data Structures Intro</div>
+                <div class="lecture-meta">CSC301 &middot; Apr 18</div>
+              </div>
+              <div class="badge badge-green">Ready</div>
+            </div>
+            <div class="lecture-row">
+              <div class="lecture-icon">📄</div>
+              <div class="lecture-info">
+                <div class="lecture-title">Organic Chemistry II</div>
+                <div class="lecture-meta">CHM202 &middot; Apr 17</div>
+              </div>
+              <div class="badge badge-green">Ready</div>
+            </div>
+            <div class="lecture-row">
+              <div class="lecture-icon" style="background:rgba(234,179,8,0.1);">⏳</div>
+              <div class="lecture-info">
+                <div class="lecture-title">Nigerian Legal System</div>
+                <div class="lecture-meta">LAW101 &middot; Apr 17</div>
+              </div>
+              <div class="badge badge-yellow">Processing</div>
+            </div>
+            <div class="lecture-row">
+              <div class="lecture-icon">📄</div>
+              <div class="lecture-info">
+                <div class="lecture-title">Microeconomics</div>
+                <div class="lecture-meta">ECO201 &middot; Apr 16</div>
+              </div>
+              <div class="badge badge-green">Ready</div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="bottom-nav-item active"><span class="nav-icon">🏠</span>Home</div>
+          <div class="bottom-nav-item"><span class="nav-icon">📤</span>Upload</div>
+          <div class="bottom-nav-item"><span class="nav-icon">📚</span>Lectures</div>
+          <div class="bottom-nav-item"><span class="nav-icon">👤</span>Profile</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESKTOP -->
+    <div class="desktop-frame-wrap">
+      <div class="frame-label">Desktop — 900px</div>
+      <div class="desktop-frame">
+        <div class="browser-bar">
+          <div class="browser-dot r"></div><div class="browser-dot y"></div><div class="browser-dot g"></div>
+          <div class="browser-url">lectly.ng/dashboard</div>
+        </div>
+        <div class="screen-content">
+          <div class="top-bar-desktop">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="lectly-logo lectly-logo-sm">L</div>
+              <span style="font-size:17px;font-weight:700;color:#fff;">Lectly</span>
+            </div>
+            <div class="nav-links"><a href="#" style="color:#3B82F6;">Dashboard</a><a href="#">Upload</a><a href="#">Lectures</a><a href="#">Profile</a></div>
+            <div class="avatar-sm" style="background:linear-gradient(135deg,#2563EB,#22C55E);display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-size:12px;font-weight:700;color:#fff;">DG</div>
+          </div>
+          <div style="padding:28px 32px;">
+            <!-- Welcome -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+              <div>
+                <div style="font-size:14px;color:#94A3B8;">Good morning,</div>
+                <div style="font-size:24px;font-weight:700;color:#fff;">David 👋</div>
+              </div>
+              <div class="btn-primary">+ Upload Lecture</div>
+            </div>
+            <!-- Stats -->
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;">
+              <div class="stat-card">
+                <div style="font-size:12px;color:#94A3B8;margin-bottom:4px;">Total Lectures</div>
+                <div style="font-size:28px;font-weight:700;color:#fff;">12</div>
+              </div>
+              <div class="stat-card">
+                <div style="font-size:12px;color:#94A3B8;margin-bottom:4px;">Hours Processed</div>
+                <div style="font-size:28px;font-weight:700;color:#fff;">8.5h</div>
+              </div>
+              <div class="stat-card">
+                <div style="font-size:12px;color:#94A3B8;margin-bottom:4px;">Learn Sessions</div>
+                <div style="font-size:28px;font-weight:700;color:#fff;">24</div>
+              </div>
+              <div class="stat-card">
+                <div style="font-size:12px;color:#94A3B8;margin-bottom:4px;">Topics Mastered</div>
+                <div style="font-size:28px;font-weight:700;color:#fff;">6</div>
+              </div>
+            </div>
+            <!-- Search -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <div style="font-size:16px;font-weight:700;color:#fff;">Recent Lectures</div>
+              <div class="search-bar" style="width:260px;">
+                <span>🔍</span><span class="search-bar-text">Search lectures...</span>
+              </div>
+            </div>
+            <!-- Table-like list -->
+            <div class="flex flex-col gap-8">
+              <div class="lecture-row">
+                <div class="lecture-icon">📄</div>
+                <div class="lecture-info" style="flex:2;">
+                  <div class="lecture-title">Introduction to Data Structures</div>
+                  <div class="lecture-meta">CSC301 &middot; Apr 18, 2026 &middot; 45 min</div>
+                </div>
+                <div class="badge badge-green">Ready</div>
+                <div style="font-size:12px;color:#64748b;margin-left:12px;">View →</div>
+              </div>
+              <div class="lecture-row">
+                <div class="lecture-icon">📄</div>
+                <div class="lecture-info" style="flex:2;">
+                  <div class="lecture-title">Organic Chemistry II — Reactions</div>
+                  <div class="lecture-meta">CHM202 &middot; Apr 17, 2026 &middot; 52 min</div>
+                </div>
+                <div class="badge badge-green">Ready</div>
+                <div style="font-size:12px;color:#64748b;margin-left:12px;">View →</div>
+              </div>
+              <div class="lecture-row">
+                <div class="lecture-icon" style="background:rgba(234,179,8,0.1);">⏳</div>
+                <div class="lecture-info" style="flex:2;">
+                  <div class="lecture-title">Nigerian Legal System — Sources of Law</div>
+                  <div class="lecture-meta">LAW101 &middot; Apr 17, 2026 &middot; 38 min</div>
+                </div>
+                <div class="badge badge-yellow">Processing</div>
+                <div style="font-size:12px;color:#64748b;margin-left:12px;">—</div>
+              </div>
+              <div class="lecture-row">
+                <div class="lecture-icon">📄</div>
+                <div class="lecture-info" style="flex:2;">
+                  <div class="lecture-title">Microeconomics — Demand &amp; Supply</div>
+                  <div class="lecture-meta">ECO201 &middot; Apr 16, 2026 &middot; 60 min</div>
+                </div>
+                <div class="badge badge-green">Ready</div>
+                <div style="font-size:12px;color:#64748b;margin-left:12px;">View →</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════
+     7. PRICING
+     ═══════════════════════════════════════════════════ -->
+<section id="pricing" class="screen-section">
+  <div class="section-label">Screen 7 of 9</div>
+  <h2 class="section-title">Pricing</h2>
+  <p class="section-desc">Three pricing tiers — Free, Standard (featured), and Pro — with Naira pricing.</p>
+
+  <div class="frames">
+    <!-- MOBILE -->
+    <div class="mobile-frame-wrap">
+      <div class="frame-label">Mobile — 375px</div>
+      <div class="mobile-frame">
+        <div class="notch"></div>
+        <div class="screen-content">
+          <div class="top-bar">
+            <span style="font-size:14px;color:#64748b;">← Back</span>
+            <span style="font-size:15px;font-weight:700;color:#fff;">Pricing</span>
+            <span></span>
+          </div>
+          <p style="font-size:13px;color:#94A3B8;text-align:center;margin-bottom:20px;">Choose the plan that works for you</p>
+          <!-- Free -->
+          <div class="pricing-card mb-12">
+            <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:4px;">Free</div>
+            <div style="font-size:28px;font-weight:800;color:#fff;margin-bottom:2px;">₦0<span style="font-size:13px;font-weight:400;color:#94A3B8;">/mo</span></div>
+            <div style="font-size:12px;color:#94A3B8;margin-bottom:14px;">2 lectures/month</div>
+            <div style="font-size:12px;color:#c8d0dc;line-height:1.8;">
+              ✓ Smart notes generation<br>
+              ✓ Basic Explain This<br>
+              ✓ 2 lectures per month<br>
+              ✗ <span style="color:#64748b;">Learn Mode</span><br>
+              ✗ <span style="color:#64748b;">Offline access</span>
+            </div>
+            <div class="btn-secondary mt-16" style="width:100%;text-align:center;">Current Plan</div>
+          </div>
+          <!-- Standard -->
+          <div class="pricing-card featured mb-12" style="margin-top:20px;">
+            <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:4px;">Standard</div>
+            <div style="font-size:28px;font-weight:800;color:#fff;margin-bottom:2px;">₦1,500<span style="font-size:13px;font-weight:400;color:#94A3B8;">/mo</span></div>
+            <div style="font-size:12px;color:#94A3B8;margin-bottom:14px;">10 lectures/month</div>
+            <div style="font-size:12px;color:#c8d0dc;line-height:1.8;">
+              ✓ Smart notes generation<br>
+              ✓ Explain This (all levels)<br>
+              ✓ 10 lectures per month<br>
+              ✓ Learn Mode<br>
+              ✗ <span style="color:#64748b;">Offline access</span>
+            </div>
+            <div class="btn-primary mt-16" style="width:100%;text-align:center;">Upgrade</div>
+          </div>
+          <!-- Pro -->
+          <div class="pricing-card mb-12">
+            <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:4px;">Pro</div>
+            <div style="font-size:28px;font-weight:800;color:#fff;margin-bottom:2px;">₦3,500<span style="font-size:13px;font-weight:400;color:#94A3B8;">/mo</span></div>
+            <div style="font-size:12px;color:#94A3B8;margin-bottom:14px;">30 lectures/month</div>
+            <div style="font-size:12px;color:#c8d0dc;line-height:1.8;">
+              ✓ Smart notes generation<br>
+              ✓ Explain This (all levels)<br>
+              ✓ 30 lectures per month<br>
+              ✓ Learn Mode<br>
+              ✓ Offline access
+            </div>
+            <div class="btn-secondary mt-16" style="width:100%;text-align:center;">Upgrade</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESKTOP -->
+    <div class="desktop-frame-wrap">
+      <div class="frame-label">Desktop — 900px</div>
+      <div class="desktop-frame">
+        <div class="browser-bar">
+          <div class="browser-dot r"></div><div class="browser-dot y"></div><div class="browser-dot g"></div>
+          <div class="browser-url">lectly.ng/pricing</div>
+        </div>
+        <div class="screen-content">
+          <div class="top-bar-desktop">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="lectly-logo lectly-logo-sm">L</div>
+              <span style="font-size:17px;font-weight:700;color:#fff;">Lectly</span>
+            </div>
+            <div class="nav-links"><a href="#">Features</a><a href="#" style="color:#3B82F6;">Pricing</a><a href="#">About</a></div>
+            <div style="display:flex;gap:10px;">
+              <div class="btn-ghost">Sign In</div>
+              <div class="btn-primary" style="padding:8px 18px;font-size:13px;">Get Started</div>
+            </div>
+          </div>
+          <div style="padding:40px 48px;text-align:center;">
+            <h2 style="font-size:26px;font-weight:800;color:#fff;margin-bottom:6px;">Simple, Student-Friendly Pricing</h2>
+            <p style="font-size:14px;color:#94A3B8;margin-bottom:36px;">Choose the plan that works for your study load</p>
+            <div class="pricing-grid" style="justify-content:center;align-items:stretch;">
+              <!-- Free -->
+              <div class="pricing-card" style="text-align:left;">
+                <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:6px;">Free</div>
+                <div style="font-size:34px;font-weight:800;color:#fff;margin-bottom:2px;">₦0<span style="font-size:14px;font-weight:400;color:#94A3B8;">/mo</span></div>
+                <div style="font-size:13px;color:#94A3B8;margin-bottom:20px;">2 lectures/month</div>
+                <div style="font-size:13px;color:#c8d0dc;line-height:2;">
+                  ✓ Smart notes generation<br>
+                  ✓ Basic Explain This<br>
+                  ✓ 2 lectures per month<br>
+                  <span style="color:#475569;">✗ Learn Mode</span><br>
+                  <span style="color:#475569;">✗ Offline access</span>
+                </div>
+                <div class="btn-secondary mt-24" style="width:100%;text-align:center;">Current Plan</div>
+              </div>
+              <!-- Standard -->
+              <div class="pricing-card featured" style="text-align:left;margin-top:0;">
+                <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:6px;">Standard</div>
+                <div style="font-size:34px;font-weight:800;color:#fff;margin-bottom:2px;">₦1,500<span style="font-size:14px;font-weight:400;color:#94A3B8;">/mo</span></div>
+                <div style="font-size:13px;color:#94A3B8;margin-bottom:20px;">10 lectures/month</div>
+                <div style="font-size:13px;color:#c8d0dc;line-height:2;">
+                  ✓ Smart notes generation<br>
+                  ✓ Explain This (all levels)<br>
+                  ✓ 10 lectures per month<br>
+                  ✓ Learn Mode<br>
+                  <span style="color:#475569;">✗ Offline access</span>
+                </div>
+                <div class="btn-primary mt-24" style="width:100%;text-align:center;">Upgrade to Standard</div>
+              </div>
+              <!-- Pro -->
+              <div class="pricing-card" style="text-align:left;">
+                <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:6px;">Pro</div>
+                <div style="font-size:34px;font-weight:800;color:#fff;margin-bottom:2px;">₦3,500<span style="font-size:14px;font-weight:400;color:#94A3B8;">/mo</span></div>
+                <div style="font-size:13px;color:#94A3B8;margin-bottom:20px;">30 lectures/month</div>
+                <div style="font-size:13px;color:#c8d0dc;line-height:2;">
+                  ✓ Smart notes generation<br>
+                  ✓ Explain This (all levels)<br>
+                  ✓ 30 lectures per month<br>
+                  ✓ Learn Mode<br>
+                  ✓ Offline access
+                </div>
+                <div class="btn-secondary mt-24" style="width:100%;text-align:center;">Upgrade to Pro</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════
+     8. PROFILE / SETTINGS
+     ═══════════════════════════════════════════════════ -->
+<section id="profile" class="screen-section">
+  <div class="section-label">Screen 8 of 9</div>
+  <h2 class="section-title">Profile / Settings</h2>
+  <p class="section-desc">Avatar, personal info, university, usage meter, subscription info, notification and offline settings, sign out.</p>
+
+  <div class="frames">
+    <!-- MOBILE -->
+    <div class="mobile-frame-wrap">
+      <div class="frame-label">Mobile — 375px</div>
+      <div class="mobile-frame">
+        <div class="notch"></div>
+        <div class="screen-content">
+          <div class="top-bar">
+            <span></span>
+            <span style="font-size:15px;font-weight:700;color:#fff;">Profile</span>
+            <span></span>
+          </div>
+          <!-- Avatar & info -->
+          <div style="text-align:center;margin-bottom:24px;">
+            <div class="avatar" style="margin:0 auto 12px;">DG</div>
+            <div style="font-size:17px;font-weight:700;color:#fff;">David Gates</div>
+            <div style="font-size:12px;color:#94A3B8;">davidgates605@gmail.com</div>
+          </div>
+          <!-- Info card -->
+          <div class="card mb-16">
+            <div style="margin-bottom:14px;">
+              <label class="input-label">University</label>
+              <div class="input-field">University of Lagos</div>
+            </div>
+            <div>
+              <label class="input-label">Department</label>
+              <div class="input-field">Computer Science</div>
+            </div>
+          </div>
+          <!-- Usage -->
+          <div class="card mb-16">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+              <span style="font-size:13px;font-weight:600;color:#fff;">Monthly Usage</span>
+              <span style="font-size:12px;color:#94A3B8;">7 / 10 lectures</span>
+            </div>
+            <div class="usage-meter"><div class="fill" style="width:70%;"></div></div>
+          </div>
+          <!-- Subscription -->
+          <div class="card mb-16">
+            <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:6px;">Subscription</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div class="badge badge-blue">Standard Plan</div>
+                <div style="font-size:11px;color:#64748b;margin-top:4px;">Renews May 21, 2026</div>
+              </div>
+              <span style="font-size:12px;color:#3B82F6;font-weight:500;">Manage →</span>
+            </div>
+          </div>
+          <!-- Settings -->
+          <div style="margin-top:8px;">
+            <div class="setting-row">
+              <span style="font-size:13px;color:#e2e8f0;">🔔 Push Notifications</span>
+              <div class="toggle on"></div>
+            </div>
+            <div class="setting-row">
+              <span style="font-size:13px;color:#e2e8f0;">📥 Offline Access</span>
+              <div class="toggle"></div>
+            </div>
+            <div class="setting-row" style="border-bottom:none;">
+              <span style="font-size:13px;color:#ef4444;">Sign Out</span>
+              <span style="font-size:13px;color:#64748b;">→</span>
+            </div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="bottom-nav-item"><span class="nav-icon">🏠</span>Home</div>
+          <div class="bottom-nav-item"><span class="nav-icon">📤</span>Upload</div>
+          <div class="bottom-nav-item"><span class="nav-icon">📚</span>Lectures</div>
+          <div class="bottom-nav-item active"><span class="nav-icon">👤</span>Profile</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESKTOP -->
+    <div class="desktop-frame-wrap">
+      <div class="frame-label">Desktop — 900px</div>
+      <div class="desktop-frame">
+        <div class="browser-bar">
+          <div class="browser-dot r"></div><div class="browser-dot y"></div><div class="browser-dot g"></div>
+          <div class="browser-url">lectly.ng/profile</div>
+        </div>
+        <div class="screen-content">
+          <div class="top-bar-desktop">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="lectly-logo lectly-logo-sm">L</div>
+              <span style="font-size:17px;font-weight:700;color:#fff;">Lectly</span>
+            </div>
+            <div class="nav-links"><a href="#">Dashboard</a><a href="#">Upload</a><a href="#">Lectures</a><a href="#" style="color:#3B82F6;">Profile</a></div>
+            <div class="avatar-sm" style="background:linear-gradient(135deg,#2563EB,#22C55E);display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-size:12px;font-weight:700;color:#fff;">DG</div>
+          </div>
+          <div style="padding:36px 48px;max-width:760px;margin:0 auto;">
+            <h2 style="font-size:22px;font-weight:700;color:#fff;margin-bottom:28px;">Profile &amp; Settings</h2>
+            <div style="display:flex;gap:32px;">
+              <!-- Left column -->
+              <div style="flex:1;">
+                <!-- Profile header -->
+                <div class="card mb-20" style="display:flex;align-items:center;gap:16px;">
+                  <div class="avatar">DG</div>
+                  <div>
+                    <div style="font-size:18px;font-weight:700;color:#fff;">David Gates</div>
+                    <div style="font-size:13px;color:#94A3B8;">davidgates605@gmail.com</div>
+                    <div style="font-size:12px;color:#64748b;margin-top:2px;">University of Lagos &middot; Computer Science</div>
+                  </div>
+                </div>
+                <!-- Editable fields -->
+                <div class="card">
+                  <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:16px;">Personal Information</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                    <div><label class="input-label">Full Name</label><div class="input-field">David Gates</div></div>
+                    <div><label class="input-label">Email</label><div class="input-field">davidgates605@gmail.com</div></div>
+                    <div><label class="input-label">University</label><div class="input-field">University of Lagos</div></div>
+                    <div><label class="input-label">Department</label><div class="input-field">Computer Science</div></div>
+                  </div>
+                  <div class="btn-primary mt-16" style="font-size:13px;">Save Changes</div>
+                </div>
+              </div>
+              <!-- Right column -->
+              <div style="width:280px;flex-shrink:0;">
+                <!-- Usage -->
+                <div class="card mb-16">
+                  <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:12px;">Monthly Usage</div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                    <span style="font-size:13px;color:#94A3B8;">Lectures used</span>
+                    <span style="font-size:13px;font-weight:600;color:#fff;">7 / 10</span>
+                  </div>
+                  <div class="usage-meter"><div class="fill" style="width:70%;"></div></div>
+                </div>
+                <!-- Subscription -->
+                <div class="card mb-16">
+                  <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:8px;">Subscription</div>
+                  <div class="badge badge-blue mb-8">Standard Plan</div>
+                  <div style="font-size:12px;color:#94A3B8;">₦1,500/mo &middot; Renews May 21, 2026</div>
+                  <div style="font-size:13px;color:#3B82F6;font-weight:500;margin-top:10px;cursor:pointer;">Manage Subscription →</div>
+                </div>
+                <!-- Settings -->
+                <div class="card">
+                  <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:12px;">Settings</div>
+                  <div class="setting-row" style="padding-top:0;">
+                    <span style="font-size:13px;color:#e2e8f0;">🔔 Notifications</span>
+                    <div class="toggle on"></div>
+                  </div>
+                  <div class="setting-row" style="border-bottom:none;">
+                    <span style="font-size:13px;color:#e2e8f0;">📥 Offline Access</span>
+                    <div class="toggle"></div>
+                  </div>
+                </div>
+                <div style="margin-top:20px;text-align:center;">
+                  <span style="font-size:13px;color:#ef4444;cursor:pointer;">Sign Out</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════
+     9. SIGN IN / SIGN UP
+     ═══════════════════════════════════════════════════ -->
+<section id="auth" class="screen-section">
+  <div class="section-label">Screen 9 of 9</div>
+  <h2 class="section-title">Sign In / Sign Up</h2>
+  <p class="section-desc">Logo, Google and Apple social login buttons, email/password form, and toggle link to switch modes.</p>
+
+  <div class="frames">
+    <!-- MOBILE -->
+    <div class="mobile-frame-wrap">
+      <div class="frame-label">Mobile — 375px</div>
+      <div class="mobile-frame">
+        <div class="notch"></div>
+        <div class="screen-content" style="display:flex;flex-direction:column;align-items:center;padding-top:32px;">
+          <!-- Logo -->
+          <div class="lectly-logo" style="width:56px;height:56px;font-size:28px;border-radius:16px;margin-bottom:12px;">L</div>
+          <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:4px;">Welcome to Lectly</div>
+          <p style="font-size:13px;color:#94A3B8;margin-bottom:28px;">Sign in to continue</p>
+          <!-- Social -->
+          <div style="width:100%;margin-bottom:8px;">
+            <div class="social-btn mb-8">🔵 Continue with Google</div>
+            <div class="social-btn">🍎 Continue with Apple</div>
+          </div>
+          <!-- Divider -->
+          <div style="display:flex;align-items:center;gap:12px;width:100%;margin:20px 0;">
+            <div style="flex:1;height:1px;background:#334155;"></div>
+            <span style="font-size:12px;color:#64748b;">or</span>
+            <div style="flex:1;height:1px;background:#334155;"></div>
+          </div>
+          <!-- Form -->
+          <div style="width:100%;">
+            <div style="margin-bottom:14px;">
+              <label class="input-label">Email</label>
+              <div class="input-field" style="color:#64748b;">you@university.edu.ng</div>
+            </div>
+            <div style="margin-bottom:20px;">
+              <label class="input-label">Password</label>
+              <div class="input-field" style="color:#64748b;">••••••••</div>
+            </div>
+            <div class="btn-primary" style="width:100%;padding:13px;font-size:15px;">Sign In</div>
+          </div>
+          <p style="font-size:13px;color:#94A3B8;margin-top:20px;">Don't have an account? <span style="color:#3B82F6;font-weight:600;">Sign Up</span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESKTOP -->
+    <div class="desktop-frame-wrap">
+      <div class="frame-label">Desktop — 900px</div>
+      <div class="desktop-frame">
+        <div class="browser-bar">
+          <div class="browser-dot r"></div><div class="browser-dot y"></div><div class="browser-dot g"></div>
+          <div class="browser-url">lectly.ng/signin</div>
+        </div>
+        <div class="screen-content">
+          <div style="display:flex;min-height:540px;">
+            <!-- Left branding panel -->
+            <div style="flex:1;background:linear-gradient(135deg,rgba(37,99,235,0.15),rgba(34,197,94,0.08));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px;border-right:1px solid #1e293b;position:relative;overflow:hidden;">
+              <div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:radial-gradient(ellipse,rgba(37,99,235,0.2),transparent);pointer-events:none;"></div>
+              <div class="lectly-logo" style="width:72px;height:72px;font-size:36px;border-radius:20px;margin-bottom:20px;">L</div>
+              <div style="font-size:28px;font-weight:800;color:#fff;margin-bottom:8px;">Lectly</div>
+              <p style="font-size:14px;color:#94A3B8;text-align:center;max-width:260px;">AI-powered lecture notes for Nigerian university students.</p>
+            </div>
+            <!-- Right form panel -->
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px;max-width:440px;">
+              <h2 style="font-size:22px;font-weight:700;color:#fff;margin-bottom:4px;">Sign In</h2>
+              <p style="font-size:13px;color:#94A3B8;margin-bottom:24px;">Welcome back! Enter your details.</p>
+              <!-- Social -->
+              <div style="width:100%;max-width:320px;">
+                <div class="social-btn mb-8">🔵 Continue with Google</div>
+                <div class="social-btn">🍎 Continue with Apple</div>
+                <!-- Divider -->
+                <div style="display:flex;align-items:center;gap:12px;margin:20px 0;">
+                  <div style="flex:1;height:1px;background:#334155;"></div>
+                  <span style="font-size:12px;color:#64748b;">or</span>
+                  <div style="flex:1;height:1px;background:#334155;"></div>
+                </div>
+                <!-- Form -->
+                <div style="margin-bottom:14px;">
+                  <label class="input-label">Email</label>
+                  <div class="input-field" style="color:#64748b;">you@university.edu.ng</div>
+                </div>
+                <div style="margin-bottom:20px;">
+                  <label class="input-label">Password</label>
+                  <div class="input-field" style="color:#64748b;">••••••••</div>
+                </div>
+                <div class="btn-primary" style="width:100%;padding:13px;font-size:15px;">Sign In</div>
+                <p style="font-size:13px;color:#94A3B8;margin-top:20px;text-align:center;">Don't have an account? <span style="color:#3B82F6;font-weight:600;cursor:pointer;">Sign Up</span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
