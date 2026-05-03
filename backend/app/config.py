@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     # Processing
     whisper_model: str = "openai/whisper-large-v3"  # Hugging Face Whisper model
     llm_model: str = "mistralai/Mistral-7B-Instruct-v0.3"  # Hugging Face LLM
+    skip_noise_reduction: bool = True  # Skip on Railway to avoid OOM crashes
 
     class Config:
         env_file = ".env"

@@ -194,9 +194,14 @@ async def transcribe_audio(lecture_id: str) -> list[TranscriptSegment]:
         print(f"[Lectly] File: {filepath} ({lecture['size_bytes']} bytes)")
 
         # ── Step 0: Clean the audio (noise reduction) ──
-        update_lecture(lecture_id, {"status": LectureStatus.CLEANING})
-        filepath = clean_audio(filepath)
-        print(f"[Lectly] Using audio file: {filepath}")
+        # Skipped on Railway by default — uses too much RAM on free tier.
+        # AssemblyAI's universal-2 model handles noisy audio well on its own.
+        if not settings.skip_noise_reduction:
+            update_lecture(lecture_id, {"status": LectureStatus.CLEANING})
+            filepath = clean_audio(filepath)
+            print(f"[Lectly] Using cleaned audio file: {filepath}")
+        else:
+            print(f"[Lectly] Skipping noise reduction (disabled in settings)")
 
         # ── Step 1: Upload the audio file to AssemblyAI ──
         print(f"[Lectly] Uploading audio to AssemblyAI...")
