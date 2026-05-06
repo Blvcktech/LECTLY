@@ -259,6 +259,11 @@ export default function LearnModePage({
   const [quizRevealed, setQuizRevealed] = useState<Record<number, boolean>>({});
   const [quizScore, setQuizScore] = useState<number | null>(null);
 
+  // Reteach state — triggered when student gets a quiz answer wrong
+  const [reteachIndex, setReteachIndex] = useState<number | null>(null);
+  const [reteachText, setReteachText] = useState<string>("");
+  const [reteachLoading, setReteachLoading] = useState(false);
+
   // Active teaching tab
   const [activeStep, setActiveStep] = useState(0);
 
@@ -355,6 +360,34 @@ export default function LearnModePage({
     { label: "Solve step by step", icon: "📝" },
   ];
 
+  const handleReteach = async (questionIndex: number) => {
+    if (!learnResult || reteachLoading) return;
+    const q = learnResult.quiz[questionIndex];
+    if (!q) return;
+
+    setReteachIndex(questionIndex);
+    setReteachLoading(true);
+    setReteachText("");
+
+    const studentPick = q.options[quizAnswers[questionIndex]] || "unknown";
+    const correctAnswer = q.options[q.correct_index];
+    const prompt = `I just got this quiz question wrong and need help understanding it.\n\nQuestion: "${q.question}"\nI picked: "${studentPick}"\nCorrect answer: "${correctAnswer}"\n\nExplain why my answer is wrong and why the correct answer is right. Use a different angle or analogy than the original explanation. Keep it short and clear.`;
+
+    try {
+      const result = await askTutor(
+        id,
+        prompt,
+        [],
+        selectedSection !== null && selectedSection >= 0 ? selectedSection : undefined
+      );
+      setReteachText(result.answer);
+    } catch {
+      setReteachText("Sorry, I couldn't generate a re-explanation right now. Try asking in the tutor chat.");
+    } finally {
+      setReteachLoading(false);
+    }
+  };
+
   const handleStartLearn = async (sectionIndex: number) => {
     if (learnLoading) return; // Prevent double-clicks
     setSelectedSection(sectionIndex);
@@ -364,6 +397,9 @@ export default function LearnModePage({
     setQuizAnswers({});
     setQuizRevealed({});
     setQuizScore(null);
+    setReteachIndex(null);
+    setReteachText("");
+    setReteachLoading(false);
     setActiveStep(0);
     try {
       const result = await learnMode(id, learnLevel, sectionIndex);
@@ -1061,14 +1097,94 @@ export default function LearnModePage({
                               );
                             })}
                           </div>
-                          {quizRevealed[qi] && (
-                            <div className={`mt-3 p-3 rounded-lg text-xs leading-relaxed ${
-                              quizAnswers[qi] === q.correct_index
-                                ? "bg-green-500/[0.07] text-green-300 border border-green-500/20"
-                                : "bg-red-500/[0.07] text-red-300 border border-red-500/20"
-                            }`}>
-                              {quizAnswers[qi] === q.correct_index ? "Correct! " : "Incorrect. "}
-                              {q.explanation}
+                          {/* Correct answer feedback */}
+                          {quizRevealed[qi] && quizAnswers[qi] === q.correct_index && (
+                            <div className="mt-3 p-3 rounded-lg text-xs leading-relaxed bg-green-500/[0.07] text-green-300 border border-green-500/20">
+                              Correct! {q.explanation}
+                            </div>
+                          )}
+
+                          {/* Wrong answer — reteach flow (Direction A style) */}
+                          {quizRevealed[qi] && quizAnswers[qi] !== q.correct_index && (
+                            <div className="mt-4 space-y-3">
+                              {/* Brief explanation */}
+                              <div className="p-3 rounded-lg text-xs leading-relaxed bg-red-500/[0.07] text-red-300 border border-red-500/20">
+                                Not quite. {q.explanation}
+                              </div>
+
+                              {/* Reteach card — warm paper style */}
+                              {reteachIndex === qi && (reteachLoading || reteachText) ? (
+                                <div className="rounded-xl overflow-hidden border border-amber-500/20 bg-gradient-to-b from-[#FBF8F1] to-[#F5F0E6]">
+                                  <div className="px-4 py-2 flex items-center gap-2">
+                                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                                    <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">
+                                      Let&apos;s try that differently
+                                    </span>
+                                  </div>
+                                  <div className="px-4 pb-4">
+                                    {reteachLoading ? (
+                                      <div className="flex items-center gap-2 py-3">
+                                        <Loader2 className="w-4 h-4 text-amber-600 animate-spin" />
+                                        <span className="text-sm text-amber-800">Thinking of a better way to explain this...</span>
+                                      </div>
+                                    ) : (
+                                      <div className="space-y-2">
+                                        {reteachText.split(/(```[\s\S]*?```)/g).map((block, bi) => {
+                                          if (block.startsWith("```")) {
+                                            const lines = block.slice(3, -3).split("\n");
+                                            const lang = lines[0]?.trim() || "";
+                                            const code = lang ? lines.slice(1).join("\n") : lines.join("\n");
+                                            return (
+                                              <div key={bi} className="my-2 rounded-lg overflow-hidden border border-amber-300/40">
+                                                <pre className="bg-[#1a1a1a] px-3 py-2.5 overflow-x-auto">
+                                                  <code className="text-[12px] text-green-300 leading-[1.6] font-mono whitespace-pre">{code.trim()}</code>
+                                                </pre>
+                                              </div>
+                                            );
+                                          }
+                                          return block.split("\n\n").map((p, pi) => {
+                                            const trimmed = p.trim();
+                                            if (!trimmed) return null;
+                                            // Render bold and inline code
+                                            const parts = trimmed.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+                                            return (
+                                              <p key={`${bi}-${pi}`} className="text-sm text-[#2C2A25] leading-relaxed">
+                                                {parts.map((part, idx) => {
+                                                  if (part.startsWith("**") && part.endsWith("**")) return <strong key={idx} className="font-semibold text-[#1a1815]">{part.slice(2, -2)}</strong>;
+                                                  if (part.startsWith("`") && part.endsWith("`")) return <code key={idx} className="px-1 py-0.5 rounded bg-amber-100 text-[12px] font-mono text-amber-900">{part.slice(1, -1)}</code>;
+                                                  return <span key={idx}>{part}</span>;
+                                                })}
+                                              </p>
+                                            );
+                                          });
+                                        })}
+                                      </div>
+                                    )}
+                                  </div>
+                                  {reteachText && !reteachLoading && (
+                                    <div className="px-4 pb-3 flex gap-2">
+                                      <button
+                                        onClick={() => {
+                                          setChatOpen(true);
+                                          setChatInput(`I still don't understand: "${q.question}" — can you explain further?`);
+                                        }}
+                                        className="text-[11px] font-medium text-amber-700 hover:text-amber-900 underline underline-offset-2 transition-colors"
+                                      >
+                                        Still confused? Ask your tutor →
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                /* Button to trigger reteach */
+                                <button
+                                  onClick={() => handleReteach(qi)}
+                                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-amber-500/30 bg-gradient-to-b from-[#FBF8F1] to-[#F5F0E6] text-sm font-medium text-amber-800 hover:border-amber-500/50 hover:shadow-md transition-all"
+                                >
+                                  <Sparkles className="w-4 h-4 text-amber-600" />
+                                  Teach me this differently
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>
