@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -18,18 +18,126 @@ import {
   HelpCircle,
   ExternalLink,
   Code,
+  MessageCircle,
+  Send,
+  X,
+  ChevronUp,
+  Sparkles,
 } from "lucide-react";
 import {
   getLecture,
   learnMode,
+  askTutor,
   type Lecture,
   type LearnResult,
   type NoteSection,
+  type TutorMessage,
 } from "@/lib/api";
 
-// ── Helper: render body text with code blocks ──
+// ── Helper: render inline formatting (bold, inline code) ──
+function RenderInline({ text }: { text: string }) {
+  // Split on **bold** and `inline code` patterns
+  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (part.startsWith("**") && part.endsWith("**")) {
+          return (
+            <strong key={i} className="font-semibold text-white">
+              {part.slice(2, -2)}
+            </strong>
+          );
+        }
+        if (part.startsWith("`") && part.endsWith("`")) {
+          return (
+            <code
+              key={i}
+              className="px-1.5 py-0.5 rounded-md bg-slate-800/80 border border-slate-700/50 text-[13px] font-mono text-purple-300"
+            >
+              {part.slice(1, -1)}
+            </code>
+          );
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </>
+  );
+}
+
+// ── Helper: render a paragraph that might be a math step ──
+function RenderParagraph({ text, index }: { text: string; index: string }) {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+
+  // Detect step-by-step math/calculation patterns
+  const isStep = /^(Step \d|Given:|Find:|Formula:|Answer:|Therefore:|Solution:|Result:|Where:)/i.test(trimmed);
+  const isCalculation = /^[A-Za-z_]\s*=\s*.+/.test(trimmed) || /^[A-Za-z(].*[=×÷].*\d/.test(trimmed);
+  const isBullet = /^[-•]\s/.test(trimmed);
+  const isNumberedItem = /^\d+[\.\)]\s/.test(trimmed);
+
+  // Step header (like "Step 1: Find the force")
+  if (isStep) {
+    return (
+      <div key={index} className="flex items-start gap-3 my-2">
+        <div className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-2 flex-shrink-0" />
+        <p className="text-sm font-semibold text-white leading-relaxed">
+          <RenderInline text={trimmed} />
+        </p>
+      </div>
+    );
+  }
+
+  // Calculation/formula line
+  if (isCalculation) {
+    return (
+      <div key={index} className="my-2 mx-4 bg-slate-900/60 border border-slate-700/40 rounded-lg px-4 py-2">
+        <code className="text-[13px] text-green-300 font-mono">
+          {trimmed}
+        </code>
+      </div>
+    );
+  }
+
+  // Bullet point
+  if (isBullet) {
+    const bulletText = trimmed.replace(/^[-•]\s*/, "");
+    return (
+      <div key={index} className="flex items-start gap-2 my-1 ml-2">
+        <span className="text-purple-400 mt-0.5 flex-shrink-0">•</span>
+        <p className="text-sm text-slate-200 leading-relaxed">
+          <RenderInline text={bulletText} />
+        </p>
+      </div>
+    );
+  }
+
+  // Numbered item
+  if (isNumberedItem) {
+    const match = trimmed.match(/^(\d+[\.\)])\s*(.*)/);
+    return (
+      <div key={index} className="flex items-start gap-2 my-1 ml-2">
+        <span className="text-purple-400 font-mono text-xs mt-0.5 flex-shrink-0 min-w-[1.2rem]">
+          {match?.[1]}
+        </span>
+        <p className="text-sm text-slate-200 leading-relaxed">
+          <RenderInline text={match?.[2] || trimmed} />
+        </p>
+      </div>
+    );
+  }
+
+  // Normal paragraph
+  return (
+    <p key={index} className="text-sm text-slate-200 leading-[1.85] mb-4 last:mb-0">
+      <RenderInline text={trimmed} />
+    </p>
+  );
+}
+
+// ── Helper: render body text with code blocks, math, and formatting ──
 function RenderBody({ text }: { text: string }) {
-  // Split on triple-backtick code blocks if present
+  // Split on triple-backtick code blocks
   const parts = text.split(/(```[\s\S]*?```)/g);
 
   return (
@@ -42,15 +150,25 @@ function RenderBody({ text }: { text: string }) {
           const code = lang ? lines.slice(1).join("\n") : lines.join("\n");
 
           return (
-            <div key={i} className="my-4 rounded-xl overflow-hidden border border-slate-700/60">
-              {lang && (
-                <div className="bg-slate-700/50 px-4 py-1.5 flex items-center gap-2">
+            <div key={i} className="my-5 rounded-xl overflow-hidden border border-slate-700/60 shadow-lg shadow-black/10">
+              {/* Language header bar */}
+              <div className="bg-slate-700/60 px-4 py-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
                   <Code className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{lang}</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    {lang || "code"}
+                  </span>
                 </div>
-              )}
-              <pre className="bg-slate-900/80 px-4 py-3 overflow-x-auto">
-                <code className="text-[13px] text-green-300 leading-relaxed font-mono whitespace-pre">
+                <button
+                  onClick={() => navigator.clipboard.writeText(code.trim())}
+                  className="text-[10px] font-medium text-slate-500 hover:text-white px-2 py-0.5 rounded hover:bg-slate-600/50 transition-colors"
+                >
+                  Copy
+                </button>
+              </div>
+              {/* Code content */}
+              <pre className="bg-[#0D1117] px-5 py-4 overflow-x-auto">
+                <code className="text-[13px] text-green-300 leading-[1.7] font-mono whitespace-pre">
                   {code.trim()}
                 </code>
               </pre>
@@ -63,15 +181,35 @@ function RenderBody({ text }: { text: string }) {
           const trimmed = paragraph.trim();
           if (!trimmed) return null;
 
-          // Detect if this paragraph looks like code (common patterns)
-          const codePatterns = /^(public |private |class |import |int |String |void |System\.|for\s*\(|if\s*\(|while\s*\(|return |var |let |const |function |def |print\(|console\.)/m;
-          const looksLikeCode = codePatterns.test(trimmed) && trimmed.includes(";");
+          // Auto-detect code that wasn't wrapped in backticks by the LLM
+          const codePatterns = /^(public |private |class |import |int |String |void |System\.|for\s*\(|if\s*\(|while\s*\(|return |var |let |const |function |def |print\(|console\.|#include|using namespace)/m;
+          const hasMultipleCodeLines = (trimmed.match(/\n/g) || []).length >= 2;
+          const looksLikeCode = codePatterns.test(trimmed) && (trimmed.includes(";") || trimmed.includes("{") || trimmed.includes("def ")) && hasMultipleCodeLines;
 
           if (looksLikeCode) {
+            // Detect language from patterns
+            let detectedLang = "code";
+            if (/System\.out|public class|private |void /.test(trimmed)) detectedLang = "java";
+            else if (/console\.|const |let |=>/.test(trimmed)) detectedLang = "javascript";
+            else if (/def |print\(|import /.test(trimmed) && !trimmed.includes(";")) detectedLang = "python";
+            else if (/#include|using namespace|cout/.test(trimmed)) detectedLang = "cpp";
+
             return (
-              <div key={`${i}-${j}`} className="my-4 rounded-xl overflow-hidden border border-slate-700/60">
-                <pre className="bg-slate-900/80 px-4 py-3 overflow-x-auto">
-                  <code className="text-[13px] text-green-300 leading-relaxed font-mono whitespace-pre">
+              <div key={`${i}-${j}`} className="my-5 rounded-xl overflow-hidden border border-slate-700/60 shadow-lg shadow-black/10">
+                <div className="bg-slate-700/60 px-4 py-2 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Code className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{detectedLang}</span>
+                  </div>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(trimmed)}
+                    className="text-[10px] font-medium text-slate-500 hover:text-white px-2 py-0.5 rounded hover:bg-slate-600/50 transition-colors"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <pre className="bg-[#0D1117] px-5 py-4 overflow-x-auto">
+                  <code className="text-[13px] text-green-300 leading-[1.7] font-mono whitespace-pre">
                     {trimmed}
                   </code>
                 </pre>
@@ -79,11 +217,20 @@ function RenderBody({ text }: { text: string }) {
             );
           }
 
-          return (
-            <p key={`${i}-${j}`} className="text-sm text-slate-200 leading-[1.85] mb-4 last:mb-0">
-              {trimmed}
-            </p>
-          );
+          // Check if this paragraph contains a mix of lines (steps, calculations, text)
+          const lines = trimmed.split("\n");
+          if (lines.length > 1) {
+            return (
+              <div key={`${i}-${j}`} className="mb-4">
+                {lines.map((line, li) => (
+                  <RenderParagraph key={`${i}-${j}-${li}`} text={line} index={`${i}-${j}-${li}`} />
+                ))}
+              </div>
+            );
+          }
+
+          // Single line — render as formatted paragraph
+          return <RenderParagraph key={`${i}-${j}`} text={trimmed} index={`${i}-${j}`} />;
         });
       })}
     </>
@@ -115,6 +262,14 @@ export default function LearnModePage({
   // Active teaching tab
   const [activeStep, setActiveStep] = useState(0);
 
+  // Ask Tutor chat state
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<TutorMessage[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatInputRef = useRef<HTMLInputElement>(null);
+
   const [autoStarted, setAutoStarted] = useState(false);
 
   useEffect(() => {
@@ -144,6 +299,61 @@ export default function LearnModePage({
       }
     }
   }, [lecture, autoStarted, searchParams]);
+
+  // Auto-scroll chat to bottom when new messages arrive
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [chatMessages, chatLoading]);
+
+  // Focus chat input when chat opens
+  useEffect(() => {
+    if (chatOpen && chatInputRef.current) {
+      chatInputRef.current.focus();
+    }
+  }, [chatOpen]);
+
+  const handleSendMessage = async (message?: string) => {
+    const text = message || chatInput.trim();
+    if (!text || chatLoading) return;
+
+    const userMsg: TutorMessage = { role: "user", content: text };
+    const updatedMessages = [...chatMessages, userMsg];
+    setChatMessages(updatedMessages);
+    setChatInput("");
+    setChatLoading(true);
+
+    try {
+      const result = await askTutor(
+        id,
+        text,
+        updatedMessages,
+        selectedSection !== null && selectedSection >= 0 ? selectedSection : undefined
+      );
+      setChatMessages((prev) => [
+        ...prev,
+        { role: "tutor", content: result.answer },
+      ]);
+    } catch {
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          role: "tutor",
+          content: "Sorry, I couldn't process that. Please try again.",
+        },
+      ]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const quickChips = [
+    { label: "Explain differently", icon: "🔄" },
+    { label: "Why does this matter?", icon: "🤔" },
+    { label: "Give me an example", icon: "💡" },
+    { label: "Solve step by step", icon: "📝" },
+  ];
 
   const handleStartLearn = async (sectionIndex: number) => {
     if (learnLoading) return; // Prevent double-clicks
@@ -190,10 +400,183 @@ export default function LearnModePage({
   const stepLabels = ["Lesson", "Analogy", "Examples", "Quiz", "Resources"];
   const stepIcons = [BookMarked, Lightbulb, Beaker, HelpCircle, ExternalLink];
 
+  // ── Chat button helper (rendered in ALL states) ──
+  const chatButton = (
+    <>
+      <button
+        onClick={() => setChatOpen(!chatOpen)}
+        className={`fixed bottom-6 right-6 z-[60] w-14 h-14 rounded-full text-white shadow-lg flex items-center justify-center transition-all duration-200 group ${
+          chatOpen
+            ? "bg-slate-700 hover:bg-slate-600 shadow-black/30 scale-90"
+            : "bg-gradient-to-br from-purple-600 to-blue-600 shadow-purple-500/30 hover:scale-105"
+        }`}
+        aria-label={chatOpen ? "Close tutor chat" : "Ask your tutor"}
+      >
+        {chatOpen ? (
+          <ChevronUp className="w-5 h-5" />
+        ) : (
+          <MessageCircle className="w-6 h-6" />
+        )}
+        {!chatOpen && (
+          <span className="absolute -top-10 right-0 bg-slate-800 text-white text-xs font-medium px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg border border-slate-700/60 pointer-events-none">
+            Ask your tutor
+          </span>
+        )}
+        {!chatOpen && chatMessages.length > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-[#0F172A] animate-pulse" />
+        )}
+      </button>
+
+      {chatOpen && (
+        <div className="fixed bottom-0 right-0 z-50 w-full sm:w-[420px] sm:right-6 sm:bottom-[88px] flex flex-col bg-[#0F172A] border border-slate-700/60 sm:rounded-2xl shadow-2xl shadow-black/40 overflow-hidden"
+          style={{ maxHeight: "min(550px, 65vh)" }}
+        >
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700/60 bg-slate-800/50 flex-shrink-0">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white leading-tight">Ask Tutor</p>
+                <p className="text-[10px] text-slate-400">
+                  {selectedSection !== null && selectedSection >= 0 && sections[selectedSection]
+                    ? `Viewing: ${sections[selectedSection].heading}`
+                    : "Ask anything about your lecture"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              {chatMessages.length > 0 && (
+                <button
+                  onClick={() => { setChatMessages([]); setChatInput(""); }}
+                  className="text-slate-500 hover:text-slate-300 text-[10px] font-medium px-2 py-1 rounded-lg hover:bg-slate-700/50 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
+              <button
+                onClick={() => setChatOpen(false)}
+                className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-700/50 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 min-h-0">
+            {chatMessages.length === 0 && !chatLoading && (
+              <div className="text-center py-8">
+                <div className="w-12 h-12 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mx-auto mb-3">
+                  <MessageCircle className="w-6 h-6 text-purple-400" />
+                </div>
+                <p className="text-sm font-medium text-white mb-1">Your AI tutor is here</p>
+                <p className="text-xs text-slate-400 max-w-[260px] mx-auto leading-relaxed">
+                  Ask anything about your lecture — explanations, examples, practice problems, or clarifications.
+                </p>
+              </div>
+            )}
+
+            {chatMessages.map((msg, i) => (
+              <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                  msg.role === "user"
+                    ? "bg-purple-600 text-white rounded-br-md"
+                    : "bg-slate-800/80 border border-slate-700/50 text-slate-200 rounded-bl-md"
+                }`}>
+                  {msg.role === "tutor" ? (
+                    <div className="space-y-2">
+                      {msg.content.split(/(```[\s\S]*?```)/g).map((block, bi) => {
+                        if (block.startsWith("```")) {
+                          const lines = block.slice(3, -3).split("\n");
+                          const lang = lines[0]?.trim() || "";
+                          const code = lang ? lines.slice(1).join("\n") : lines.join("\n");
+                          return (
+                            <div key={bi} className="my-2 rounded-lg overflow-hidden border border-slate-600/50">
+                              {lang && (
+                                <div className="bg-slate-700/60 px-3 py-1 flex items-center gap-1.5">
+                                  <Code className="w-3 h-3 text-slate-400" />
+                                  <span className="text-[9px] font-bold text-slate-400 uppercase">{lang}</span>
+                                </div>
+                              )}
+                              <pre className="bg-[#0D1117] px-3 py-2.5 overflow-x-auto">
+                                <code className="text-[12px] text-green-300 leading-[1.6] font-mono whitespace-pre">{code.trim()}</code>
+                              </pre>
+                            </div>
+                          );
+                        }
+                        return block.split("\n\n").map((paragraph, pi) => {
+                          const trimmed = paragraph.trim();
+                          if (!trimmed) return null;
+                          const renderInline = (text: string) => {
+                            const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+                            return parts.map((part, idx) => {
+                              if (part.startsWith("**") && part.endsWith("**")) return <strong key={idx} className="font-semibold text-white">{part.slice(2, -2)}</strong>;
+                              if (part.startsWith("`") && part.endsWith("`")) return <code key={idx} className="px-1 py-0.5 rounded bg-slate-700/60 text-[11px] font-mono text-purple-300">{part.slice(1, -1)}</code>;
+                              return <span key={idx}>{part}</span>;
+                            });
+                          };
+                          if (trimmed.startsWith("- ") || trimmed.startsWith("• ")) {
+                            return (<div key={`${bi}-${pi}`} className="pl-1">{trimmed.split("\n").map((line, li) => {
+                              const bulletText = line.replace(/^[-•]\s*/, "");
+                              return <p key={li} className="text-sm leading-relaxed mb-1 flex gap-2"><span className="text-purple-400 flex-shrink-0">•</span><span>{renderInline(bulletText)}</span></p>;
+                            })}</div>);
+                          }
+                          if (/^(Step \d|Given:|Formula:|Answer:)/i.test(trimmed)) return <p key={`${bi}-${pi}`} className="text-sm leading-relaxed font-semibold text-white">{renderInline(trimmed)}</p>;
+                          if (/^[A-Za-z_]\s*=\s*.+/.test(trimmed)) return <div key={`${bi}-${pi}`} className="bg-slate-700/40 rounded px-3 py-1.5 my-1"><code className="text-[12px] text-green-300 font-mono">{trimmed}</code></div>;
+                          return <p key={`${bi}-${pi}`} className="text-sm leading-relaxed">{renderInline(trimmed)}</p>;
+                        });
+                      })}
+                    </div>
+                  ) : (
+                    msg.content
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {chatLoading && (
+              <div className="flex justify-start">
+                <div className="bg-slate-800/80 border border-slate-700/50 rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-1.5">
+                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                </div>
+              </div>
+            )}
+            <div ref={chatEndRef} />
+          </div>
+
+          {chatMessages.length === 0 && !chatLoading && (
+            <div className="px-4 pb-2 flex flex-wrap gap-1.5 flex-shrink-0">
+              {quickChips.map((chip) => (
+                <button key={chip.label} onClick={() => handleSendMessage(chip.label)}
+                  className="text-xs font-medium px-3 py-1.5 rounded-full bg-slate-800/60 border border-slate-700/50 text-slate-300 hover:text-white hover:border-purple-500/40 hover:bg-purple-500/10 transition-all"
+                >{chip.icon} {chip.label}</button>
+              ))}
+            </div>
+          )}
+
+          <div className="border-t border-slate-700/60 px-3 py-3 bg-slate-800/30 flex-shrink-0">
+            <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex items-center gap-2">
+              <input ref={chatInputRef} type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Ask your tutor anything..." disabled={chatLoading}
+                className="flex-1 bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 disabled:opacity-50 transition-colors"
+              />
+              <button type="submit" disabled={!chatInput.trim() || chatLoading}
+                className="w-10 h-10 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:bg-slate-700 disabled:text-slate-500 text-white flex items-center justify-center transition-colors flex-shrink-0"
+              ><Send className="w-4 h-4" /></button>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0F172A] flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+        {chatButton}
       </div>
     );
   }
@@ -209,6 +592,7 @@ export default function LearnModePage({
             Back to Notes
           </Link>
         </div>
+        {chatButton}
       </div>
     );
   }
@@ -796,6 +1180,7 @@ export default function LearnModePage({
           </div>
         </div>
       </div>
+      {chatButton}
     </div>
   );
 }
