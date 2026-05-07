@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0F172A;
-  --foreground: #F8FAFC;
+  --background: #F7F4EE;
+  --foreground: #1a1815;
 }
 
 @theme inline {
@@ -26,25 +26,40 @@ body {
   background-clip: text;
 }
 
+/* Direction A — warm paper palette */
+.dir-a {
+  --cream: #F7F4EE;
+  --cream-dark: #EDE8DF;
+  --paper: #FDFCF9;
+  --ink: #1a1815;
+  --ink-light: #2C2A25;
+  --ink-muted: #8a7f6f;
+  --accent: #6B5CE7;
+  --accent-light: #8B7FF0;
+  --amber-warm: #a07d3a;
+  --border: rgba(217, 185, 130, 0.25);
+  --border-strong: rgba(217, 185, 130, 0.45);
+}
+
 /* Smooth scroll for anchor links */
 html {
   scroll-behavior: smooth;
 }
 
 .upload-zone {
-  border: 2px dashed #334155;
+  border: 2px dashed rgba(217, 185, 130, 0.4);
   border-radius: 16px;
-  background: rgba(30, 41, 59, 0.3);
+  background: rgba(253, 252, 249, 0.6);
   transition: all 0.2s ease;
 }
 
 .upload-zone:hover,
 .upload-zone.dragover {
-  border-color: #3B82F6;
-  background: rgba(59, 130, 246, 0.04);
+  border-color: #6B5CE7;
+  background: rgba(107, 92, 231, 0.04);
 }
 
-/* Smooth scrollbar for dark theme */
+/* Smooth scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -52,9 +67,26 @@ html {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: rgba(217, 185, 130, 0.4);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: rgba(217, 185, 130, 0.6);
 }
+
+/* Landing page keeps dark theme */
+.dark-theme {
+  --background: #0F172A;
+  --foreground: #F8FAFC;
+}
+.dark-theme .upload-zone {
+  border-color: #334155;
+  background: rgba(30, 41, 59, 0.3);
+}
+.dark-theme .upload-zone:hover,
+.dark-theme .upload-zone.dragover {
+  border-color: #3B82F6;
+  background: rgba(59, 130, 246, 0.04);
+}
+.dark-theme ::-webkit-scrollbar-thumb { background: #334155; }
+.dark-theme ::-webkit-scrollbar-thumb:hover { background: #475569; }

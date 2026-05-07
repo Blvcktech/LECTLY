@@ -27,7 +27,6 @@ export default function UploadPage() {
   const router = useRouter();
   const { getToken } = useAuth();
 
-  // Sync Clerk token for API calls
   useEffect(() => {
     getToken().then(setAuthToken);
   }, [getToken]);
@@ -46,7 +45,6 @@ export default function UploadPage() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback((f: File) => {
-    // Check by extension (reliable on all platforms) or MIME type starting with "audio/"
     const hasValidExtension = ACCEPTED_EXTENSIONS.test(f.name);
     const hasAudioMime = f.type.startsWith("audio/");
 
@@ -105,21 +103,16 @@ export default function UploadPage() {
     setState("processing");
 
     try {
-      // Step 1: Upload
       updateStep(0, false, true);
       const uploadResult = await uploadLecture(file, subject || undefined);
       setLectureId(uploadResult.id);
       updateStep(0, true, false);
 
-      // Step 2: Process (transcribe + generate notes)
       updateStep(1, false, true);
-
       const processResult = await processLecture(uploadResult.id);
-
       updateStep(1, true, false);
       updateStep(2, true, false);
 
-      // Done!
       setState("done");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
@@ -134,19 +127,19 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0F172A]">
+    <div className="flex flex-col min-h-screen bg-[#F7F4EE]">
       {/* Nav */}
-      <nav className="border-b border-slate-800 bg-[#0F172A]/80 backdrop-blur-md">
+      <nav className="border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/80 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
               <BookOpen className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-white">Lectly</span>
+            <span className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>Lectly</span>
           </Link>
           <Link
             href="/dashboard"
-            className="text-sm text-slate-400 hover:text-white transition-colors"
+            className="text-sm text-[#8a7f6f] hover:text-[#1a1815] transition-colors"
           >
             My Lectures
           </Link>
@@ -157,15 +150,15 @@ export default function UploadPage() {
       <main className="flex-1 px-4 py-10 sm:py-12">
         <div className="w-full max-w-4xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-white mb-1.5">
+            <h1 className="text-2xl font-bold text-[#1a1815] mb-1.5" style={{ fontFamily: "'Georgia', serif" }}>
               Upload Lecture
             </h1>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-[#8a7f6f]">
               Upload your audio file and we&apos;ll generate smart notes.
             </p>
           </div>
 
-          {/* Upload Zone + Form — Desktop two-column */}
+          {/* Upload Zone + Form */}
           {(state === "idle" || state === "error") && (
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Upload zone */}
@@ -181,18 +174,18 @@ export default function UploadPage() {
                     dragOver ? "dragover" : ""
                   }`}
                 >
-                  <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-slate-800 flex items-center justify-center">
-                    <Upload className="w-7 h-7 text-blue-400" />
+                  <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-[#EDE8DF] flex items-center justify-center">
+                    <Upload className="w-7 h-7 text-purple-600" />
                   </div>
-                  <p className="text-base text-white font-semibold mb-1">
+                  <p className="text-base text-[#1a1815] font-semibold mb-1">
                     Tap below to upload your lecture
                   </p>
-                  <p className="text-sm text-slate-400 mb-4">
+                  <p className="text-sm text-[#8a7f6f] mb-4">
                     MP3, M4A, WAV up to {MAX_SIZE_MB}MB
                   </p>
                   <label
                     htmlFor="audio-upload"
-                    className="inline-block bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-3 rounded-[10px] text-base font-medium shadow-md shadow-blue-500/20 cursor-pointer active:scale-95 transition-transform"
+                    className="inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-[10px] text-base font-medium shadow-md shadow-purple-500/15 cursor-pointer active:scale-95 transition-transform"
                   >
                     Choose File
                   </label>
@@ -210,13 +203,13 @@ export default function UploadPage() {
               {/* Form fields */}
               <div className="w-full lg:w-72 flex-shrink-0 space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-semibold text-[#8a7f6f] uppercase tracking-wider mb-1.5">
                     Subject
                   </label>
                   <select
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    className="w-full bg-[#0F172A] border border-slate-700 rounded-[10px] px-3.5 py-2.5 text-sm text-white focus:border-blue-500 focus:outline-none"
+                    className="w-full bg-[#FDFCF9] border border-[rgba(217,185,130,0.3)] rounded-[10px] px-3.5 py-2.5 text-sm text-[#1a1815] focus:border-purple-400 focus:outline-none"
                   >
                     <option value="">Select subject...</option>
                     <option value="medicine">Medicine & Pharmacy</option>
@@ -229,22 +222,22 @@ export default function UploadPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-semibold text-[#8a7f6f] uppercase tracking-wider mb-1.5">
                     Class Code (Optional)
                   </label>
                   <input
                     type="text"
                     placeholder="e.g. CSC301"
-                    className="w-full bg-[#0F172A] border border-slate-700 rounded-[10px] px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
+                    className="w-full bg-[#FDFCF9] border border-[rgba(217,185,130,0.3)] rounded-[10px] px-3.5 py-2.5 text-sm text-[#1a1815] placeholder:text-[#8a7f6f] focus:border-purple-400 focus:outline-none"
                   />
                 </div>
 
                 {/* Record Live card */}
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4 text-center">
-                  <Mic className="w-7 h-7 text-blue-400 mx-auto mb-2" />
-                  <p className="text-sm font-semibold text-white">Record Live</p>
-                  <p className="text-xs text-slate-400">Start recording a lecture</p>
-                  <p className="text-[10px] text-slate-600 mt-1">Coming soon</p>
+                <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
+                  <Mic className="w-7 h-7 text-purple-500 mx-auto mb-2" />
+                  <p className="text-sm font-semibold text-[#1a1815]">Record Live</p>
+                  <p className="text-xs text-[#8a7f6f]">Start recording a lecture</p>
+                  <p className="text-[10px] text-[#8a7f6f] mt-1">Coming soon</p>
                 </div>
               </div>
             </div>
@@ -252,26 +245,26 @@ export default function UploadPage() {
 
           {/* Error */}
           {state === "error" && error && (
-            <div className="mt-4 bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-              <p className="text-sm text-red-300">{error}</p>
+            <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+              <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
 
           {/* File Selected */}
           {state === "selected" && file && (
-            <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6 max-w-2xl">
+            <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.3)] rounded-2xl p-6 max-w-2xl">
               <div className="flex items-center gap-4 mb-5">
-                <div className="w-11 h-11 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                  <FileAudio className="w-5 h-5 text-blue-400" />
+                <div className="w-11 h-11 rounded-xl bg-purple-500/8 flex items-center justify-center">
+                  <FileAudio className="w-5 h-5 text-purple-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-medium truncate text-sm">{file.name}</p>
-                  <p className="text-xs text-slate-400">{formatSize(file.size)}</p>
+                  <p className="text-[#1a1815] font-medium truncate text-sm">{file.name}</p>
+                  <p className="text-xs text-[#8a7f6f]">{formatSize(file.size)}</p>
                 </div>
                 <button
                   onClick={removeFile}
-                  className="p-2 text-slate-400 hover:text-white transition-colors"
+                  className="p-2 text-[#8a7f6f] hover:text-[#1a1815] transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -280,13 +273,13 @@ export default function UploadPage() {
               {/* Subject + Class Code */}
               <div className="grid sm:grid-cols-2 gap-4 mb-5">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-semibold text-[#8a7f6f] uppercase tracking-wider mb-1.5">
                     Subject
                   </label>
                   <select
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    className="w-full bg-[#0F172A] border border-slate-700 rounded-[10px] px-3.5 py-2.5 text-sm text-white focus:border-blue-500 focus:outline-none"
+                    className="w-full bg-[#F7F4EE] border border-[rgba(217,185,130,0.3)] rounded-[10px] px-3.5 py-2.5 text-sm text-[#1a1815] focus:border-purple-400 focus:outline-none"
                   >
                     <option value="">Auto-detect</option>
                     <option value="medicine">Medicine & Pharmacy</option>
@@ -299,20 +292,20 @@ export default function UploadPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-semibold text-[#8a7f6f] uppercase tracking-wider mb-1.5">
                     Class Code (Optional)
                   </label>
                   <input
                     type="text"
                     placeholder="e.g. CSC301"
-                    className="w-full bg-[#0F172A] border border-slate-700 rounded-[10px] px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
+                    className="w-full bg-[#F7F4EE] border border-[rgba(217,185,130,0.3)] rounded-[10px] px-3.5 py-2.5 text-sm text-[#1a1815] placeholder:text-[#8a7f6f] focus:border-purple-400 focus:outline-none"
                   />
                 </div>
               </div>
 
               <button
                 onClick={processFile}
-                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white py-3 rounded-xl font-semibold transition-all shadow-md shadow-blue-500/20"
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white py-3 rounded-xl font-semibold transition-all shadow-md shadow-purple-500/15"
               >
                 <Upload className="w-5 h-5" />
                 Process Lecture
@@ -323,15 +316,15 @@ export default function UploadPage() {
           {/* Processing */}
           {state === "processing" && (
             <div className="max-w-lg mx-auto text-center py-8">
-              {/* Dual spinner */}
+              {/* Spinner */}
               <div className="relative w-20 h-20 mx-auto mb-6">
-                <div className="absolute inset-0 rounded-full border-[3px] border-slate-800 border-t-blue-500 animate-spin" />
-                <div className="absolute inset-[8px] rounded-full border-[3px] border-transparent border-t-green-500 animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
+                <div className="absolute inset-0 rounded-full border-[3px] border-[#EDE8DF] border-t-purple-500 animate-spin" />
+                <div className="absolute inset-[8px] rounded-full border-[3px] border-transparent border-t-blue-500 animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
               </div>
-              <h3 className="text-lg font-bold text-white mb-1">
+              <h3 className="text-lg font-bold text-[#1a1815] mb-1" style={{ fontFamily: "'Georgia', serif" }}>
                 Processing Your Lecture
               </h3>
-              <p className="text-sm text-slate-400 mb-7">
+              <p className="text-sm text-[#8a7f6f] mb-7">
                 This usually takes 2-3 minutes
               </p>
               <div className="space-y-2 text-left max-w-xs mx-auto mb-6">
@@ -341,19 +334,19 @@ export default function UploadPage() {
                     className="flex items-center gap-3 text-sm py-1"
                   >
                     {step.done ? (
-                      <CheckCircle2 className="w-[18px] h-[18px] text-green-400" />
+                      <CheckCircle2 className="w-[18px] h-[18px] text-green-600" />
                     ) : step.active ? (
-                      <Loader2 className="w-[18px] h-[18px] text-blue-400 animate-spin" />
+                      <Loader2 className="w-[18px] h-[18px] text-purple-500 animate-spin" />
                     ) : (
-                      <div className="w-[18px] h-[18px] rounded-full border-2 border-slate-600 flex-shrink-0" />
+                      <div className="w-[18px] h-[18px] rounded-full border-2 border-[rgba(217,185,130,0.4)] flex-shrink-0" />
                     )}
                     <span
                       className={
                         step.done
-                          ? "text-green-400"
+                          ? "text-green-700"
                           : step.active
-                          ? "text-white font-semibold"
-                          : "text-slate-500"
+                          ? "text-[#1a1815] font-semibold"
+                          : "text-[#8a7f6f]"
                       }
                     >
                       {step.label}
@@ -364,17 +357,17 @@ export default function UploadPage() {
               {/* Progress bar */}
               <div className="max-w-xs mx-auto">
                 <div className="flex justify-between mb-1.5">
-                  <span className="text-xs text-slate-400">Progress</span>
-                  <span className="text-xs text-blue-400 font-semibold">
+                  <span className="text-xs text-[#8a7f6f]">Progress</span>
+                  <span className="text-xs text-purple-600 font-semibold">
                     {steps.filter(s => s.done).length === 0 && steps.some(s => s.active) ? "33%" :
                      steps.filter(s => s.done).length === 1 ? "45%" :
                      steps.filter(s => s.done).length === 2 ? "80%" :
                      steps.filter(s => s.done).length === 3 ? "100%" : "0%"}
                   </span>
                 </div>
-                <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-[#EDE8DF] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full transition-all duration-500"
+                    className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-500"
                     style={{
                       width: steps.filter(s => s.done).length === 0 && steps.some(s => s.active) ? "33%" :
                              steps.filter(s => s.done).length === 1 ? "45%" :
@@ -389,24 +382,24 @@ export default function UploadPage() {
 
           {/* Done */}
           {state === "done" && (
-            <div className="max-w-lg mx-auto bg-slate-800/50 border border-green-500/30 rounded-2xl p-8 text-center">
-              <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto mb-4" />
-              <p className="text-xl font-bold text-white mb-2">
+            <div className="max-w-lg mx-auto bg-[#FDFCF9] border border-green-300/50 rounded-2xl p-8 text-center">
+              <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto mb-4" />
+              <p className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "'Georgia', serif" }}>
                 Your notes are ready!
               </p>
-              <p className="text-sm text-slate-400 mb-7">
+              <p className="text-sm text-[#8a7f6f] mb-7">
                 Lecture processed successfully. View your structured notes or start Learn Mode.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Link
                   href={`/lecture/${lectureId}`}
-                  className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-2.5 rounded-xl font-semibold transition-all shadow-md shadow-blue-500/20"
+                  className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold transition-all shadow-md shadow-purple-500/15"
                 >
                   View Notes
                 </Link>
                 <button
                   onClick={removeFile}
-                  className="flex items-center gap-2 text-slate-300 px-6 py-2.5 rounded-xl font-medium border border-slate-700 hover:border-slate-600 transition-all"
+                  className="flex items-center gap-2 text-[#2C2A25] px-6 py-2.5 rounded-xl font-medium border border-[rgba(217,185,130,0.35)] hover:border-[rgba(217,185,130,0.6)] transition-all"
                 >
                   Upload Another
                 </button>

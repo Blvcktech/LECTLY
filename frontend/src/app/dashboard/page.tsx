@@ -57,7 +57,6 @@ export default function DashboardPage() {
       try {
         setLoading(true);
         setError(null);
-        // Get Clerk token and set it for API calls
         const token = await getToken();
         setAuthToken(token);
         const data = await getLectures();
@@ -111,44 +110,43 @@ export default function DashboardPage() {
 
   const readyCount = lectures.filter((l) => l.status === "ready").length;
 
-  // Usage meter (free tier: 3 lectures/month)
   const usagePercent = Math.min((lectures.length / 3) * 100, 100);
 
   return (
-    <div className="flex min-h-screen bg-[#0F172A]">
+    <div className="flex min-h-screen bg-[#F7F4EE]">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-60 border-r border-slate-800/60 bg-[#0F172A]">
+      <aside className="hidden lg:flex flex-col w-60 border-r border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]">
         <div className="px-5 py-4 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-blue-600 to-green-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+          <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-md shadow-purple-500/15">
             <BookOpen className="w-4 h-4 text-white" />
           </div>
-          <span className="text-lg font-bold text-white tracking-tight">Lectly</span>
+          <span className="text-lg font-bold text-[#1a1815] tracking-tight" style={{ fontFamily: "'Georgia', serif" }}>Lectly</span>
         </div>
         <nav className="flex-1 mt-2 px-3">
           <Link
             href="/dashboard"
-            className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-white bg-blue-500/10 border-r-2 border-blue-500 rounded-l-lg mb-0.5"
+            className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-purple-700 bg-purple-500/8 border-r-2 border-purple-500 rounded-l-lg mb-0.5"
           >
-            <Home className="w-4 h-4 text-blue-400" />
+            <Home className="w-4 h-4 text-purple-600" />
             Dashboard
           </Link>
           <Link
             href="/upload"
-            className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-400 hover:text-white rounded-lg transition-colors mb-0.5"
+            className="flex items-center gap-3 px-3 py-2.5 text-sm text-[#8a7f6f] hover:text-[#1a1815] rounded-lg transition-colors mb-0.5"
           >
             <Upload className="w-4 h-4" />
             Upload
           </Link>
           <Link
             href="/dashboard"
-            className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-400 hover:text-white rounded-lg transition-colors mb-0.5"
+            className="flex items-center gap-3 px-3 py-2.5 text-sm text-[#8a7f6f] hover:text-[#1a1815] rounded-lg transition-colors mb-0.5"
           >
             <FileText className="w-4 h-4" />
             Lectures
           </Link>
           <Link
             href="#"
-            className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-400 hover:text-white rounded-lg transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 text-sm text-[#8a7f6f] hover:text-[#1a1815] rounded-lg transition-colors"
           >
             <User className="w-4 h-4" />
             Profile
@@ -157,18 +155,18 @@ export default function DashboardPage() {
 
         {/* Usage meter */}
         <div className="px-5 pb-5">
-          <div className="bg-slate-800/50 border border-slate-700/40 rounded-xl p-3.5">
+          <div className="bg-[#F7F4EE] border border-[rgba(217,185,130,0.25)] rounded-xl p-3.5">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-xs text-slate-400 font-medium">Free Plan</span>
-              <span className="text-xs text-blue-400 font-semibold">{lectures.length}/3</span>
+              <span className="text-xs text-[#8a7f6f] font-medium">Free Plan</span>
+              <span className="text-xs text-purple-600 font-semibold">{lectures.length}/3</span>
             </div>
-            <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+            <div className="w-full h-2 bg-[#EDE8DF] rounded-full overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-blue-600 to-green-500 transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500"
                 style={{ width: `${usagePercent}%` }}
               />
             </div>
-            <p className="text-[10px] text-slate-500 mt-1.5">Lectures this month</p>
+            <p className="text-[10px] text-[#8a7f6f] mt-1.5">Lectures this month</p>
           </div>
         </div>
       </aside>
@@ -176,32 +174,32 @@ export default function DashboardPage() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
-        <header className="sticky top-0 z-40 border-b border-slate-800/60 bg-[#0F172A]/92 backdrop-blur-xl">
+        <header className="sticky top-0 z-40 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
           <div className="flex items-center justify-between h-14 px-4 sm:px-6 lg:px-8">
             {/* Mobile logo */}
             <div className="flex items-center gap-2 lg:hidden">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-green-500 flex items-center justify-center">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
                 <BookOpen className="w-4 h-4 text-white" />
               </div>
-              <span className="text-lg font-bold text-white">Lectly</span>
+              <span className="text-lg font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>Lectly</span>
             </div>
 
             {/* Search */}
-            <div className="hidden sm:flex items-center gap-2 bg-[#0F172A] border border-slate-700/60 rounded-[10px] px-3 py-2 w-64">
-              <Search className="w-4 h-4 text-slate-500" />
+            <div className="hidden sm:flex items-center gap-2 bg-[#F7F4EE] border border-[rgba(217,185,130,0.25)] rounded-[10px] px-3 py-2 w-64">
+              <Search className="w-4 h-4 text-[#8a7f6f]" />
               <input
                 type="text"
                 placeholder="Search lectures..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="bg-transparent text-sm text-white placeholder:text-slate-500 focus:outline-none w-full"
+                className="bg-transparent text-sm text-[#1a1815] placeholder:text-[#8a7f6f] focus:outline-none w-full"
               />
             </div>
 
             <div className="flex items-center gap-3">
               <Link
                 href="/upload"
-                className="flex items-center gap-2 text-sm bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-2 rounded-[10px] font-medium shadow-md shadow-blue-500/20 transition-all hover:from-blue-500 hover:to-blue-400"
+                className="flex items-center gap-2 text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-[10px] font-medium shadow-md shadow-purple-500/15 transition-all hover:shadow-lg"
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">New Lecture</span>
@@ -209,7 +207,7 @@ export default function DashboardPage() {
               <button
                 onClick={() => signOut({ redirectUrl: "/" })}
                 title="Sign out"
-                className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-green-500 flex items-center justify-center text-xs text-white font-bold hover:opacity-80 transition-opacity cursor-pointer"
+                className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-xs text-white font-bold hover:opacity-80 transition-opacity cursor-pointer"
               >
                 {user?.firstName?.charAt(0).toUpperCase() || "U"}
               </button>
@@ -220,22 +218,22 @@ export default function DashboardPage() {
         <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 pb-20 lg:pb-6">
           {/* Mobile search */}
           <div className="sm:hidden mb-5">
-            <div className="flex items-center gap-2 bg-[#0F172A] border border-slate-700/60 rounded-[10px] px-3 py-2.5">
-              <Search className="w-4 h-4 text-slate-500" />
+            <div className="flex items-center gap-2 bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-[10px] px-3 py-2.5">
+              <Search className="w-4 h-4 text-[#8a7f6f]" />
               <input
                 type="text"
                 placeholder="Search lectures..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="bg-transparent text-sm text-white placeholder:text-slate-500 focus:outline-none w-full"
+                className="bg-transparent text-sm text-[#1a1815] placeholder:text-[#8a7f6f] focus:outline-none w-full"
               />
             </div>
           </div>
 
           {/* Header */}
           <div className="mb-6">
-            <h1 className="text-xl font-bold text-white">My Lectures</h1>
-            <p className="text-slate-400 text-xs mt-0.5">
+            <h1 className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>My Lectures</h1>
+            <p className="text-[#8a7f6f] text-xs mt-0.5">
               {lectures.length} lecture{lectures.length !== 1 ? "s" : ""} uploaded
             </p>
           </div>
@@ -243,20 +241,20 @@ export default function DashboardPage() {
           {/* Quick Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
             {[
-              { icon: FileText, label: "Total Lectures", value: String(lectures.length), color: "text-blue-400", bg: "bg-blue-500/10" },
-              { icon: Clock, label: "Hours Processed", value: `${totalHours.toFixed(1)}h`, color: "text-green-400", bg: "bg-green-500/10" },
-              { icon: Brain, label: "Sections Generated", value: String(totalSections), color: "text-purple-400", bg: "bg-purple-500/10" },
-              { icon: Sparkles, label: "Ready", value: String(readyCount), color: "text-yellow-400", bg: "bg-yellow-500/10" },
+              { icon: FileText, label: "Total Lectures", value: String(lectures.length), color: "text-purple-600", bg: "bg-purple-500/8" },
+              { icon: Clock, label: "Hours Processed", value: `${totalHours.toFixed(1)}h`, color: "text-blue-600", bg: "bg-blue-500/8" },
+              { icon: Brain, label: "Sections Generated", value: String(totalSections), color: "text-amber-700", bg: "bg-amber-500/10" },
+              { icon: Sparkles, label: "Ready", value: String(readyCount), color: "text-green-700", bg: "bg-green-500/8" },
             ].map((stat) => (
               <div
                 key={stat.label}
-                className="bg-slate-800/40 border border-slate-700/40 rounded-xl p-3.5 backdrop-blur-sm"
+                className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-3.5"
               >
                 <div className={`w-8 h-8 rounded-[10px] ${stat.bg} flex items-center justify-center mb-2`}>
                   <stat.icon className={`w-4 h-4 ${stat.color}`} />
                 </div>
-                <p className="text-xl font-bold text-white">{stat.value}</p>
-                <p className="text-[11px] text-slate-400">{stat.label}</p>
+                <p className="text-xl font-bold text-[#1a1815]">{stat.value}</p>
+                <p className="text-[11px] text-[#8a7f6f]">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -264,21 +262,21 @@ export default function DashboardPage() {
           {/* Loading State */}
           {loading && (
             <div className="flex flex-col items-center justify-center py-16">
-              <Loader2 className="w-8 h-8 text-blue-400 animate-spin mb-3" />
-              <p className="text-slate-400 text-sm">Loading lectures...</p>
+              <Loader2 className="w-8 h-8 text-purple-500 animate-spin mb-3" />
+              <p className="text-[#8a7f6f] text-sm">Loading lectures...</p>
             </div>
           )}
 
           {/* Error State */}
           {!loading && error && (
             <div className="text-center py-14">
-              <p className="text-red-400 font-medium mb-2 text-sm">
+              <p className="text-red-600 font-medium mb-2 text-sm">
                 Something went wrong
               </p>
-              <p className="text-xs text-slate-400 mb-5">{error}</p>
+              <p className="text-xs text-[#8a7f6f] mb-5">{error}</p>
               <button
                 onClick={() => window.location.reload()}
-                className="inline-flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-[10px] transition-colors"
+                className="inline-flex items-center gap-2 text-sm bg-[#FDFCF9] border border-[rgba(217,185,130,0.35)] hover:border-purple-400 text-[#1a1815] px-4 py-2 rounded-[10px] transition-colors"
               >
                 Try Again
               </button>
@@ -298,41 +296,41 @@ export default function DashboardPage() {
                 return (
                   <div
                     key={lecture.id}
-                    className="bg-slate-800/40 border border-slate-800/60 rounded-xl px-4 py-3.5 hover:border-slate-600 transition-all group"
+                    className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl px-4 py-3.5 hover:border-[rgba(217,185,130,0.5)] hover:shadow-sm transition-all group"
                   >
                     <div className="flex items-start gap-3">
                       {/* Icon */}
                       <div
                         className={`w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 ${
-                          isReady ? "bg-blue-500/10" : "bg-yellow-500/10"
+                          isReady ? "bg-purple-500/8" : "bg-amber-500/10"
                         }`}
                       >
                         {isReady ? (
-                          <FileText className="w-5 h-5 text-blue-400" />
+                          <FileText className="w-5 h-5 text-purple-600" />
                         ) : (
-                          <Clock className="w-5 h-5 text-yellow-400 animate-pulse" />
+                          <Clock className="w-5 h-5 text-amber-600 animate-pulse" />
                         )}
                       </div>
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">
+                        <p className="text-sm font-semibold text-[#1a1815] truncate">
                           {title}
                         </p>
                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                           {lecture.subject && (
-                            <span className="text-[11px] text-slate-400 bg-slate-700/40 px-1.5 py-0.5 rounded">
+                            <span className="text-[11px] text-[#8a7f6f] bg-[#F7F4EE] px-1.5 py-0.5 rounded border border-[rgba(217,185,130,0.2)]">
                               {lecture.subject}
                             </span>
                           )}
-                          <span className="text-[11px] text-slate-500">
+                          <span className="text-[11px] text-[#8a7f6f]">
                             {formatDate(lecture.created_at)}
                           </span>
-                          <span className="text-[11px] text-slate-500">
+                          <span className="text-[11px] text-[#8a7f6f]">
                             {formatDuration(lecture.duration_seconds)}
                           </span>
                           {isReady && lecture.quality_score != null && (
-                            <span className="text-[11px] text-green-400">
+                            <span className="text-[11px] text-green-700">
                               {lecture.quality_score}% quality
                             </span>
                           )}
@@ -342,7 +340,7 @@ export default function DashboardPage() {
                             {topics.map((topic) => (
                               <span
                                 key={topic}
-                                className="text-[10px] text-slate-300 bg-slate-700/30 px-1.5 py-0.5 rounded"
+                                className="text-[10px] text-[#2C2A25] bg-[#EDE8DF] px-1.5 py-0.5 rounded"
                               >
                                 {topic}
                               </span>
@@ -351,11 +349,11 @@ export default function DashboardPage() {
                         )}
                       </div>
 
-                      {/* Delete — top right */}
+                      {/* Delete */}
                       <button
                         onClick={() => handleDelete(lecture.id, title)}
                         disabled={deletingId === lecture.id}
-                        className="flex items-center text-slate-500 hover:text-red-400 p-1.5 rounded-lg transition-colors disabled:opacity-40 flex-shrink-0"
+                        className="flex items-center text-[#8a7f6f] hover:text-red-500 p-1.5 rounded-lg transition-colors disabled:opacity-40 flex-shrink-0"
                         title="Delete lecture"
                       >
                         {deletingId === lecture.id ? (
@@ -366,27 +364,27 @@ export default function DashboardPage() {
                       </button>
                     </div>
 
-                    {/* Actions — bottom row */}
+                    {/* Actions */}
                     <div className="flex items-center gap-2 mt-3 pl-[52px]">
                       {isReady ? (
                         <>
                           <Link
                             href={`/lecture/${lecture.id}`}
-                            className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white bg-slate-700/50 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition-colors"
+                            className="flex items-center gap-1.5 text-xs text-[#2C2A25] hover:text-[#1a1815] bg-[#EDE8DF] hover:bg-[#e5dfd5] px-3 py-1.5 rounded-lg transition-colors"
                           >
                             <FileText className="w-3.5 h-3.5" />
                             Notes
                           </Link>
                           <Link
                             href={`/lecture/${lecture.id}/learn`}
-                            className="flex items-center gap-1.5 text-xs text-blue-300 hover:text-blue-200 bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded-lg transition-colors"
+                            className="flex items-center gap-1.5 text-xs text-purple-700 hover:text-purple-800 bg-purple-500/8 hover:bg-purple-500/15 px-3 py-1.5 rounded-lg transition-colors"
                           >
                             <GraduationCap className="w-3.5 h-3.5" />
                             Learn
                           </Link>
                         </>
                       ) : (
-                        <span className="text-xs text-yellow-400 bg-yellow-500/10 px-2.5 py-1 rounded-lg">
+                        <span className="text-xs text-amber-700 bg-amber-500/10 px-2.5 py-1 rounded-lg">
                           Processing...
                         </span>
                       )}
@@ -400,18 +398,18 @@ export default function DashboardPage() {
           {/* Empty State */}
           {!loading && !error && filtered.length === 0 && (
             <div className="text-center py-14">
-              <div className="w-14 h-14 rounded-2xl bg-slate-800 flex items-center justify-center mx-auto mb-4">
-                <Upload className="w-7 h-7 text-slate-600" />
+              <div className="w-14 h-14 rounded-2xl bg-[#EDE8DF] flex items-center justify-center mx-auto mb-4">
+                <Upload className="w-7 h-7 text-[#8a7f6f]" />
               </div>
-              <p className="text-white font-medium mb-1.5 text-sm">No lectures found</p>
-              <p className="text-xs text-slate-400 mb-5">
+              <p className="text-[#1a1815] font-medium mb-1.5 text-sm">No lectures found</p>
+              <p className="text-xs text-[#8a7f6f] mb-5">
                 {search
                   ? "Try a different search term"
                   : "Upload your first lecture to get started"}
               </p>
               <Link
                 href="/upload"
-                className="inline-flex items-center gap-2 text-sm bg-gradient-to-r from-blue-600 to-blue-500 text-white px-5 py-2.5 rounded-[10px] font-medium shadow-md shadow-blue-500/20 transition-all"
+                className="inline-flex items-center gap-2 text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white px-5 py-2.5 rounded-[10px] font-medium shadow-md shadow-purple-500/15 transition-all"
               >
                 <Upload className="w-4 h-4" />
                 Upload Lecture
@@ -421,17 +419,17 @@ export default function DashboardPage() {
         </main>
       </div>
       {/* Mobile Bottom Nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0F172A] border-t border-slate-800/60 backdrop-blur-xl">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#FDFCF9] border-t border-[rgba(217,185,130,0.25)] backdrop-blur-xl">
         <div className="flex items-center justify-around h-14">
-          <Link href="/dashboard" className="flex flex-col items-center gap-0.5 text-blue-400">
+          <Link href="/dashboard" className="flex flex-col items-center gap-0.5 text-purple-600">
             <Home className="w-5 h-5" />
             <span className="text-[10px] font-medium">Home</span>
           </Link>
-          <Link href="/upload" className="flex flex-col items-center gap-0.5 text-slate-400 hover:text-white">
+          <Link href="/upload" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
             <Upload className="w-5 h-5" />
             <span className="text-[10px] font-medium">Upload</span>
           </Link>
-          <Link href="#" className="flex flex-col items-center gap-0.5 text-slate-400 hover:text-white">
+          <Link href="#" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
             <User className="w-5 h-5" />
             <span className="text-[10px] font-medium">Profile</span>
           </Link>

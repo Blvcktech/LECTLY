@@ -22,7 +22,7 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0A0F1C] text-slate-300">
+    <div className="flex flex-col min-h-screen bg-[#0A0F1C] text-slate-300 dark-theme">
       {/* ─── Navigation ─── */}
       <nav className="fixed top-0 w-full z-50 bg-[#0A0F1C]/90 backdrop-blur-md border-b border-white/[0.06]">
         <div className="max-w-[1100px] mx-auto px-5 sm:px-8">

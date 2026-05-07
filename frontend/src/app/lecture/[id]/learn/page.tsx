@@ -642,7 +642,7 @@ export default function LearnModePage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0F172A] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F7F4EE] flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
         {chatButton}
       </div>
@@ -651,12 +651,12 @@ export default function LearnModePage({
 
   if (error && !lecture) {
     return (
-      <div className="min-h-screen bg-[#0F172A] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#F7F4EE] flex items-center justify-center px-4">
         <div className="text-center">
           <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <p className="text-white font-medium mb-2">Error</p>
-          <p className="text-slate-400 text-sm mb-6">{error}</p>
-          <Link href={`/lecture/${id}`} className="text-blue-400 hover:text-blue-300 text-sm">
+          <p className="text-[#1a1815] font-medium mb-2">Error</p>
+          <p className="text-[#8a7f6f] text-sm mb-6">{error}</p>
+          <Link href={`/lecture/${id}`} className="text-purple-600 hover:text-purple-700 text-sm">
             Back to Notes
           </Link>
         </div>
@@ -666,21 +666,21 @@ export default function LearnModePage({
   }
 
   return (
-    <div className="min-h-screen bg-[#0F172A]">
+    <div className="min-h-screen bg-[#F7F4EE]">
       {/* Nav */}
-      <nav className="sticky top-0 z-50 border-b border-slate-800/60 bg-[#0F172A]/92 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href={`/lecture/${id}`} className="text-slate-400 hover:text-white transition-colors flex items-center gap-2">
+            <Link href={`/lecture/${id}`} className="text-[#8a7f6f] hover:text-[#1a1815] transition-colors flex items-center gap-2">
               <ArrowLeft className="w-5 h-5" />
               <span className="text-sm hidden sm:inline">Back to Notes</span>
             </Link>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+            <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-md shadow-purple-500/15">
               <GraduationCap className="w-4 h-4 text-white" />
             </div>
-            <span className="text-lg font-bold text-white tracking-tight">Learn Mode</span>
+            <span className="text-lg font-bold text-[#1a1815] tracking-tight" style={{ fontFamily: "'Georgia', serif" }}>Learn Mode</span>
           </div>
           <div className="w-24" />
         </div>
@@ -691,12 +691,12 @@ export default function LearnModePage({
           {/* Left: Topic Picker */}
           <div className="w-80 flex-shrink-0 hidden lg:block">
             <div className="sticky top-20">
-              <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">
+              <h2 className="text-sm font-semibold text-[#8a7f6f] uppercase tracking-wider mb-3">
                 Choose a Topic
               </h2>
 
               {/* Level selector */}
-              <div className="flex gap-1 mb-4 bg-slate-800/50 rounded-xl p-1">
+              <div className="flex gap-1 mb-4 bg-[#EDE8DF] rounded-xl p-1">
                 {["beginner", "intermediate", "advanced"].map((level) => (
                   <button
                     key={level}
@@ -705,7 +705,7 @@ export default function LearnModePage({
                     className={`flex-1 text-[11px] font-semibold py-2 rounded-lg transition-all capitalize ${
                       learnLevel === level
                         ? "bg-purple-600 text-white shadow-md"
-                        : "text-slate-400 hover:text-white"
+                        : "text-[#8a7f6f] hover:text-[#1a1815]"
                     } ${learnLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     {level}
@@ -722,26 +722,26 @@ export default function LearnModePage({
                     disabled={learnLoading}
                     className={`w-full text-left p-3.5 rounded-xl border transition-all group ${
                       selectedSection === i
-                        ? "bg-purple-500/10 border-purple-500/40 shadow-md shadow-purple-500/10"
-                        : "bg-slate-800/30 border-slate-700/40 hover:border-slate-600 hover:bg-slate-800/50"
+                        ? "bg-purple-500/8 border-purple-400/40 shadow-sm"
+                        : "bg-[#FDFCF9] border-[rgba(217,185,130,0.25)] hover:border-[rgba(217,185,130,0.5)]"
                     } ${learnLoading ? "opacity-60 cursor-not-allowed" : ""}`}
                   >
                     <div className="flex items-center justify-between">
                       <span className={`text-sm font-medium ${
-                        selectedSection === i ? "text-purple-300" : "text-slate-300 group-hover:text-white"
+                        selectedSection === i ? "text-purple-700" : "text-[#2C2A25] group-hover:text-[#1a1815]"
                       }`}>
                         {section.heading}
                       </span>
                       {learnLoading && selectedSection === i ? (
-                        <Loader2 className="w-4 h-4 text-purple-400 animate-spin flex-shrink-0" />
+                        <Loader2 className="w-4 h-4 text-purple-500 animate-spin flex-shrink-0" />
                       ) : (
                         <ChevronRight className={`w-4 h-4 flex-shrink-0 ${
-                          selectedSection === i ? "text-purple-400" : "text-slate-600 group-hover:text-slate-400"
+                          selectedSection === i ? "text-purple-500" : "text-[#8a7f6f] group-hover:text-[#2C2A25]"
                         }`} />
                       )}
                     </div>
                     {section.key_points.length > 0 && (
-                      <p className="text-[11px] text-slate-500 mt-1 line-clamp-1">
+                      <p className="text-[11px] text-[#8a7f6f] mt-1 line-clamp-1">
                         {section.key_points[0]}
                       </p>
                     )}
@@ -754,23 +754,23 @@ export default function LearnModePage({
                   disabled={learnLoading}
                   className={`w-full text-left p-3.5 rounded-xl border transition-all group ${
                     selectedSection === -1
-                      ? "bg-purple-500/10 border-purple-500/40 shadow-md"
-                      : "bg-slate-800/30 border-slate-700/40 hover:border-slate-600"
+                      ? "bg-purple-500/8 border-purple-400/40 shadow-sm"
+                      : "bg-[#FDFCF9] border-[rgba(217,185,130,0.25)] hover:border-[rgba(217,185,130,0.5)]"
                   } ${learnLoading ? "opacity-60 cursor-not-allowed" : ""}`}
                 >
                   <div className="flex items-center justify-between">
                     <span className={`text-sm font-medium ${
-                      selectedSection === -1 ? "text-purple-300" : "text-slate-300"
+                      selectedSection === -1 ? "text-purple-700" : "text-[#2C2A25]"
                     }`}>
                       Full Lecture Overview
                     </span>
                     {learnLoading && selectedSection === -1 ? (
-                      <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />
+                      <Loader2 className="w-4 h-4 text-purple-500 animate-spin" />
                     ) : (
-                      <BookOpen className="w-4 h-4 text-slate-600" />
+                      <BookOpen className="w-4 h-4 text-[#8a7f6f]" />
                     )}
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-1">
+                  <p className="text-[11px] text-[#8a7f6f] mt-1">
                     Learn all topics from this lecture
                   </p>
                 </button>
@@ -789,7 +789,7 @@ export default function LearnModePage({
                   if (val !== "") handleStartLearn(parseInt(val));
                 }}
                 disabled={learnLoading}
-                className="w-full bg-slate-800/50 border border-slate-700/40 rounded-xl px-4 py-3 text-sm text-white appearance-none disabled:opacity-50"
+                className="w-full bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl px-4 py-3 text-sm text-[#1a1815] appearance-none disabled:opacity-50"
               >
                 <option value="" disabled>Select a topic to learn...</option>
                 {sections.map((section, i) => (
@@ -797,7 +797,7 @@ export default function LearnModePage({
                 ))}
                 <option value={-1}>Full Lecture Overview</option>
               </select>
-              <div className="flex gap-1 mt-2 bg-slate-800/50 rounded-xl p-1">
+              <div className="flex gap-1 mt-2 bg-[#EDE8DF] rounded-xl p-1">
                 {["beginner", "intermediate", "advanced"].map((level) => (
                   <button
                     key={level}
@@ -806,7 +806,7 @@ export default function LearnModePage({
                     className={`flex-1 text-[11px] font-semibold py-2 rounded-lg transition-all capitalize ${
                       learnLevel === level
                         ? "bg-purple-600 text-white shadow-md"
-                        : "text-slate-400 hover:text-white"
+                        : "text-[#8a7f6f] hover:text-[#1a1815]"
                     }`}
                   >
                     {level}
@@ -818,13 +818,13 @@ export default function LearnModePage({
             {/* No section selected */}
             {selectedSection === null && !learnLoading && (
               <div className="flex flex-col items-center justify-center py-24 text-center">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-600/20 to-blue-600/20 border border-purple-500/20 flex items-center justify-center mb-6">
-                  <GraduationCap className="w-10 h-10 text-purple-400" />
+                <div className="w-20 h-20 rounded-2xl bg-purple-500/8 border border-purple-400/20 flex items-center justify-center mb-6">
+                  <GraduationCap className="w-10 h-10 text-purple-500" />
                 </div>
-                <h2 className="text-xl font-bold text-white mb-2">
+                <h2 className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "'Georgia', serif" }}>
                   Ready to Learn?
                 </h2>
-                <p className="text-sm text-slate-400 max-w-md">
+                <p className="text-sm text-[#8a7f6f] max-w-md">
                   Pick a topic from the list and your AI tutor will teach it to you
                   step by step — with examples, analogies, and a quiz to test your understanding.
                 </p>
@@ -840,10 +840,10 @@ export default function LearnModePage({
                   </div>
                   <Loader2 className="w-6 h-6 text-purple-300 animate-spin absolute -bottom-1 -right-1" />
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-1">
+                <h3 className="text-lg font-semibold text-[#1a1815] mb-1" style={{ fontFamily: "'Georgia', serif" }}>
                   Preparing Your Lesson...
                 </h3>
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-[#8a7f6f]">
                   Your AI tutor is building a personalized lesson for you
                 </p>
               </div>
@@ -853,8 +853,8 @@ export default function LearnModePage({
             {error && !learnLoading && selectedSection !== null && (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <AlertCircle className="w-10 h-10 text-red-400 mb-4" />
-                <p className="text-white font-medium mb-2">Something went wrong</p>
-                <p className="text-sm text-slate-400 mb-4">{error}</p>
+                <p className="text-[#1a1815] font-medium mb-2">Something went wrong</p>
+                <p className="text-sm text-[#8a7f6f] mb-4">{error}</p>
                 <button
                   onClick={() => handleStartLearn(selectedSection)}
                   className="text-sm text-purple-400 hover:text-purple-300 font-medium"
@@ -869,16 +869,16 @@ export default function LearnModePage({
               <div>
                 {/* Topic Header */}
                 <div className="mb-6">
-                  <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">
+                  <span className="text-[10px] font-bold text-purple-600 uppercase tracking-widest">
                     {learnLevel} Level
                   </span>
-                  <h1 className="text-2xl font-bold text-white mt-1">
+                  <h1 className="text-2xl font-bold text-[#1a1815] mt-1" style={{ fontFamily: "'Georgia', serif" }}>
                     {learnResult.topic}
                   </h1>
                 </div>
 
                 {/* Tab navigation */}
-                <div className="flex gap-1 bg-slate-800/50 rounded-xl p-1 mb-6 overflow-x-auto">
+                <div className="flex gap-1 bg-[#EDE8DF] rounded-xl p-1 mb-6 overflow-x-auto">
                   {steps.map((step, i) => {
                     const Icon = stepIcons[i];
                     return (
@@ -888,7 +888,7 @@ export default function LearnModePage({
                         className={`flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-lg transition-all whitespace-nowrap ${
                           activeStep === i
                             ? "bg-purple-600 text-white shadow-md"
-                            : "text-slate-400 hover:text-white hover:bg-slate-700/50"
+                            : "text-[#8a7f6f] hover:text-[#1a1815] hover:bg-[#FDFCF9]"
                         }`}
                       >
                         <Icon className="w-3.5 h-3.5" />
@@ -1044,28 +1044,28 @@ export default function LearnModePage({
 
                 {/* ═══ Tab 1: Analogy ═══ */}
                 {activeStep === 1 && (
-                  <div className="bg-gradient-to-br from-purple-500/[0.08] to-blue-500/[0.08] border border-purple-500/20 rounded-2xl p-6 sm:p-8">
+                  <div className="bg-gradient-to-b from-[#FBF8F1] to-[#F5F0E6] border border-amber-200/40 rounded-2xl p-6 sm:p-8">
                     <div className="flex items-center gap-2 mb-4">
-                      <Lightbulb className="w-5 h-5 text-yellow-400" />
-                      <h2 className="text-lg font-bold text-white">Real-World Analogy</h2>
+                      <Lightbulb className="w-5 h-5 text-amber-600" />
+                      <h2 className="text-lg font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>Real-World Analogy</h2>
                     </div>
-                    <div className="prose prose-invert max-w-none">
+                    <div className="prose max-w-none">
                       {learnResult.analogy.split("\n\n").map((p, i) => (
-                        <p key={i} className="text-sm text-slate-200 leading-[1.85] mb-4 last:mb-0 italic">
+                        <p key={i} className="text-sm text-[#2C2A25] leading-[1.85] mb-4 last:mb-0 italic">
                           {p.trim()}
                         </p>
                       ))}
                     </div>
-                    <div className="mt-6 pt-4 border-t border-purple-500/10 flex justify-between">
+                    <div className="mt-6 pt-4 border-t border-amber-200/30 flex justify-between">
                       <button
                         onClick={() => setActiveStep(0)}
-                        className="flex items-center gap-1.5 text-sm font-medium text-slate-400 hover:text-white transition-colors"
+                        className="flex items-center gap-1.5 text-sm font-medium text-[#8a7f6f] hover:text-[#1a1815] transition-colors"
                       >
                         <ArrowLeft className="w-4 h-4" /> Lesson
                       </button>
                       <button
                         onClick={() => setActiveStep(2)}
-                        className="flex items-center gap-1.5 text-sm font-medium text-purple-400 hover:text-purple-300 transition-colors"
+                        className="flex items-center gap-1.5 text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors"
                       >
                         Next: Examples <ChevronRight className="w-4 h-4" />
                       </button>
@@ -1077,8 +1077,8 @@ export default function LearnModePage({
                 {activeStep === 2 && (
                   <div>
                     <div className="flex items-center gap-2 mb-4">
-                      <Beaker className="w-5 h-5 text-blue-400" />
-                      <h2 className="text-lg font-bold text-white">Worked Examples</h2>
+                      <Beaker className="w-5 h-5 text-blue-600" />
+                      <h2 className="text-lg font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>Worked Examples</h2>
                     </div>
                     <div className="space-y-5">
                       {learnResult.examples.map((example, i) => {
@@ -1088,12 +1088,12 @@ export default function LearnModePage({
                         return (
                           <div
                             key={i}
-                            className="bg-slate-800/40 border border-slate-700/40 rounded-xl overflow-hidden"
+                            className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl overflow-hidden"
                           >
                             {/* Example header */}
                             <div className="px-5 pt-5 pb-3 flex items-start gap-3">
-                              <span className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center text-sm font-bold text-blue-400 flex-shrink-0">{i + 1}</span>
-                              <h3 className="text-sm font-semibold text-white pt-1">{example.title}</h3>
+                              <span className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-sm font-bold text-blue-600 flex-shrink-0">{i + 1}</span>
+                              <h3 className="text-sm font-semibold text-[#1a1815] pt-1">{example.title}</h3>
                             </div>
 
                             {/* Problem */}
@@ -1159,13 +1159,13 @@ export default function LearnModePage({
                     <div className="mt-6 flex justify-between">
                       <button
                         onClick={() => setActiveStep(1)}
-                        className="flex items-center gap-1.5 text-sm font-medium text-slate-400 hover:text-white transition-colors"
+                        className="flex items-center gap-1.5 text-sm font-medium text-[#8a7f6f] hover:text-[#1a1815] transition-colors"
                       >
                         <ArrowLeft className="w-4 h-4" /> Analogy
                       </button>
                       <button
                         onClick={() => setActiveStep(3)}
-                        className="flex items-center gap-1.5 text-sm font-medium text-purple-400 hover:text-purple-300 transition-colors"
+                        className="flex items-center gap-1.5 text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors"
                       >
                         Next: Quiz <ChevronRight className="w-4 h-4" />
                       </button>
@@ -1178,8 +1178,8 @@ export default function LearnModePage({
                   <div>
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
-                        <HelpCircle className="w-5 h-5 text-green-400" />
-                        <h2 className="text-lg font-bold text-white">Test Your Understanding</h2>
+                        <HelpCircle className="w-5 h-5 text-green-600" />
+                        <h2 className="text-lg font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>Test Your Understanding</h2>
                       </div>
                       {quizScore !== null && (
                         <span className={`text-sm font-bold px-3 py-1 rounded-lg ${
@@ -1197,10 +1197,10 @@ export default function LearnModePage({
                       {learnResult.quiz.map((q, qi) => (
                         <div
                           key={qi}
-                          className="bg-slate-800/40 border border-slate-700/40 rounded-xl p-5"
+                          className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-5"
                         >
-                          <p className="text-sm text-white font-semibold mb-3">
-                            <span className="text-purple-400 mr-1.5">Q{qi + 1}.</span>
+                          <p className="text-sm text-[#1a1815] font-semibold mb-3">
+                            <span className="text-purple-600 mr-1.5">Q{qi + 1}.</span>
                             {q.question}
                           </p>
                           <div className="space-y-2">
@@ -1209,17 +1209,17 @@ export default function LearnModePage({
                               const isRevealed = quizRevealed[qi];
                               const isCorrect = oi === q.correct_index;
 
-                              let style = "border-slate-700 text-slate-300 hover:border-slate-500 hover:bg-slate-700/30";
+                              let style = "border-[rgba(217,185,130,0.3)] text-[#2C2A25] hover:border-purple-400/40 hover:bg-purple-500/5";
                               if (isRevealed) {
                                 if (isCorrect) {
-                                  style = "border-green-500/50 bg-green-500/10 text-green-300";
+                                  style = "border-green-400/50 bg-green-50 text-green-800";
                                 } else if (isSelected && !isCorrect) {
-                                  style = "border-red-500/50 bg-red-500/10 text-red-300 line-through";
+                                  style = "border-red-400/50 bg-red-50 text-red-600 line-through";
                                 } else {
-                                  style = "border-slate-700/50 text-slate-500";
+                                  style = "border-[rgba(217,185,130,0.2)] text-[#8a7f6f]";
                                 }
                               } else if (isSelected) {
-                                style = "border-purple-500/50 bg-purple-500/10 text-purple-300";
+                                style = "border-purple-400/50 bg-purple-50 text-purple-700";
                               }
 
                               return (
@@ -1339,11 +1339,11 @@ export default function LearnModePage({
 
                     {/* Score summary */}
                     {quizScore !== null && (
-                      <div className="mt-6 bg-slate-800/50 border border-slate-700/40 rounded-xl p-5 text-center">
-                        <p className="text-2xl font-bold text-white mb-1">
+                      <div className="mt-6 bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-5 text-center">
+                        <p className="text-2xl font-bold text-[#1a1815] mb-1">
                           {Math.round((quizScore / learnResult.quiz.length) * 100)}%
                         </p>
-                        <p className="text-sm text-slate-400 mb-3">
+                        <p className="text-sm text-[#8a7f6f] mb-3">
                           You got {quizScore} out of {learnResult.quiz.length} questions right
                         </p>
                         {quizScore < learnResult.quiz.length && (
@@ -1365,13 +1365,13 @@ export default function LearnModePage({
                     <div className="mt-6 flex justify-between">
                       <button
                         onClick={() => setActiveStep(2)}
-                        className="flex items-center gap-1.5 text-sm font-medium text-slate-400 hover:text-white transition-colors"
+                        className="flex items-center gap-1.5 text-sm font-medium text-[#8a7f6f] hover:text-[#1a1815] transition-colors"
                       >
                         <ArrowLeft className="w-4 h-4" /> Examples
                       </button>
                       <button
                         onClick={() => setActiveStep(4)}
-                        className="flex items-center gap-1.5 text-sm font-medium text-purple-400 hover:text-purple-300 transition-colors"
+                        className="flex items-center gap-1.5 text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors"
                       >
                         Next: Resources <ChevronRight className="w-4 h-4" />
                       </button>
@@ -1383,29 +1383,29 @@ export default function LearnModePage({
                 {activeStep === 4 && (
                   <div>
                     <div className="flex items-center gap-2 mb-4">
-                      <ExternalLink className="w-5 h-5 text-purple-400" />
-                      <h2 className="text-lg font-bold text-white">Further Learning</h2>
+                      <ExternalLink className="w-5 h-5 text-purple-600" />
+                      <h2 className="text-lg font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>Further Learning</h2>
                     </div>
                     <div className="space-y-3">
                       {learnResult.resources && learnResult.resources.length > 0 ? (
                         learnResult.resources.map((resource, i) => (
                           <div
                             key={i}
-                            className="bg-slate-800/40 border border-slate-700/40 rounded-xl p-5"
+                            className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-5"
                           >
                             <div className="flex items-start gap-3">
-                              <span className="text-purple-400 text-lg mt-0.5 flex-shrink-0">&#8594;</span>
+                              <span className="text-purple-600 text-lg mt-0.5 flex-shrink-0">&#8594;</span>
                               <div className="min-w-0">
-                                <h3 className="text-sm font-semibold text-white mb-1">{resource.title}</h3>
+                                <h3 className="text-sm font-semibold text-[#1a1815] mb-1">{resource.title}</h3>
                                 {resource.description && (
-                                  <p className="text-[13px] text-slate-400 leading-relaxed mb-2">{resource.description}</p>
+                                  <p className="text-[13px] text-[#8a7f6f] leading-relaxed mb-2">{resource.description}</p>
                                 )}
                                 {resource.url && (
                                   <a
                                     href={resource.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                                    className="inline-flex items-center gap-1 text-xs text-purple-600 hover:text-purple-700 transition-colors"
                                   >
                                     <ExternalLink className="w-3 h-3" />
                                     {resource.url.length > 60
@@ -1418,19 +1418,19 @@ export default function LearnModePage({
                           </div>
                         ))
                       ) : (
-                        <p className="text-sm text-slate-400">No additional resources available.</p>
+                        <p className="text-sm text-[#8a7f6f]">No additional resources available.</p>
                       )}
                     </div>
                     <div className="mt-6 flex justify-between">
                       <button
                         onClick={() => setActiveStep(3)}
-                        className="flex items-center gap-1.5 text-sm font-medium text-slate-400 hover:text-white transition-colors"
+                        className="flex items-center gap-1.5 text-sm font-medium text-[#8a7f6f] hover:text-[#1a1815] transition-colors"
                       >
                         <ArrowLeft className="w-4 h-4" /> Quiz
                       </button>
                       <Link
                         href={`/lecture/${id}`}
-                        className="flex items-center gap-1.5 text-sm font-medium text-purple-400 hover:text-purple-300 transition-colors"
+                        className="flex items-center gap-1.5 text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors"
                       >
                         Back to Notes <ChevronRight className="w-4 h-4" />
                       </Link>
