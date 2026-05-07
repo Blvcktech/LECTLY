@@ -14,6 +14,8 @@ import {
   ChevronRight,
   ChevronLeft,
   ChevronDown,
+  ChevronUp,
+  MessageCircle,
   Lightbulb,
   Beaker,
   ExternalLink,
@@ -1457,6 +1459,23 @@ export default function LearnModePage({
             </div>
           )}
 
+          {/* Resume conversation bar (shows when minimized with existing messages) */}
+          {!tutorExpanded && chatMessages.length > 0 && (
+            <div className="max-w-3xl mx-auto px-4 sm:px-6">
+              <button
+                onClick={() => setTutorExpanded(true)}
+                className="w-full flex items-center gap-2 py-2 px-3 text-left hover:bg-[#EDE8DF]/50 rounded-lg transition-colors group"
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-[#8a7f6f] flex-shrink-0" />
+                <span className="text-[11px] text-[#8a7f6f] truncate flex-1">
+                  {chatMessages[chatMessages.length - 1]?.role === "tutor" ? "Tutor replied" : "You asked"}: {chatMessages[chatMessages.length - 1]?.content.substring(0, 60)}{chatMessages[chatMessages.length - 1]?.content.length > 60 ? "..." : ""}
+                </span>
+                <ChevronUp className="w-3.5 h-3.5 text-[#8a7f6f] group-hover:text-[#1a1815] flex-shrink-0" />
+                <span className="text-[10px] font-medium text-[#8a7f6f] group-hover:text-[#1a1815] flex-shrink-0">Show</span>
+              </button>
+            </div>
+          )}
+
           {/* Suggested chips */}
           <div className="max-w-3xl mx-auto px-4 sm:px-6">
             <div className="flex items-center gap-2 pt-2 pb-1.5 overflow-x-auto">
@@ -1470,7 +1489,7 @@ export default function LearnModePage({
                   {chip.label}
                 </button>
               ))}
-              {tutorExpanded && chatMessages.length > 0 && (
+              {chatMessages.length > 0 && (
                 <button
                   onClick={() => { setChatMessages([]); setChatInput(""); setTutorExpanded(false); }}
                   className="text-[10px] font-medium text-[#8a7f6f] hover:text-red-500 px-2 py-1 rounded-lg transition-colors ml-auto flex-shrink-0"
@@ -1478,7 +1497,7 @@ export default function LearnModePage({
                   Clear
                 </button>
               )}
-              <span className="text-[10px] text-[#8a7f6f] ml-auto flex-shrink-0">
+              <span className={`text-[10px] text-[#8a7f6f] ${chatMessages.length === 0 ? "ml-auto" : ""} flex-shrink-0`}>
                 Card {cardIndex + 1}/{totalFlowCards}
               </span>
             </div>
