@@ -234,9 +234,53 @@ function RenderBody({ text }: { text: string }) {
 
 // ── Helper: render tutor message content ──
 function TutorMessageContent({ content }: { content: string }) {
+  // Render inline markdown: **bold**, `code`
+  const renderInline = (text: string) => {
+    const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+    return parts.map((part, idx) => {
+      if (part.startsWith("**") && part.endsWith("**")) return <strong key={idx} className="font-semibold text-[#1a1815]">{part.slice(2, -2)}</strong>;
+      if (part.startsWith("`") && part.endsWith("`")) return <code key={idx} className="px-1 py-0.5 rounded bg-amber-100/60 text-[11px] font-mono text-amber-900">{part.slice(1, -1)}</code>;
+      return <span key={idx}>{part}</span>;
+    });
+  };
+
+  // Render a single line with appropriate styling
+  const renderLine = (line: string, key: string) => {
+    const trimmed = line.trim();
+    if (!trimmed) return null;
+
+    // Step headers — bold, with top margin for visual separation
+    if (/^(Step \d|Given:|Formula:|Answer:|Solution:)/i.test(trimmed)) {
+      return <p key={key} className="text-sm leading-relaxed font-semibold text-[#1a1815] mt-2 first:mt-0">{renderInline(trimmed)}</p>;
+    }
+    // Bullet points (-, •, *)
+    if (/^[-•*]\s+/.test(trimmed)) {
+      const bulletText = trimmed.replace(/^[-•*]\s+/, "");
+      return <p key={key} className="text-sm leading-relaxed mb-0.5 flex gap-2 pl-1"><span className="text-amber-600 flex-shrink-0">•</span><span>{renderInline(bulletText)}</span></p>;
+    }
+    // Numbered list items (1., 2., etc.)
+    if (/^\d+[.)]\s+/.test(trimmed)) {
+      const match = trimmed.match(/^(\d+[.)])\s+(.*)/);
+      if (match) {
+        return <p key={key} className="text-sm leading-relaxed mb-0.5 flex gap-2 pl-1"><span className="text-purple-600 font-semibold flex-shrink-0 min-w-[1.2rem]">{match[1]}</span><span>{renderInline(match[2])}</span></p>;
+      }
+    }
+    // Equations / formulas (X = something)
+    if (/^[A-Za-z_]\s*=\s*.+/.test(trimmed) && trimmed.length < 120) {
+      return <div key={key} className="bg-[rgba(26,24,21,0.06)] rounded px-3 py-1.5 my-1"><code className="text-[12px] text-green-700 font-mono">{trimmed}</code></div>;
+    }
+    // Horizontal rule
+    if (/^---+$/.test(trimmed)) {
+      return <hr key={key} className="border-[rgba(217,185,130,0.3)] my-2" />;
+    }
+    // Regular paragraph
+    return <p key={key} className="text-sm leading-relaxed text-[#2C2A25]">{renderInline(trimmed)}</p>;
+  };
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       {content.split(/(```[\s\S]*?```)/g).map((block, bi) => {
+        // Code blocks
         if (block.startsWith("```")) {
           const lines = block.slice(3, -3).split("\n");
           const lang = lines[0]?.trim() || "";
@@ -255,27 +299,30 @@ function TutorMessageContent({ content }: { content: string }) {
             </div>
           );
         }
-        return block.split("\n\n").map((paragraph, pi) => {
-          const trimmed = paragraph.trim();
-          if (!trimmed) return null;
-          const renderInline = (text: string) => {
-            const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
-            return parts.map((part, idx) => {
-              if (part.startsWith("**") && part.endsWith("**")) return <strong key={idx} className="font-semibold text-[#1a1815]">{part.slice(2, -2)}</strong>;
-              if (part.startsWith("`") && part.endsWith("`")) return <code key={idx} className="px-1 py-0.5 rounded bg-amber-100/60 text-[11px] font-mono text-amber-900">{part.slice(1, -1)}</code>;
-              return <span key={idx}>{part}</span>;
-            });
-          };
-          if (trimmed.startsWith("- ") || trimmed.startsWith("• ")) {
-            return (<div key={`${bi}-${pi}`} className="pl-1">{trimmed.split("\n").map((line, li) => {
-              const bulletText = line.replace(/^[-•]\s*/, "");
-              return <p key={li} className="text-sm leading-relaxed mb-1 flex gap-2"><span className="text-amber-600 flex-shrink-0">•</span><span>{renderInline(bulletText)}</span></p>;
-            })}</div>);
+
+        // Text content — split on EVERY newline, not just double newlines
+        // This ensures Step 1, Step 2, bullets, etc. each render on their own line
+        const lines = block.split("\n");
+        const elements: React.ReactNode[] = [];
+        let consecutiveEmpty = 0;
+
+        for (let li = 0; li < lines.length; li++) {
+          const line = lines[li];
+          if (!line.trim()) {
+            consecutiveEmpty++;
+            // Add spacing for double newlines (paragraph breaks)
+            if (consecutiveEmpty >= 2) {
+              elements.push(<div key={`${bi}-gap-${li}`} className="h-2" />);
+              consecutiveEmpty = 0;
+            }
+            continue;
           }
-          if (/^(Step \d|Given:|Formula:|Answer:)/i.test(trimmed)) return <p key={`${bi}-${pi}`} className="text-sm leading-relaxed font-semibold text-[#1a1815]">{renderInline(trimmed)}</p>;
-          if (/^[A-Za-z_]\s*=\s*.+/.test(trimmed)) return <div key={`${bi}-${pi}`} className="bg-[rgba(26,24,21,0.06)] rounded px-3 py-1.5 my-1"><code className="text-[12px] text-green-600 font-mono">{trimmed}</code></div>;
-          return <p key={`${bi}-${pi}`} className="text-sm leading-relaxed text-[#2C2A25]">{renderInline(trimmed)}</p>;
-        });
+          consecutiveEmpty = 0;
+          const rendered = renderLine(line, `${bi}-${li}`);
+          if (rendered) elements.push(rendered);
+        }
+
+        return <div key={bi}>{elements}</div>;
       })}
     </div>
   );

@@ -235,7 +235,8 @@ Plain text with markdown. NOT JSON. No section summaries. Just answer the questi
 # ──────────────────────────────────────────────
 
 def _call_gemini(system_prompt: str, user_message: str, json_mode: bool = True, temperature: float = 0.3) -> str:
-    """Call Google Gemini 2.5 Flash. Set json_mode=False for plain text responses (e.g., tutor chat)."""
+    """Call Google Gemini 2.5 Flash with automatic retry on 503/429 errors."""
+    import time as _time
     settings = get_settings()
     key = settings.gemini_api_key
 
@@ -264,22 +265,35 @@ def _call_gemini(system_prompt: str, user_message: str, json_mode: bool = True, 
         "generationConfig": gen_config,
     }
 
-    print(f"[Lectly] Calling Gemini 2.5 Flash{'(JSON)' if json_mode else ' (text)'}...")
+    # Retry up to 3 times on transient errors (503, 429)
+    max_retries = 3
+    for attempt in range(max_retries):
+        print(f"[Lectly] Calling Gemini 2.5 Flash{'(JSON)' if json_mode else ' (text)'}{'...' if attempt == 0 else f' (retry {attempt})...'}")
 
-    response = http_requests.post(
-        api_url,
-        headers={"Content-Type": "application/json"},
-        json=payload,
-        timeout=120,
-    )
+        response = http_requests.post(
+            api_url,
+            headers={"Content-Type": "application/json"},
+            json=payload,
+            timeout=120,
+        )
 
-    if response.status_code != 200:
+        if response.status_code == 200:
+            result = response.json()
+            text = result["candidates"][0]["content"]["parts"][0]["text"].strip()
+            print(f"[Lectly] Gemini response received ({len(text)} chars)")
+            return text
+
+        # Retry on transient errors
+        if response.status_code in (429, 503) and attempt < max_retries - 1:
+            wait = (attempt + 1) * 3  # 3s, 6s
+            print(f"[Lectly] Gemini {response.status_code}, retrying in {wait}s...")
+            _time.sleep(wait)
+            continue
+
+        # Non-retryable error or final attempt
         raise Exception(f"Gemini API error ({response.status_code}): {response.text[:200]}")
 
-    result = response.json()
-    text = result["candidates"][0]["content"]["parts"][0]["text"].strip()
-    print(f"[Lectly] Gemini response received ({len(text)} chars)")
-    return text
+    raise Exception("Gemini API failed after all retries")
 
 
 def _call_groq(system_prompt: str, user_message: str) -> str:

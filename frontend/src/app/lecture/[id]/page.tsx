@@ -16,6 +16,7 @@ import {
   MessageCircle,
   Send,
   ChevronDown,
+  Code,
 } from "lucide-react";
 import {
   getLecture,
@@ -27,6 +28,52 @@ import {
   type NoteSection,
   type TutorMessage,
 } from "@/lib/api";
+
+// ── Tutor message renderer (markdown-aware) ──
+function TutorBubble({ content }: { content: string }) {
+  const renderInline = (text: string) => {
+    const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+    return parts.map((part, idx) => {
+      if (part.startsWith("**") && part.endsWith("**")) return <strong key={idx} className="font-semibold text-[#1a1815]">{part.slice(2, -2)}</strong>;
+      if (part.startsWith("`") && part.endsWith("`")) return <code key={idx} className="px-1 py-0.5 rounded bg-amber-100/60 text-[10px] font-mono text-amber-900">{part.slice(1, -1)}</code>;
+      return <span key={idx}>{part}</span>;
+    });
+  };
+  const renderLine = (line: string, key: string) => {
+    const t = line.trim();
+    if (!t) return null;
+    if (/^(Step \d|Given:|Formula:|Answer:|Solution:)/i.test(t)) return <p key={key} className="text-xs leading-relaxed font-semibold text-[#1a1815] mt-1.5 first:mt-0">{renderInline(t)}</p>;
+    if (/^[-•*]\s+/.test(t)) return <p key={key} className="text-xs leading-relaxed mb-0.5 flex gap-1.5 pl-0.5"><span className="text-amber-600">•</span><span>{renderInline(t.replace(/^[-•*]\s+/, ""))}</span></p>;
+    if (/^\d+[.)]\s+/.test(t)) { const m = t.match(/^(\d+[.)])\s+(.*)/); return m ? <p key={key} className="text-xs leading-relaxed mb-0.5 flex gap-1.5 pl-0.5"><span className="text-purple-600 font-semibold">{m[1]}</span><span>{renderInline(m[2])}</span></p> : null; }
+    if (/^---+$/.test(t)) return <hr key={key} className="border-[rgba(217,185,130,0.3)] my-1" />;
+    return <p key={key} className="text-xs leading-relaxed text-[#2C2A25]">{renderInline(t)}</p>;
+  };
+  return (
+    <div className="space-y-0.5">
+      {content.split(/(```[\s\S]*?```)/g).map((block, bi) => {
+        if (block.startsWith("```")) {
+          const lines = block.slice(3, -3).split("\n");
+          const lang = lines[0]?.trim() || "";
+          const code = lang ? lines.slice(1).join("\n") : lines.join("\n");
+          return (
+            <div key={bi} className="my-1.5 rounded-lg overflow-hidden border border-amber-200/30">
+              {lang && <div className="bg-[rgba(26,24,21,0.06)] px-2 py-0.5"><span className="text-[8px] font-bold text-[#8a7f6f] uppercase flex items-center gap-1"><Code className="w-2.5 h-2.5" />{lang}</span></div>}
+              <pre className="bg-[#1a1a2e] px-2 py-2 overflow-x-auto"><code className="text-[11px] text-green-400 leading-[1.5] font-mono whitespace-pre">{code.trim()}</code></pre>
+            </div>
+          );
+        }
+        const lines = block.split("\n");
+        const elements: React.ReactNode[] = [];
+        for (let li = 0; li < lines.length; li++) {
+          if (!lines[li].trim()) { elements.push(<div key={`${bi}-gap-${li}`} className="h-1" />); continue; }
+          const r = renderLine(lines[li], `${bi}-${li}`);
+          if (r) elements.push(r);
+        }
+        return <div key={bi}>{elements}</div>;
+      })}
+    </div>
+  );
+}
 
 export default function LecturePage({
   params,
@@ -504,9 +551,8 @@ export default function LecturePage({
                       ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-br-md"
                       : "bg-[#EDE8DF] text-[#2C2A25] rounded-bl-md"
                   }`}
-                  style={{ whiteSpace: "pre-wrap" }}
                 >
-                  {msg.content}
+                  {msg.role === "tutor" ? <TutorBubble content={msg.content} /> : msg.content}
                 </div>
               </div>
             ))}
