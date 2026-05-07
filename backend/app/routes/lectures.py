@@ -16,12 +16,22 @@ from app.models.lecture import (
     LearnModeResponse,
     TutorAskRequest,
     TutorAskResponse,
+    ProgressSaveRequest,
+    ProgressResponse,
 )
 import os
 from app.services.audio import save_upload, transcribe_audio, get_lecture, list_lectures
 from app.services.notes import generate_notes, explain_text, learn_mode, ask_tutor
 from app.services.pdf_export import generate_notes_pdf
-from app.database import delete_lecture as db_delete_lecture, ensure_clerk_user
+from app.database import (
+    delete_lecture as db_delete_lecture,
+    ensure_clerk_user,
+    save_progress as db_save_progress,
+    get_progress as db_get_progress,
+    get_lecture_progress as db_get_lecture_progress,
+    get_all_progress as db_get_all_progress,
+    get_last_studied as db_get_last_studied,
+)
 
 
 router = APIRouter(prefix="/api", tags=["lectures"])
@@ -225,3 +235,51 @@ async def delete_lecture(lecture_id: str):
     db_delete_lecture(lecture_id)
 
     return {"message": "Lecture deleted successfully", "lecture_id": lecture_id}
+
+
+# ──────────────────────────────────────────────
+# Progress Tracking
+# ──────────────────────────────────────────────
+
+@router.post("/progress", response_model=ProgressResponse)
+async def save_progress(request_body: ProgressSaveRequest, request: Request):
+    """Save study progress for a lecture section."""
+    user_id = _get_user_id_from_header(request)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    result = db_save_progress(
+        user_id=user_id,
+        lecture_id=request_body.lecture_id,
+        section_index=request_body.section_index,
+        total_cards=request_body.total_cards,
+        completed_cards=request_body.completed_cards,
+        quiz_correct=request_body.quiz_correct,
+        quiz_total=request_body.quiz_total,
+        last_card_index=request_body.last_card_index,
+        mastery_pct=request_body.mastery_pct,
+    )
+    return result
+
+
+@router.get("/progress")
+async def get_all_progress(request: Request):
+    """Get all progress for the current user."""
+    user_id = _get_user_id_from_header(request)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    progress = db_get_all_progress(user_id)
+    last_studied = db_get_last_studied(user_id)
+    return {"progress": progress, "last_studied": last_studied}
+
+
+@router.get("/progress/{lecture_id}")
+async def get_lecture_progress(lecture_id: str, request: Request):
+    """Get progress for a specific lecture."""
+    user_id = _get_user_id_from_header(request)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    progress = db_get_lecture_progress(user_id, lecture_id)
+    return {"progress": progress}

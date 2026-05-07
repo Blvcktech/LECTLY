@@ -74,6 +74,24 @@ def init_db():
             generated_at TEXT NOT NULL,
             FOREIGN KEY (lecture_id) REFERENCES lectures(id) ON DELETE CASCADE
         );
+
+        CREATE TABLE IF NOT EXISTS progress (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            lecture_id TEXT NOT NULL,
+            section_index INTEGER NOT NULL DEFAULT -1,
+            total_cards INTEGER NOT NULL DEFAULT 0,
+            completed_cards INTEGER NOT NULL DEFAULT 0,
+            quiz_correct INTEGER NOT NULL DEFAULT 0,
+            quiz_total INTEGER NOT NULL DEFAULT 0,
+            last_card_index INTEGER NOT NULL DEFAULT 0,
+            mastery_pct INTEGER NOT NULL DEFAULT 0,
+            last_studied_at TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            UNIQUE(user_id, lecture_id, section_index),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (lecture_id) REFERENCES lectures(id) ON DELETE CASCADE
+        );
     """)
 
     conn.commit()
@@ -338,3 +356,97 @@ def save_notes(lecture_id: str, title: str, summary: str, sections: list, genera
     )
     conn.commit()
     conn.close()
+
+
+# ──────────────────────────────────────────────
+# Progress Tracking
+# ──────────────────────────────────────────────
+
+def save_progress(
+    user_id: str,
+    lecture_id: str,
+    section_index: int,
+    total_cards: int,
+    completed_cards: int,
+    quiz_correct: int,
+    quiz_total: int,
+    last_card_index: int,
+    mastery_pct: int,
+) -> dict:
+    """Save or update study progress for a lecture section."""
+    conn = get_connection()
+    now = datetime.utcnow().isoformat()
+    conn.execute(
+        """INSERT INTO progress (user_id, lecture_id, section_index, total_cards,
+           completed_cards, quiz_correct, quiz_total, last_card_index, mastery_pct,
+           last_studied_at, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(user_id, lecture_id, section_index) DO UPDATE SET
+           total_cards = excluded.total_cards,
+           completed_cards = excluded.completed_cards,
+           quiz_correct = excluded.quiz_correct,
+           quiz_total = excluded.quiz_total,
+           last_card_index = excluded.last_card_index,
+           mastery_pct = excluded.mastery_pct,
+           last_studied_at = excluded.last_studied_at""",
+        (user_id, lecture_id, section_index, total_cards, completed_cards,
+         quiz_correct, quiz_total, last_card_index, mastery_pct, now, now),
+    )
+    conn.commit()
+    conn.close()
+    return {
+        "user_id": user_id,
+        "lecture_id": lecture_id,
+        "section_index": section_index,
+        "total_cards": total_cards,
+        "completed_cards": completed_cards,
+        "quiz_correct": quiz_correct,
+        "quiz_total": quiz_total,
+        "last_card_index": last_card_index,
+        "mastery_pct": mastery_pct,
+        "last_studied_at": now,
+    }
+
+
+def get_progress(user_id: str, lecture_id: str, section_index: int = -1) -> Optional[dict]:
+    """Get progress for a specific lecture section."""
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT * FROM progress WHERE user_id = ? AND lecture_id = ? AND section_index = ?",
+        (user_id, lecture_id, section_index),
+    ).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def get_lecture_progress(user_id: str, lecture_id: str) -> list[dict]:
+    """Get all progress records for a lecture (across all sections)."""
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT * FROM progress WHERE user_id = ? AND lecture_id = ? ORDER BY section_index",
+        (user_id, lecture_id),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_all_progress(user_id: str) -> list[dict]:
+    """Get all progress for a user, ordered by most recently studied."""
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT * FROM progress WHERE user_id = ? ORDER BY last_studied_at DESC",
+        (user_id,),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_last_studied(user_id: str) -> Optional[dict]:
+    """Get the most recently studied lecture progress record."""
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT * FROM progress WHERE user_id = ? ORDER BY last_studied_at DESC LIMIT 1",
+        (user_id,),
+    ).fetchone()
+    conn.close()
+    return dict(row) if row else None

@@ -8,18 +8,17 @@ import {
   Upload,
   Search,
   FileText,
-  Brain,
   Clock,
   Plus,
   GraduationCap,
-  Sparkles,
   Loader2,
   Home,
   User,
-  Settings,
   Trash2,
+  Play,
+  ChevronRight,
 } from "lucide-react";
-import { getLectures, deleteLecture, Lecture } from "@/lib/api";
+import { getLectures, deleteLecture, getAllProgress, Lecture, type StudyProgress } from "@/lib/api";
 import { useUser, useClerk, useAuth } from "@clerk/nextjs";
 import { setAuthToken } from "@/lib/auth";
 
@@ -49,19 +48,29 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [allProgress, setAllProgress] = useState<StudyProgress[]>([]);
+  const [lastStudied, setLastStudied] = useState<StudyProgress | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function fetchLectures() {
+    async function fetchData() {
       try {
         setLoading(true);
         setError(null);
         const token = await getToken();
         setAuthToken(token);
-        const data = await getLectures();
+
+        // Fetch lectures and progress in parallel
+        const [lectureData, progressData] = await Promise.all([
+          getLectures(),
+          getAllProgress().catch(() => ({ progress: [], last_studied: null })),
+        ]);
+
         if (!cancelled) {
-          setLectures(data.lectures);
+          setLectures(lectureData.lectures);
+          setAllProgress(progressData.progress);
+          setLastStudied(progressData.last_studied);
         }
       } catch (err) {
         if (!cancelled) {
@@ -74,11 +83,35 @@ export default function DashboardPage() {
       }
     }
 
-    fetchLectures();
+    fetchData();
     return () => {
       cancelled = true;
     };
   }, [getToken]);
+
+  // Get best progress for a lecture (highest mastery across sections)
+  const getLectureStats = (lectureId: string) => {
+    const records = allProgress.filter((p) => p.lecture_id === lectureId);
+    if (records.length === 0) return null;
+    const totalCards = records.reduce((s, r) => s + r.total_cards, 0);
+    const completedCards = records.reduce((s, r) => s + r.completed_cards, 0);
+    const avgMastery = Math.round(records.reduce((s, r) => s + r.mastery_pct, 0) / records.length);
+    const lastStudiedAt = records.sort((a, b) => b.last_studied_at.localeCompare(a.last_studied_at))[0]?.last_studied_at;
+    return { totalCards, completedCards, avgMastery, lastStudiedAt, sectionCount: records.length };
+  };
+
+  // Format relative time
+  const formatRelativeTime = (iso: string) => {
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days === 1) return "yesterday";
+    return `${days}d ago`;
+  };
 
   const handleDelete = async (lectureId: string, title: string) => {
     if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
@@ -99,16 +132,6 @@ export default function DashboardPage() {
       (l.notes?.title || "").toLowerCase().includes(search.toLowerCase()) ||
       (l.subject || "").toLowerCase().includes(search.toLowerCase())
   );
-
-  const totalHours =
-    lectures.reduce((sum, l) => sum + (l.duration_seconds || 0), 0) / 3600;
-
-  const totalSections = lectures.reduce(
-    (sum, l) => sum + (l.notes?.sections?.length || 0),
-    0
-  );
-
-  const readyCount = lectures.filter((l) => l.status === "ready").length;
 
   const usagePercent = Math.min((lectures.length / 3) * 100, 100);
 
@@ -230,33 +253,67 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Header */}
+          {/* Header with date */}
           <div className="mb-6">
-            <h1 className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>My Lectures</h1>
-            <p className="text-[#8a7f6f] text-xs mt-0.5">
-              {lectures.length} lecture{lectures.length !== 1 ? "s" : ""} uploaded
+            <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest mb-1">
+              {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
             </p>
+            <h1 className="text-2xl font-bold text-[#1a1815] leading-snug" style={{ fontFamily: "'Georgia', serif" }}>
+              Pick up where{"\n"}you left off.
+            </h1>
           </div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-            {[
-              { icon: FileText, label: "Total Lectures", value: String(lectures.length), color: "text-purple-600", bg: "bg-purple-500/8" },
-              { icon: Clock, label: "Hours Processed", value: `${totalHours.toFixed(1)}h`, color: "text-blue-600", bg: "bg-blue-500/8" },
-              { icon: Brain, label: "Sections Generated", value: String(totalSections), color: "text-amber-700", bg: "bg-amber-500/10" },
-              { icon: Sparkles, label: "Ready", value: String(readyCount), color: "text-green-700", bg: "bg-green-500/8" },
-            ].map((stat) => (
-              <div
-                key={stat.label}
-                className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-3.5"
+          {/* ── Continuity Card: Last studied ── */}
+          {lastStudied && !loading && (() => {
+            const lecture = lectures.find((l) => l.id === lastStudied.lecture_id);
+            if (!lecture) return null;
+            const title = lecture.notes?.title || lecture.filename;
+            const stats = getLectureStats(lecture.id);
+
+            return (
+              <Link
+                href={`/lecture/${lecture.id}/learn?section=${lastStudied.section_index}`}
+                className="block mb-6 bg-[#1a1815] text-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all group"
               >
-                <div className={`w-8 h-8 rounded-[10px] ${stat.bg} flex items-center justify-center mb-2`}>
-                  <stat.icon className={`w-4 h-4 ${stat.color}`} />
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    {lecture.subject && (
+                      <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
+                        {lecture.subject} · In Progress
+                      </span>
+                    )}
+                    <h2 className="text-lg font-bold mt-1 truncate" style={{ fontFamily: "'Georgia', serif" }}>
+                      {title}
+                    </h2>
+                    <div className="flex items-center gap-3 mt-2">
+                      <span className="text-xs font-semibold bg-white/15 px-2.5 py-1 rounded-lg">
+                        {lastStudied.completed_cards}/{lastStudied.total_cards} cards
+                      </span>
+                      {stats && (
+                        <span className="text-xs font-semibold bg-white/15 px-2.5 py-1 rounded-lg">
+                          {stats.avgMastery}% mastery
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center flex-shrink-0 ml-4 group-hover:scale-105 transition-transform">
+                    <Play className="w-5 h-5 text-[#1a1815] ml-0.5" />
+                  </div>
                 </div>
-                <p className="text-xl font-bold text-[#1a1815]">{stat.value}</p>
-                <p className="text-[11px] text-[#8a7f6f]">{stat.label}</p>
-              </div>
-            ))}
+              </Link>
+            );
+          })()}
+
+          {/* Section header */}
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-[11px] font-bold text-[#8a7f6f] uppercase tracking-widest">
+              Recent Lectures
+            </h2>
+            {lectures.length > 0 && (
+              <span className="text-[11px] font-medium text-[#8a7f6f]">
+                All {lectures.length} →
+              </span>
+            )}
           </div>
 
           {/* Loading State */}
@@ -289,107 +346,99 @@ export default function DashboardPage() {
               {filtered.map((lecture) => {
                 const isReady = lecture.status === "ready";
                 const title = lecture.notes?.title || lecture.filename;
-                const topics = (lecture.notes?.sections || [])
-                  .slice(0, 3)
-                  .map((s) => s.heading);
+                const stats = getLectureStats(lecture.id);
 
                 return (
-                  <div
+                  <Link
                     key={lecture.id}
-                    className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl px-4 py-3.5 hover:border-[rgba(217,185,130,0.5)] hover:shadow-sm transition-all group"
+                    href={isReady ? `/lecture/${lecture.id}` : "#"}
+                    className="block bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl px-4 py-3.5 hover:border-[rgba(217,185,130,0.5)] hover:shadow-sm transition-all group"
                   >
-                    <div className="flex items-start gap-3">
-                      {/* Icon */}
-                      <div
-                        className={`w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 ${
-                          isReady ? "bg-purple-500/8" : "bg-amber-500/10"
-                        }`}
-                      >
-                        {isReady ? (
-                          <FileText className="w-5 h-5 text-purple-600" />
-                        ) : (
-                          <Clock className="w-5 h-5 text-amber-600 animate-pulse" />
-                        )}
-                      </div>
+                    <div className="flex items-center gap-3">
+                      {/* Subject badge */}
+                      {lecture.subject ? (
+                        <div className="w-10 h-10 rounded-xl bg-[#EDE8DF] flex items-center justify-center flex-shrink-0">
+                          <span className="text-[10px] font-bold text-[#2C2A25] uppercase leading-none text-center">
+                            {lecture.subject.length > 6 ? lecture.subject.substring(0, 6) : lecture.subject}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isReady ? "bg-purple-500/8" : "bg-amber-500/10"}`}>
+                          {isReady ? <FileText className="w-5 h-5 text-purple-600" /> : <Clock className="w-5 h-5 text-amber-600 animate-pulse" />}
+                        </div>
+                      )}
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-[#1a1815] truncate">
                           {title}
                         </p>
-                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                          {lecture.subject && (
-                            <span className="text-[11px] text-[#8a7f6f] bg-[#F7F4EE] px-1.5 py-0.5 rounded border border-[rgba(217,185,130,0.2)]">
-                              {lecture.subject}
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {stats ? (
+                            <>
+                              <span className="text-[11px] text-[#8a7f6f]">
+                                Mastery {stats.avgMastery}%
+                              </span>
+                              <span className="text-[11px] text-[#8a7f6f]">·</span>
+                              <span className="text-[11px] text-[#8a7f6f]">
+                                {formatRelativeTime(stats.lastStudiedAt)}
+                              </span>
+                            </>
+                          ) : isReady ? (
+                            <span className="text-[11px] text-[#8a7f6f]">
+                              New · {formatDuration(lecture.duration_seconds)}
                             </span>
-                          )}
-                          <span className="text-[11px] text-[#8a7f6f]">
-                            {formatDate(lecture.created_at)}
-                          </span>
-                          <span className="text-[11px] text-[#8a7f6f]">
-                            {formatDuration(lecture.duration_seconds)}
-                          </span>
-                          {isReady && lecture.quality_score != null && (
-                            <span className="text-[11px] text-green-700">
-                              {lecture.quality_score}% quality
+                          ) : (
+                            <span className="text-[11px] text-amber-700">
+                              Processing...
                             </span>
                           )}
                         </div>
-                        {topics.length > 0 && (
-                          <div className="hidden sm:flex flex-wrap gap-1.5 mt-1.5">
-                            {topics.map((topic) => (
-                              <span
-                                key={topic}
-                                className="text-[10px] text-[#2C2A25] bg-[#EDE8DF] px-1.5 py-0.5 rounded"
-                              >
-                                {topic}
-                              </span>
-                            ))}
-                          </div>
-                        )}
                       </div>
 
-                      {/* Delete */}
-                      <button
-                        onClick={() => handleDelete(lecture.id, title)}
-                        disabled={deletingId === lecture.id}
-                        className="flex items-center text-[#8a7f6f] hover:text-red-500 p-1.5 rounded-lg transition-colors disabled:opacity-40 flex-shrink-0"
-                        title="Delete lecture"
-                      >
-                        {deletingId === lecture.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-4 h-4" />
+                      {/* Right side: progress or chevron */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {stats && (
+                          <div className="w-10 h-10 rounded-full border-2 border-[#EDE8DF] flex items-center justify-center relative">
+                            <svg className="w-10 h-10 absolute" viewBox="0 0 36 36">
+                              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#EDE8DF" strokeWidth="2.5" />
+                              <circle
+                                cx="18" cy="18" r="15.9" fill="none"
+                                stroke={stats.avgMastery >= 70 ? "#22c55e" : stats.avgMastery >= 40 ? "#f59e0b" : "#8a7f6f"}
+                                strokeWidth="2.5"
+                                strokeDasharray={`${stats.avgMastery} ${100 - stats.avgMastery}`}
+                                strokeDashoffset="25"
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                            <span className="text-[9px] font-bold text-[#1a1815] z-10">{stats.avgMastery}%</span>
+                          </div>
                         )}
-                      </button>
+                        <ChevronRight className="w-4 h-4 text-[#8a7f6f] opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 mt-3 pl-[52px]">
-                      {isReady ? (
-                        <>
-                          <Link
-                            href={`/lecture/${lecture.id}`}
-                            className="flex items-center gap-1.5 text-xs text-[#2C2A25] hover:text-[#1a1815] bg-[#EDE8DF] hover:bg-[#e5dfd5] px-3 py-1.5 rounded-lg transition-colors"
-                          >
-                            <FileText className="w-3.5 h-3.5" />
-                            Notes
-                          </Link>
-                          <Link
-                            href={`/lecture/${lecture.id}/learn`}
-                            className="flex items-center gap-1.5 text-xs text-purple-700 hover:text-purple-800 bg-purple-500/8 hover:bg-purple-500/15 px-3 py-1.5 rounded-lg transition-colors"
-                          >
-                            <GraduationCap className="w-3.5 h-3.5" />
-                            Learn
-                          </Link>
-                        </>
-                      ) : (
-                        <span className="text-xs text-amber-700 bg-amber-500/10 px-2.5 py-1 rounded-lg">
-                          Processing...
-                        </span>
+                    {/* Delete button (stops propagation) */}
+                    <div className="flex items-center gap-2 mt-2 pl-[52px]">
+                      {isReady && (
+                        <button
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/lecture/${lecture.id}/learn`); }}
+                          className="flex items-center gap-1.5 text-xs text-purple-700 bg-purple-500/8 hover:bg-purple-500/15 px-3 py-1.5 rounded-lg transition-colors"
+                        >
+                          <GraduationCap className="w-3.5 h-3.5" />
+                          {stats ? "Continue learning" : "Start learning"}
+                        </button>
                       )}
+                      <button
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(lecture.id, title); }}
+                        disabled={deletingId === lecture.id}
+                        className="flex items-center text-[#8a7f6f] hover:text-red-500 p-1.5 rounded-lg transition-colors disabled:opacity-40 ml-auto"
+                        title="Delete lecture"
+                      >
+                        {deletingId === lecture.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                      </button>
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
             </div>

@@ -134,3 +134,31 @@ class TutorAskResponse(BaseModel):
     answer: str
     lecture_id: str
     section_referenced: Optional[str] = None
+
+
+# ──────────────────────────────────────────────
+# Progress Tracking models
+# ──────────────────────────────────────────────
+
+class ProgressSaveRequest(BaseModel):
+    lecture_id: str
+    section_index: int = -1
+    total_cards: int
+    completed_cards: int
+    quiz_correct: int = 0
+    quiz_total: int = 0
+    last_card_index: int = 0
+    mastery_pct: int = 0
+
+
+class ProgressResponse(BaseModel):
+    user_id: str
+    lecture_id: str
+    section_index: int
+    total_cards: int
+    completed_cards: int
+    quiz_correct: int
+    quiz_total: int
+    last_card_index: int
+    mastery_pct: int
+    last_studied_at: str

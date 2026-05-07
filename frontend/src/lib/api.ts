@@ -108,6 +108,19 @@ export interface TutorAskResult {
   section_referenced?: string;
 }
 
+export interface StudyProgress {
+  user_id: string;
+  lecture_id: string;
+  section_index: number;
+  total_cards: number;
+  completed_cards: number;
+  quiz_correct: number;
+  quiz_total: number;
+  last_card_index: number;
+  mastery_pct: number;
+  last_studied_at: string;
+}
+
 // ── API Functions ──────────────────────────────
 
 export async function uploadLecture(
@@ -300,5 +313,59 @@ export async function healthCheck(): Promise<{
   anthropic_configured: boolean;
 }> {
   const res = await fetch(`${API_URL}/health`);
+  return res.json();
+}
+
+// ── Progress Tracking ──────────────────────────
+
+export async function saveProgress(data: {
+  lecture_id: string;
+  section_index: number;
+  total_cards: number;
+  completed_cards: number;
+  quiz_correct?: number;
+  quiz_total?: number;
+  last_card_index?: number;
+  mastery_pct?: number;
+}): Promise<StudyProgress> {
+  const res = await fetch(`${API_URL}/api/progress`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to save progress");
+  }
+
+  return res.json();
+}
+
+export async function getAllProgress(): Promise<{
+  progress: StudyProgress[];
+  last_studied: StudyProgress | null;
+}> {
+  const res = await fetch(`${API_URL}/api/progress`, {
+    headers: { ...authHeaders() },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch progress");
+  }
+
+  return res.json();
+}
+
+export async function getLectureProgress(
+  lectureId: string
+): Promise<{ progress: StudyProgress[] }> {
+  const res = await fetch(`${API_URL}/api/progress/${lectureId}`, {
+    headers: { ...authHeaders() },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch lecture progress");
+  }
+
   return res.json();
 }
