@@ -183,9 +183,14 @@ function RenderBody({ text }: { text: string }) {
           if (!trimmed) return null;
 
           // Auto-detect code that wasn't wrapped in backticks by the LLM
-          const codePatterns = /^(public |private |class |import |int |String |void |System\.|for\s*\(|if\s*\(|while\s*\(|return |var |let |const |function |def |print\(|console\.|#include|using namespace)/m;
-          const hasMultipleCodeLines = (trimmed.match(/\n/g) || []).length >= 2;
-          const looksLikeCode = codePatterns.test(trimmed) && (trimmed.includes(";") || trimmed.includes("{") || trimmed.includes("def ")) && hasMultipleCodeLines;
+          // Only trigger when MOST lines look like code (not prose that mentions keywords)
+          const codeLinePattern = /^[\s]*(public |private |class |import |int |String |void |System\.|for\s*\(|if\s*\(|while\s*\(|return |var |let |const |function |def |print\(|console\.|#include|using namespace|\}|else\s*\{|try\s*\{|catch\s*\()/;
+          const allLines = trimmed.split("\n");
+          const hasMultipleCodeLines = allLines.length >= 3;
+          const codeLineCount = allLines.filter((l: string) => codeLinePattern.test(l)).length;
+          const codeLineRatio = allLines.length > 0 ? codeLineCount / allLines.length : 0;
+          // At least 50% of lines must look like code AND must have braces/semicolons
+          const looksLikeCode = hasMultipleCodeLines && codeLineRatio >= 0.5 && (trimmed.includes(";") || trimmed.includes("{")) && !/^[A-Z].*\.\s/.test(trimmed);
 
           if (looksLikeCode) {
             // Detect language from patterns
