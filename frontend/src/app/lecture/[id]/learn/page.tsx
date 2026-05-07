@@ -13,6 +13,7 @@ import {
   XCircle,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
   Lightbulb,
   Beaker,
   ExternalLink,
@@ -1407,10 +1408,21 @@ export default function LearnModePage({
         <div className="sticky bottom-0 z-40 bg-[#FDFCF9] border-t border-[rgba(217,185,130,0.3)]">
           {/* Expanded conversation area */}
           {tutorExpanded && (
-            <div className="max-w-3xl mx-auto px-4 sm:px-6" style={{ maxHeight: "40vh", overflowY: "auto" }}>
-              <div className="py-4 space-y-3">
+            <div className="max-w-3xl mx-auto px-4 sm:px-6" style={{ maxHeight: "35vh", overflowY: "auto" }}>
+              {/* Collapse handle */}
+              <div className="sticky top-0 z-10 bg-[#FDFCF9] pt-2 pb-1 flex items-center justify-between border-b border-[rgba(217,185,130,0.15)]">
+                <span className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest">Tutor</span>
+                <button
+                  onClick={() => setTutorExpanded(false)}
+                  className="flex items-center gap-1 text-[11px] font-medium text-[#8a7f6f] hover:text-[#1a1815] px-2 py-1 rounded-lg hover:bg-[#EDE8DF] transition-colors"
+                >
+                  <ChevronDown className="w-3.5 h-3.5" />
+                  Minimize
+                </button>
+              </div>
+              <div className="py-3 space-y-3">
                 {chatMessages.length === 0 && !chatLoading && (
-                  <div className="text-center py-6">
+                  <div className="text-center py-4">
                     <p className="text-sm text-[#8a7f6f]">Your tutor is ready to help. Ask anything about this lesson.</p>
                   </div>
                 )}
