@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   XCircle,
   ChevronRight,
+  ChevronLeft,
   Lightbulb,
   BookMarked,
   Beaker,
@@ -267,6 +268,9 @@ export default function LearnModePage({
   // Active teaching tab
   const [activeStep, setActiveStep] = useState(0);
 
+  // Bite-sized card navigation for Lesson tab
+  const [lessonCardIndex, setLessonCardIndex] = useState(0);
+
   // Ask Tutor chat state
   const [chatOpen, setChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<TutorMessage[]>([]);
@@ -304,6 +308,28 @@ export default function LearnModePage({
       }
     }
   }, [lecture, autoStarted, searchParams]);
+
+  // Keyboard navigation for lesson cards
+  useEffect(() => {
+    if (activeStep !== 0 || !learnResult) return;
+    const totalCards = learnResult.explanation.length;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't capture keys when typing in chat input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        setLessonCardIndex((prev) => Math.min(prev + 1, totalCards - 1));
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        setLessonCardIndex((prev) => Math.max(prev - 1, 0));
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeStep, learnResult]);
 
   // Auto-scroll chat to bottom when new messages arrive
   useEffect(() => {
@@ -401,6 +427,7 @@ export default function LearnModePage({
     setReteachText("");
     setReteachLoading(false);
     setActiveStep(0);
+    setLessonCardIndex(0);
     try {
       const result = await learnMode(id, learnLevel, sectionIndex);
       setLearnResult(result);
@@ -866,35 +893,149 @@ export default function LearnModePage({
                   })}
                 </div>
 
-                {/* ═══ Tab 0: Lesson ═══ */}
-                {activeStep === 0 && (
-                  <div className="space-y-6">
-                    {learnResult.explanation.map((section, i) => (
+                {/* ═══ Tab 0: Lesson (Bite-sized Cards) ═══ */}
+                {activeStep === 0 && (() => {
+                  const cards = learnResult.explanation;
+                  const totalCards = cards.length;
+                  const currentCard = cards[lessonCardIndex] || cards[0];
+                  const isFirst = lessonCardIndex === 0;
+                  const isLast = lessonCardIndex >= totalCards - 1;
+
+                  return (
+                    <div className="space-y-5">
+                      {/* Progress dots */}
+                      <div className="flex items-center justify-center gap-2">
+                        {cards.map((_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => setLessonCardIndex(i)}
+                            className={`transition-all duration-300 rounded-full ${
+                              i === lessonCardIndex
+                                ? "w-8 h-2.5 bg-gradient-to-r from-purple-500 to-blue-500"
+                                : i < lessonCardIndex
+                                ? "w-2.5 h-2.5 bg-purple-400/60"
+                                : "w-2.5 h-2.5 bg-slate-600/60"
+                            }`}
+                            aria-label={`Go to card ${i + 1}`}
+                          />
+                        ))}
+                        <span className="ml-3 text-[11px] font-medium text-slate-500">
+                          {lessonCardIndex + 1} / {totalCards}
+                        </span>
+                      </div>
+
+                      {/* Card */}
                       <div
-                        key={i}
-                        className="bg-slate-800/30 border border-slate-700/40 rounded-2xl p-6 sm:p-8"
+                        key={lessonCardIndex}
+                        className="relative bg-gradient-to-b from-[#FBF8F1] to-[#F5F0E6] border border-amber-200/40 rounded-2xl shadow-lg shadow-amber-900/5 overflow-hidden"
+                        style={{ animation: "fadeSlideIn 0.3s ease-out" }}
                       >
-                        {section.subtitle && (
-                          <div className="flex items-center gap-2 mb-4">
-                            {i === 0 && <BookMarked className="w-5 h-5 text-purple-400" />}
-                            <h2 className="text-lg font-bold text-white">{section.subtitle}</h2>
+                        {/* Card header accent */}
+                        <div className="h-1 bg-gradient-to-r from-purple-500 via-blue-500 to-purple-500" />
+
+                        <div className="p-6 sm:p-8">
+                          {/* Card number + subtitle */}
+                          <div className="flex items-start gap-3 mb-5">
+                            <span className="w-9 h-9 rounded-xl bg-purple-600/10 border border-purple-500/20 flex items-center justify-center text-sm font-bold text-purple-700 flex-shrink-0">
+                              {lessonCardIndex + 1}
+                            </span>
+                            <div>
+                              {currentCard.subtitle && (
+                                <h2 className="text-lg font-bold text-[#1a1815] leading-snug" style={{ fontFamily: "'Georgia', serif" }}>
+                                  {currentCard.subtitle}
+                                </h2>
+                              )}
+                              <p className="text-[11px] text-amber-700/60 font-medium mt-0.5">
+                                Concept {lessonCardIndex + 1} of {totalCards}
+                              </p>
+                            </div>
                           </div>
-                        )}
-                        <div className="prose prose-invert max-w-none">
-                          <RenderBody text={section.body} />
+
+                          {/* Card body — Direction A warm styling */}
+                          <div className="prose max-w-none lesson-card-body">
+                            <style>{`
+                              .lesson-card-body p { color: #2C2A25; }
+                              .lesson-card-body strong { color: #1a1815; }
+                              .lesson-card-body code:not(pre code) {
+                                background: rgba(217, 185, 130, 0.2);
+                                color: #7c5c1f;
+                                border-radius: 6px;
+                                padding: 2px 6px;
+                                font-size: 13px;
+                              }
+                              .lesson-card-body .text-white { color: #1a1815 !important; }
+                              .lesson-card-body .text-slate-200,
+                              .lesson-card-body .text-slate-300 { color: #2C2A25 !important; }
+                              .lesson-card-body .text-purple-300 { color: #7c5c1f !important; }
+                              .lesson-card-body .text-purple-400 { color: #a07d3a !important; }
+                              .lesson-card-body .text-green-300 { color: #22c55e !important; }
+                              .lesson-card-body .bg-slate-800\\/80,
+                              .lesson-card-body .bg-slate-900\\/60 {
+                                background: rgba(26, 24, 21, 0.06) !important;
+                                border-color: rgba(217, 185, 130, 0.3) !important;
+                              }
+                              .lesson-card-body .bg-\\[\\#0D1117\\] {
+                                background: #1a1a2e !important;
+                              }
+                              .lesson-card-body .border-slate-700\\/60,
+                              .lesson-card-body .border-slate-700\\/40 {
+                                border-color: rgba(217, 185, 130, 0.3) !important;
+                              }
+                              .lesson-card-body .bg-slate-700\\/60 {
+                                background: rgba(26, 24, 21, 0.08) !important;
+                              }
+                              .lesson-card-body .text-slate-400 { color: #8a7f6f !important; }
+                              .lesson-card-body .text-slate-500 { color: #8a7f6f !important; }
+                              @keyframes fadeSlideIn {
+                                from { opacity: 0; transform: translateX(16px); }
+                                to   { opacity: 1; transform: translateX(0); }
+                              }
+                            `}</style>
+                            <RenderBody text={currentCard.body} />
+                          </div>
+                        </div>
+
+                        {/* Card navigation footer */}
+                        <div className="px-6 sm:px-8 pb-6 pt-2 flex items-center justify-between">
+                          <button
+                            onClick={() => setLessonCardIndex(Math.max(0, lessonCardIndex - 1))}
+                            disabled={isFirst}
+                            className={`flex items-center gap-1.5 text-sm font-medium px-4 py-2.5 rounded-xl transition-all ${
+                              isFirst
+                                ? "text-amber-400/40 cursor-not-allowed"
+                                : "text-amber-800 hover:bg-amber-100/60 active:scale-95"
+                            }`}
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                            Back
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              if (isLast) {
+                                setActiveStep(1); // Move to Analogy
+                              } else {
+                                setLessonCardIndex(lessonCardIndex + 1);
+                              }
+                            }}
+                            className="flex items-center gap-1.5 text-sm font-semibold px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md shadow-purple-500/20 hover:shadow-lg hover:shadow-purple-500/30 active:scale-95 transition-all"
+                          >
+                            {isLast ? (
+                              <>Next: Analogy <ChevronRight className="w-4 h-4" /></>
+                            ) : (
+                              <>I got it <ChevronRight className="w-4 h-4" /></>
+                            )}
+                          </button>
                         </div>
                       </div>
-                    ))}
-                    <div className="flex justify-end pt-2">
-                      <button
-                        onClick={() => setActiveStep(1)}
-                        className="flex items-center gap-1.5 text-sm font-medium text-purple-400 hover:text-purple-300 transition-colors"
-                      >
-                        Next: Analogy <ChevronRight className="w-4 h-4" />
-                      </button>
+
+                      {/* Keyboard hint */}
+                      <p className="text-center text-[11px] text-slate-600">
+                        Use arrow keys or swipe to navigate cards
+                      </p>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* ═══ Tab 1: Analogy ═══ */}
                 {activeStep === 1 && (
