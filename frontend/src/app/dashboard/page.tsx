@@ -316,11 +316,48 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Loading State */}
+          {/* Loading Skeleton */}
           {loading && (
-            <div className="flex flex-col items-center justify-center py-16">
-              <Loader2 className="w-8 h-8 text-purple-500 animate-spin mb-3" />
-              <p className="text-[#8a7f6f] text-sm">Loading lectures...</p>
+            <div className="animate-pulse">
+              {/* Continuity card skeleton */}
+              <div className="mb-6 bg-[#1a1815]/80 rounded-2xl p-5">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="h-2.5 w-28 bg-white/10 rounded mb-3" />
+                    <div className="h-5 w-52 bg-white/15 rounded mb-3" />
+                    <div className="flex gap-2 mt-2">
+                      <div className="h-7 w-24 bg-white/10 rounded-lg" />
+                      <div className="h-7 w-28 bg-white/10 rounded-lg" />
+                    </div>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-white/10 flex-shrink-0 ml-4" />
+                </div>
+              </div>
+
+              {/* Section header skeleton */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="h-2.5 w-28 bg-[#EDE8DF] rounded" />
+                <div className="h-2.5 w-12 bg-[#EDE8DF] rounded" />
+              </div>
+
+              {/* Lecture card skeletons */}
+              <div className="space-y-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl px-4 py-3.5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-[#EDE8DF] flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="h-4 bg-[#EDE8DF] rounded w-3/4 mb-2" />
+                        <div className="h-2.5 bg-[#EDE8DF]/60 rounded w-1/3" />
+                      </div>
+                      <div className="w-10 h-10 rounded-full bg-[#EDE8DF]/50 flex-shrink-0" />
+                    </div>
+                    <div className="flex items-center gap-2 mt-2 pl-[52px]">
+                      <div className="h-7 w-28 bg-[#EDE8DF]/50 rounded-lg" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

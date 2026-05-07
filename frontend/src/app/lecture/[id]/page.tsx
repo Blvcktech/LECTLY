@@ -194,8 +194,75 @@ export default function LecturePage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F7F4EE] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+      <div className="min-h-screen bg-[#F7F4EE]">
+        {/* Nav skeleton */}
+        <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-5 bg-[#EDE8DF] rounded" />
+              <div className="w-8 h-8 rounded-[10px] bg-[#EDE8DF]" />
+              <div className="hidden sm:block w-14 h-4 bg-[#EDE8DF] rounded" />
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-16 h-9 bg-[#EDE8DF] rounded-[10px]" />
+              <div className="w-24 h-9 bg-purple-200/40 rounded-[10px]" />
+            </div>
+          </div>
+        </nav>
+
+        {/* Content skeleton */}
+        <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-pulse">
+          {/* Title + summary */}
+          <div className="mb-5">
+            <div className="h-6 w-72 bg-[#EDE8DF] rounded mb-2" />
+            <div className="h-3.5 w-full max-w-lg bg-[#EDE8DF]/60 rounded mb-1.5" />
+            <div className="h-3.5 w-64 bg-[#EDE8DF]/60 rounded mb-3" />
+            <div className="flex gap-2">
+              <div className="h-5 w-16 bg-[#EDE8DF] rounded" />
+              <div className="h-5 w-20 bg-[#EDE8DF]/50 rounded" />
+            </div>
+          </div>
+
+          {/* Tabs skeleton */}
+          <div className="flex gap-0 border-b border-[rgba(217,185,130,0.25)] mb-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="px-4 py-2.5">
+                <div className="h-4 w-16 bg-[#EDE8DF] rounded" />
+              </div>
+            ))}
+          </div>
+
+          {/* Section cards skeleton */}
+          <div className="space-y-5">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 sm:p-5">
+                {/* Heading */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="h-5 w-48 bg-[#EDE8DF] rounded" />
+                  <div className="h-4 w-16 bg-purple-200/30 rounded-full" />
+                </div>
+                {/* Content lines */}
+                <div className="space-y-2 mb-4">
+                  <div className="h-3 w-full bg-[#EDE8DF]/50 rounded" />
+                  <div className="h-3 w-full bg-[#EDE8DF]/50 rounded" />
+                  <div className="h-3 w-5/6 bg-[#EDE8DF]/50 rounded" />
+                  <div className="h-3 w-3/4 bg-[#EDE8DF]/50 rounded" />
+                </div>
+                {/* Key points skeleton */}
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-start gap-2.5 px-3 py-2.5 bg-purple-500/[0.03] border-l-[3px] border-purple-200 rounded-r-lg">
+                    <div className="h-3 w-3/4 bg-[#EDE8DF]/40 rounded" />
+                  </div>
+                </div>
+                {/* Action buttons skeleton */}
+                <div className="flex gap-2 pt-3 border-t border-[rgba(217,185,130,0.2)]">
+                  <div className="h-7 w-24 bg-purple-200/30 rounded-lg" />
+                  <div className="h-7 w-24 bg-[#EDE8DF] rounded-lg" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
       </div>
     );
   }

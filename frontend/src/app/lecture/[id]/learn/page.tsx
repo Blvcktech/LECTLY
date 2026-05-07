@@ -781,8 +781,64 @@ export default function LearnModePage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F7F4EE] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+      <div className="min-h-screen bg-[#F7F4EE] flex flex-col">
+        {/* Nav skeleton */}
+        <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+            <div className="w-5 h-5 bg-[#EDE8DF] rounded" />
+            <div className="h-5 w-44 bg-[#EDE8DF] rounded" />
+            <div className="flex gap-2">
+              <div className="w-8 h-8 bg-[#EDE8DF] rounded-lg" />
+              <div className="w-8 h-8 bg-[#EDE8DF] rounded-lg" />
+            </div>
+          </div>
+        </nav>
+
+        <div className="flex-1 flex max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 gap-6 animate-pulse">
+          {/* Sidebar skeleton */}
+          <div className="w-72 flex-shrink-0 hidden lg:block">
+            <div className="h-2.5 w-14 bg-[#EDE8DF] rounded mb-3" />
+            <div className="flex gap-1 mb-4 bg-[#EDE8DF] rounded-xl p-1 h-10" />
+            <div className="space-y-1.5">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="p-3 rounded-xl border border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]">
+                  <div className="h-3.5 w-full bg-[#EDE8DF] rounded mb-1.5" />
+                  <div className="h-3 w-2/3 bg-[#EDE8DF]/50 rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Main card area skeleton */}
+          <div className="flex-1 flex flex-col items-center">
+            <div className="w-full max-w-2xl">
+              {/* Card skeleton */}
+              <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl p-6 sm:p-8 min-h-[400px]">
+                <div className="h-5 w-3/4 bg-[#EDE8DF] rounded mb-4" />
+                <div className="space-y-2.5">
+                  <div className="h-3.5 w-full bg-[#EDE8DF]/50 rounded" />
+                  <div className="h-3.5 w-full bg-[#EDE8DF]/50 rounded" />
+                  <div className="h-3.5 w-5/6 bg-[#EDE8DF]/50 rounded" />
+                  <div className="h-3.5 w-full bg-[#EDE8DF]/50 rounded" />
+                  <div className="h-3.5 w-4/5 bg-[#EDE8DF]/50 rounded" />
+                  <div className="h-3.5 w-full bg-[#EDE8DF]/50 rounded" />
+                  <div className="h-3.5 w-2/3 bg-[#EDE8DF]/50 rounded" />
+                </div>
+                {/* Nav buttons skeleton */}
+                <div className="flex items-center justify-between mt-8">
+                  <div className="h-9 w-20 bg-[#EDE8DF]/40 rounded-xl" />
+                  <div className="h-9 w-24 bg-[#EDE8DF] rounded-xl" />
+                </div>
+              </div>
+              {/* Tutor bar skeleton */}
+              <div className="mt-4 flex gap-2">
+                <div className="h-7 w-24 bg-[#EDE8DF]/50 rounded-full" />
+                <div className="h-7 w-32 bg-[#EDE8DF]/50 rounded-full" />
+              </div>
+              <div className="mt-2 h-11 w-full bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
