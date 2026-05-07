@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import Link from "next/link";
 import {
   BookOpen,
@@ -13,14 +13,19 @@ import {
   X,
   Flag,
   Download,
+  MessageCircle,
+  Send,
+  ChevronDown,
 } from "lucide-react";
 import {
   getLecture,
   explainText,
   downloadNotesPdf,
+  askTutor,
   type Lecture,
   type ExplainResult,
   type NoteSection,
+  type TutorMessage,
 } from "@/lib/api";
 
 export default function LecturePage({
@@ -43,6 +48,13 @@ export default function LecturePage({
   // PDF Download state
   const [pdfLoading, setPdfLoading] = useState(false);
 
+  // Tutor chat state (floating composer)
+  const [tutorOpen, setTutorOpen] = useState(false);
+  const [tutorMessages, setTutorMessages] = useState<TutorMessage[]>([]);
+  const [tutorInput, setTutorInput] = useState("");
+  const [tutorLoading, setTutorLoading] = useState(false);
+  const tutorEndRef = useRef<HTMLDivElement>(null);
+  const tutorInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function fetchLecture() {
@@ -90,6 +102,46 @@ export default function LecturePage({
       alert("Failed to download PDF. Please try again.");
     } finally {
       setPdfLoading(false);
+    }
+  };
+
+  // Scroll tutor chat to bottom when new messages arrive
+  useEffect(() => {
+    if (tutorEndRef.current) {
+      tutorEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [tutorMessages]);
+
+  // Focus tutor input when opened
+  useEffect(() => {
+    if (tutorOpen && tutorInputRef.current) {
+      tutorInputRef.current.focus();
+    }
+  }, [tutorOpen]);
+
+  const handleTutorSend = async (message?: string) => {
+    const text = message || tutorInput.trim();
+    if (!text || tutorLoading) return;
+
+    const userMsg: TutorMessage = { role: "user", content: text };
+    const updated = [...tutorMessages, userMsg];
+    setTutorMessages(updated);
+    setTutorInput("");
+    setTutorLoading(true);
+
+    try {
+      const result = await askTutor(id, text, updated);
+      setTutorMessages((prev) => [
+        ...prev,
+        { role: "tutor", content: result.answer },
+      ]);
+    } catch {
+      setTutorMessages((prev) => [
+        ...prev,
+        { role: "tutor", content: "Sorry, I couldn't process that. Please try again." },
+      ]);
+    } finally {
+      setTutorLoading(false);
     }
   };
 
@@ -391,6 +443,110 @@ export default function LecturePage({
 
         </div>
       </main>
+
+      {/* ── Floating Tutor Composer ── */}
+      {/* FAB button */}
+      {!tutorOpen && (
+        <button
+          onClick={() => setTutorOpen(true)}
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-full shadow-lg shadow-purple-500/25 flex items-center justify-center transition-all hover:scale-105"
+          title="Ask Tutor"
+        >
+          <MessageCircle className="w-6 h-6" />
+        </button>
+      )}
+
+      {/* Chat panel */}
+      {tutorOpen && (
+        <div className="fixed bottom-6 right-6 z-50 w-[360px] max-w-[calc(100vw-2rem)] bg-[#FDFCF9] border border-[rgba(217,185,130,0.35)] rounded-2xl shadow-2xl shadow-black/10 flex flex-col overflow-hidden" style={{ maxHeight: "min(520px, 70vh)" }}>
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(217,185,130,0.25)] bg-gradient-to-r from-purple-600 to-blue-600">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 text-white/80" />
+              <span className="text-sm font-semibold text-white">Ask Tutor</span>
+            </div>
+            <button
+              onClick={() => setTutorOpen(false)}
+              className="text-white/70 hover:text-white transition-colors"
+            >
+              <ChevronDown className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3" style={{ minHeight: "200px" }}>
+            {tutorMessages.length === 0 && (
+              <div className="text-center py-8">
+                <MessageCircle className="w-8 h-8 text-[#c4b99a] mx-auto mb-2" />
+                <p className="text-xs text-[#8a7f6f]">Ask anything about this lecture</p>
+                <div className="flex flex-wrap justify-center gap-1.5 mt-3">
+                  {["Summarize this lecture", "What are the key concepts?", "Explain the main topic"].map((chip) => (
+                    <button
+                      key={chip}
+                      onClick={() => handleTutorSend(chip)}
+                      className="text-[11px] text-purple-700 bg-purple-500/8 hover:bg-purple-500/15 border border-purple-400/20 px-2.5 py-1 rounded-full transition-colors"
+                    >
+                      {chip}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {tutorMessages.map((msg, i) => (
+              <div
+                key={i}
+                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-[85%] px-3 py-2 rounded-xl text-xs leading-relaxed ${
+                    msg.role === "user"
+                      ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-br-md"
+                      : "bg-[#EDE8DF] text-[#2C2A25] rounded-bl-md"
+                  }`}
+                  style={{ whiteSpace: "pre-wrap" }}
+                >
+                  {msg.content}
+                </div>
+              </div>
+            ))}
+
+            {tutorLoading && (
+              <div className="flex justify-start">
+                <div className="bg-[#EDE8DF] text-[#2C2A25] px-3 py-2 rounded-xl rounded-bl-md text-xs flex items-center gap-2">
+                  <Loader2 className="w-3 h-3 animate-spin text-purple-500" />
+                  Thinking...
+                </div>
+              </div>
+            )}
+
+            <div ref={tutorEndRef} />
+          </div>
+
+          {/* Input */}
+          <div className="px-3 py-2.5 border-t border-[rgba(217,185,130,0.25)] bg-[#F7F4EE]">
+            <div className="flex items-center gap-2">
+              <input
+                ref={tutorInputRef}
+                type="text"
+                value={tutorInput}
+                onChange={(e) => setTutorInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleTutorSend(); } }}
+                placeholder="Ask about this lecture..."
+                className="flex-1 text-xs bg-[#FDFCF9] border border-[rgba(217,185,130,0.35)] rounded-lg px-3 py-2 text-[#1a1815] placeholder:text-[#b5aa94] focus:outline-none focus:border-purple-400 transition-colors"
+                disabled={tutorLoading}
+              />
+              <button
+                onClick={() => handleTutorSend()}
+                disabled={tutorLoading || !tutorInput.trim()}
+                className="w-8 h-8 flex items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Send className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

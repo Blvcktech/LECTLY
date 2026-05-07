@@ -160,11 +160,25 @@ async def tutor_ask(request: TutorAskRequest):
         # Convert conversation history to dicts for the service
         history = [{"role": msg.role, "content": msg.content} for msg in request.conversation_history]
 
+        # Convert card context to dict if present
+        card_ctx = None
+        if request.card_context:
+            card_ctx = {
+                "card_type": request.card_context.card_type,
+                "card_content": request.card_context.card_content,
+                "card_title": request.card_context.card_title,
+                "quiz_question": request.card_context.quiz_question,
+                "quiz_options": request.card_context.quiz_options,
+                "student_answer": request.card_context.student_answer,
+                "correct_answer": request.card_context.correct_answer,
+            }
+
         answer = await ask_tutor(
             lecture_id=request.lecture_id,
             question=request.question,
             conversation_history=history,
             current_section_index=request.current_section_index,
+            card_context=card_ctx,
         )
 
         # Try to detect which section was referenced in the answer

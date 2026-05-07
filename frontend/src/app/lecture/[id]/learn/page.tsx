@@ -39,6 +39,7 @@ import {
   type NoteSection,
   type TutorMessage,
   type StudyProgress,
+  type CardContext,
 } from "@/lib/api";
 
 // ── Helper: render inline formatting (bold, inline code) ──
@@ -458,6 +459,43 @@ export default function LearnModePage({
     }
   }, [tutorExpanded]);
 
+  // Build card context for the tutor — tells it exactly what the student is looking at
+  const buildCardContext = (): CardContext | undefined => {
+    if (!currentFlowCard || !learnResult) return undefined;
+
+    if (currentFlowCard.type === "concept") {
+      return {
+        card_type: "concept",
+        card_title: currentFlowCard.subtitle,
+        card_content: currentFlowCard.body,
+      };
+    }
+
+    if (currentFlowCard.type === "quiz") {
+      const q = learnResult.quiz[currentFlowCard.questionIndex];
+      if (!q) return undefined;
+      const answered = quizRevealed[currentFlowCard.questionIndex];
+      const studentIdx = quizAnswers[currentFlowCard.questionIndex];
+      const isWrong = answered && studentIdx !== q.correct_index;
+      return {
+        card_type: "quiz",
+        quiz_question: q.question,
+        quiz_options: q.options,
+        student_answer: isWrong ? q.options[studentIdx] : "",
+        correct_answer: answered ? q.options[q.correct_index] : "",
+      };
+    }
+
+    if (currentFlowCard.type === "analogy") {
+      return {
+        card_type: "analogy",
+        card_content: currentFlowCard.body,
+      };
+    }
+
+    return undefined;
+  };
+
   const handleSendMessage = async (message?: string) => {
     const text = message || chatInput.trim();
     if (!text || chatLoading) return;
@@ -476,7 +514,8 @@ export default function LearnModePage({
         id,
         text,
         updatedMessages,
-        selectedSection !== null && selectedSection >= 0 ? selectedSection : undefined
+        selectedSection !== null && selectedSection >= 0 ? selectedSection : undefined,
+        buildCardContext()
       );
       setChatMessages((prev) => [
         ...prev,
@@ -616,14 +655,24 @@ export default function LearnModePage({
 
     const studentPick = q.options[quizAnswers[questionIndex]] || "unknown";
     const correctAnswer = q.options[q.correct_index];
-    const prompt = `I just got this quiz question wrong and need help understanding it.\n\nQuestion: "${q.question}"\nI picked: "${studentPick}"\nCorrect answer: "${correctAnswer}"\n\nExplain why my answer is wrong and why the correct answer is right. Use a different angle or analogy than the original explanation. Keep it short and clear.`;
+    const prompt = `I just got this quiz question wrong and need help understanding it.\n\nQuestion: "${q.question}"\nI picked: "${studentPick}"\nCorrect answer: "${correctAnswer}"\n\nExplain why my answer is wrong and why the correct answer is right. Use a different angle or analogy than the original explanation. If it involves any calculation, show ALL the steps.`;
+
+    // Build quiz card context for the reteach
+    const reteachCardContext: CardContext = {
+      card_type: "quiz",
+      quiz_question: q.question,
+      quiz_options: q.options,
+      student_answer: studentPick,
+      correct_answer: correctAnswer,
+    };
 
     try {
       const result = await askTutor(
         id,
         prompt,
         [],
-        selectedSection !== null && selectedSection >= 0 ? selectedSection : undefined
+        selectedSection !== null && selectedSection >= 0 ? selectedSection : undefined,
+        reteachCardContext
       );
       setReteachText(result.answer);
     } catch {

@@ -123,11 +123,22 @@ class TutorMessage(BaseModel):
     content: str
 
 
+class CardContext(BaseModel):
+    card_type: str  # "concept", "quiz", "analogy"
+    card_content: str = ""
+    card_title: str = ""
+    quiz_question: str = ""
+    quiz_options: list[str] = []
+    student_answer: str = ""
+    correct_answer: str = ""
+
+
 class TutorAskRequest(BaseModel):
     lecture_id: str
     question: str
     conversation_history: list[TutorMessage] = []
     current_section_index: Optional[int] = None
+    card_context: Optional[CardContext] = None
 
 
 class TutorAskResponse(BaseModel):

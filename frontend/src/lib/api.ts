@@ -102,6 +102,16 @@ export interface TutorMessage {
   content: string;
 }
 
+export interface CardContext {
+  card_type: "concept" | "quiz" | "analogy";
+  card_content?: string;
+  card_title?: string;
+  quiz_question?: string;
+  quiz_options?: string[];
+  student_answer?: string;
+  correct_answer?: string;
+}
+
 export interface TutorAskResult {
   answer: string;
   lecture_id: string;
@@ -286,7 +296,8 @@ export async function askTutor(
   lectureId: string,
   question: string,
   conversationHistory: TutorMessage[] = [],
-  currentSectionIndex?: number
+  currentSectionIndex?: number,
+  cardContext?: CardContext
 ): Promise<TutorAskResult> {
   const res = await fetch(`${API_URL}/api/tutor/ask`, {
     method: "POST",
@@ -296,6 +307,7 @@ export async function askTutor(
       question,
       conversation_history: conversationHistory,
       current_section_index: currentSectionIndex,
+      card_context: cardContext || null,
     }),
   });
 
