@@ -1383,23 +1383,39 @@ export default function LearnModePage({
                             </div>
                           </div>
 
-                          <div className="px-6 sm:px-8 pb-6 pt-2 flex items-center justify-between border-t border-[rgba(217,185,130,0.15)]">
-                            <button
-                              onClick={() => setCardIndex(Math.max(0, cardIndex - 1))}
-                              className="flex items-center gap-1.5 text-sm font-medium px-4 py-2.5 rounded-xl text-[#8a7f6f] hover:bg-[#EDE8DF] active:scale-95 transition-all"
-                            >
-                              <ChevronLeft className="w-4 h-4" />
-                              Back
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (cardIndex >= totalFlowCards - 1) setActiveMode(2);
-                                else setCardIndex(cardIndex + 1);
-                              }}
-                              className="flex items-center gap-1.5 text-sm font-semibold px-5 py-2.5 rounded-xl bg-[#1a1815] text-white shadow-sm hover:shadow-md active:scale-95 transition-all"
-                            >
-                              {cardIndex >= totalFlowCards - 1 ? <>View Notes <ChevronRight className="w-4 h-4" /></> : <>Next <ChevronRight className="w-4 h-4" /></>}
-                            </button>
+                          <div className="px-6 sm:px-8 pb-6 pt-2 border-t border-[rgba(217,185,130,0.15)]">
+                            {/* "Need more?" hint on last card */}
+                            {cardIndex >= totalFlowCards - 1 && (
+                              <div className="flex items-center justify-center gap-2 mb-3">
+                                <button
+                                  onClick={() => {
+                                    setTutorExpanded(true);
+                                    handleSendMessage("Can you explain this topic in more depth with additional examples?");
+                                  }}
+                                  className="text-xs text-purple-600 hover:text-purple-700 transition-colors"
+                                >
+                                  Need more detail? Ask the tutor
+                                </button>
+                              </div>
+                            )}
+                            <div className="flex items-center justify-between">
+                              <button
+                                onClick={() => setCardIndex(Math.max(0, cardIndex - 1))}
+                                className="flex items-center gap-1.5 text-sm font-medium px-4 py-2.5 rounded-xl text-[#8a7f6f] hover:bg-[#EDE8DF] active:scale-95 transition-all"
+                              >
+                                <ChevronLeft className="w-4 h-4" />
+                                Back
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (cardIndex >= totalFlowCards - 1) setActiveMode(2);
+                                  else setCardIndex(cardIndex + 1);
+                                }}
+                                className="flex items-center gap-1.5 text-sm font-semibold px-5 py-2.5 rounded-xl bg-[#1a1815] text-white shadow-sm hover:shadow-md active:scale-95 transition-all"
+                              >
+                                {cardIndex >= totalFlowCards - 1 ? <>View Notes <ChevronRight className="w-4 h-4" /></> : <>Next <ChevronRight className="w-4 h-4" /></>}
+                              </button>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -1539,6 +1555,31 @@ export default function LearnModePage({
                         </div>
                       </div>
                     )}
+
+                    {/* Need more? prompts */}
+                    <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-5">
+                      <p className="text-xs font-bold text-[#8a7f6f] uppercase tracking-widest mb-3">Need more?</p>
+                      <p className="text-sm text-[#8a7f6f] mb-3">Ask the tutor to expand on anything you need.</p>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          "Explain this topic in more depth",
+                          "Give me more worked examples",
+                          "Break this down step by step",
+                          "What are common mistakes here?",
+                        ].map((chip) => (
+                          <button
+                            key={chip}
+                            onClick={() => {
+                              setTutorExpanded(true);
+                              handleSendMessage(chip);
+                            }}
+                            className="text-xs text-purple-700 bg-purple-500/8 hover:bg-purple-500/15 border border-purple-400/20 px-3 py-1.5 rounded-full transition-colors"
+                          >
+                            {chip}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
                     {/* Back to cards / notes link */}
                     <div className="flex justify-between pt-4 border-t border-[rgba(217,185,130,0.2)]">

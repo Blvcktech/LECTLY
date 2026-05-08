@@ -157,14 +157,24 @@ Return ONLY valid JSON:
 - Use \\n for line breaks between steps in the solution
 - The solution must be detailed enough that a student can follow along and learn HOW to solve similar problems
 
-MANDATORY MINIMUMS:
-1. explanation.sections: at least 4 sections, each with 2+ paragraphs
-2. analogy: ALWAYS present, at least 3 sentences, NEVER empty
-3. examples: at least 4 FULLY SOLVED examples (problem + complete step-by-step solution)
-4. quiz: exactly 5 questions testing comprehension
+MANDATORY RULES:
+
+1. explanation.sections: Generate AS MANY sections as the topic genuinely requires for a student to fully understand it. There is NO fixed count — let the content dictate the length.
+   - Ask yourself: "If I were tutoring a student one-on-one, how many distinct concepts, steps, or ideas would I need to walk through before they truly get it?"
+   - Each section MUST have 2+ paragraphs of real teaching content.
+   - Cover ALL of: foundational definitions, core explanation, the "why" behind each concept, worked examples within the teaching flow, common mistakes and misconceptions, edge cases, and how this connects to other topics.
+   - NEVER stop teaching early. NEVER compress multiple distinct ideas into one section just to keep things short. If a concept needs its own section, give it one.
+   - A 3-section response is fine if the topic is genuinely that focused. A 15-section response is fine if the topic demands it. Let understanding drive the length, not arbitrary limits.
+
+2. analogy: ALWAYS present, at least 3 sentences, NEVER empty.
+
+3. examples: Generate as many fully solved examples as needed for the student to be confident solving similar problems on their own. Vary the difficulty — start simple, build up. For math/science/programming, show every step of every solution.
+
+4. quiz: exactly 5 questions testing deep comprehension (not just recall). Questions should test whether the student can APPLY what they learned, not just repeat definitions.
+
 5. resources: at least 3 entries with REAL URLs (Khan Academy, YouTube, Wikipedia, MIT OCW, etc.)
 
-NEVER leave any section empty. NEVER give an example without solving it."""
+NEVER leave any section empty. NEVER give an example without solving it. The student should finish this lesson feeling like they had a complete private tutoring session."""
 
 TUTOR_SYSTEM_PROMPT = """You are Lectly's AI Tutor — a brilliant, patient tutor who helps university students understand their lecture material.
 
