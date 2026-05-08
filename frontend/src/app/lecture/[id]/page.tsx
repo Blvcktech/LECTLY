@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, use } from "react";
+import { useState, useEffect, useRef, use, useMemo } from "react";
 import Link from "next/link";
 import {
   BookOpen,
@@ -17,16 +17,19 @@ import {
   Send,
   ChevronDown,
   Code,
+  RotateCcw,
 } from "lucide-react";
 import {
   getLecture,
   explainText,
   downloadNotesPdf,
   askTutor,
+  getLectureProgress,
   type Lecture,
   type ExplainResult,
   type NoteSection,
   type TutorMessage,
+  type StudyProgress,
 } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 
@@ -76,6 +79,36 @@ function TutorBubble({ content }: { content: string }) {
   );
 }
 
+// ── Flashcard component ──
+function FlashCard({ front, back, type }: { front: string; back: string; type: "definition" | "key_point" }) {
+  const [flipped, setFlipped] = useState(false);
+  return (
+    <button
+      onClick={() => setFlipped(!flipped)}
+      className="w-full text-left bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-5 hover:border-[rgba(217,185,130,0.45)] hover:shadow-sm transition-all cursor-pointer group"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+          type === "definition" ? "bg-green-500/10 text-green-700" : "bg-purple-500/10 text-purple-700"
+        }`}>
+          {type === "definition" ? "Definition" : "Key Concept"}
+        </span>
+        <span className="text-[10px] text-[#8a7f6f] group-hover:text-[#2C2A25] transition-colors">
+          {flipped ? "showing answer" : "tap to reveal"}
+        </span>
+      </div>
+      <p className="text-sm font-semibold text-[#1a1815] mb-2" style={{ fontFamily: "'Georgia', serif" }}>
+        {front}
+      </p>
+      {flipped && (
+        <div className="pt-3 border-t border-[rgba(217,185,130,0.2)]">
+          <p className="text-sm text-[#2C2A25] leading-relaxed">{back}</p>
+        </div>
+      )}
+    </button>
+  );
+}
+
 export default function LecturePage({
   params,
 }: {
@@ -85,7 +118,7 @@ export default function LecturePage({
   const [lecture, setLecture] = useState<Lecture | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState<"notes" | "transcript" | "quiz">("notes");
+  const [activeTab, setActiveTab] = useState<"notes" | "transcript" | "flashcards">("notes");
 
   // Explain This state
   const [explainSection, setExplainSection] = useState<number | null>(null);
@@ -93,9 +126,12 @@ export default function LecturePage({
   const [explainResult, setExplainResult] = useState<ExplainResult | null>(null);
   const [explainLoading, setExplainLoading] = useState(false);
 
-  // Section refs for TOC scroll
+  // Section refs for scroll tracking
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [activeSection, setActiveSection] = useState(0);
+
+  // Study progress
+  const [studyProgress, setStudyProgress] = useState<StudyProgress[]>([]);
 
   // PDF Download state
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -111,6 +147,43 @@ export default function LecturePage({
 
   const notes = lecture?.notes;
   const sections: NoteSection[] = notes?.sections || [];
+
+  // Build flashcards from definitions + key points
+  const flashcards = useMemo(() => {
+    const cards: { front: string; back: string; type: "definition" | "key_point"; section: string }[] = [];
+    sections.forEach((section) => {
+      section.definitions.forEach((def) => {
+        cards.push({ front: def.term, back: def.definition, type: "definition", section: section.heading });
+      });
+      section.key_points.forEach((point) => {
+        // Use first ~8 words as "front", full text as back
+        const words = point.split(" ");
+        const front = words.length > 8 ? words.slice(0, 8).join(" ") + "..." : point;
+        cards.push({ front, back: point, type: "key_point", section: section.heading });
+      });
+    });
+    return cards;
+  }, [sections]);
+
+  // Compute aggregate study stats
+  const studyStats = useMemo(() => {
+    if (studyProgress.length === 0) return null;
+    const totalCards = studyProgress.reduce((sum, p) => sum + p.total_cards, 0);
+    const completedCards = studyProgress.reduce((sum, p) => sum + p.completed_cards, 0);
+    const avgMastery = totalCards > 0 ? Math.round(studyProgress.reduce((sum, p) => sum + p.mastery_pct * p.total_cards, 0) / totalCards) : 0;
+    const lastStudied = studyProgress.reduce((latest, p) => {
+      if (!p.last_studied_at) return latest;
+      return !latest || new Date(p.last_studied_at) > new Date(latest) ? p.last_studied_at : latest;
+    }, "" as string);
+
+    // Per-section completion map
+    const sectionDone = new Map<number, boolean>();
+    studyProgress.forEach((p) => {
+      sectionDone.set(p.section_index, p.completed_cards >= p.total_cards && p.total_cards > 0);
+    });
+
+    return { totalCards, completedCards, avgMastery, lastStudied, sectionDone };
+  }, [studyProgress]);
 
   // Track active section via scroll
   useEffect(() => {
@@ -144,6 +217,19 @@ export default function LecturePage({
     fetchLecture();
   }, [id]);
 
+  // Fetch study progress
+  useEffect(() => {
+    async function fetchProgress() {
+      try {
+        const data = await getLectureProgress(id);
+        setStudyProgress(data.progress || []);
+      } catch {
+        // Silently fail — progress is optional
+      }
+    }
+    fetchProgress();
+  }, [id]);
+
   const handleExplain = async (index: number, content: string) => {
     if (explainSection === index && explainResult) {
       setExplainSection(null);
@@ -166,7 +252,6 @@ export default function LecturePage({
       setExplainLoading(false);
     }
   };
-
 
   const handleDownloadPdf = async () => {
     setPdfLoading(true);
@@ -220,12 +305,37 @@ export default function LecturePage({
     }
   };
 
+  const scrollToSection = (index: number) => {
+    setActiveTab("notes");
+    setTimeout(() => {
+      sectionRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
+
+  const formatDuration = (seconds?: number) => {
+    if (!seconds) return null;
+    const m = Math.floor(seconds / 60);
+    return m < 60 ? `${m} min` : `${Math.floor(m / 60)}h ${m % 60}m`;
+  };
+
+  const formatRelativeTime = (dateStr: string) => {
+    if (!dateStr) return "";
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F7F4EE]">
         {/* Nav skeleton */}
         <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 bg-[#EDE8DF] rounded" />
               <div className="w-8 h-8 rounded-[10px] bg-[#EDE8DF]" />
@@ -239,8 +349,7 @@ export default function LecturePage({
         </nav>
 
         {/* Content skeleton */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-pulse">
-          {/* Title + summary */}
+        <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-pulse">
           <div className="mb-5">
             <div className="h-6 w-72 bg-[#EDE8DF] rounded mb-2" />
             <div className="h-3.5 w-full max-w-lg bg-[#EDE8DF]/60 rounded mb-1.5" />
@@ -250,8 +359,6 @@ export default function LecturePage({
               <div className="h-5 w-20 bg-[#EDE8DF]/50 rounded" />
             </div>
           </div>
-
-          {/* Tabs skeleton */}
           <div className="flex gap-0 border-b border-[rgba(217,185,130,0.25)] mb-6">
             {[1, 2, 3].map((i) => (
               <div key={i} className="px-4 py-2.5">
@@ -259,30 +366,24 @@ export default function LecturePage({
               </div>
             ))}
           </div>
-
-          {/* Section cards skeleton */}
           <div className="space-y-5">
             {[1, 2, 3].map((i) => (
               <div key={i} className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 sm:p-5">
-                {/* Heading */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="h-5 w-48 bg-[#EDE8DF] rounded" />
                   <div className="h-4 w-16 bg-purple-200/30 rounded-full" />
                 </div>
-                {/* Content lines */}
                 <div className="space-y-2 mb-4">
                   <div className="h-3 w-full bg-[#EDE8DF]/50 rounded" />
                   <div className="h-3 w-full bg-[#EDE8DF]/50 rounded" />
                   <div className="h-3 w-5/6 bg-[#EDE8DF]/50 rounded" />
                   <div className="h-3 w-3/4 bg-[#EDE8DF]/50 rounded" />
                 </div>
-                {/* Key points skeleton */}
                 <div className="space-y-2 mb-4">
                   <div className="flex items-start gap-2.5 px-3 py-2.5 bg-purple-500/[0.03] border-l-[3px] border-purple-200 rounded-r-lg">
                     <div className="h-3 w-3/4 bg-[#EDE8DF]/40 rounded" />
                   </div>
                 </div>
-                {/* Action buttons skeleton */}
                 <div className="flex gap-2 pt-3 border-t border-[rgba(217,185,130,0.2)]">
                   <div className="h-7 w-24 bg-purple-200/30 rounded-lg" />
                   <div className="h-7 w-24 bg-[#EDE8DF] rounded-lg" />
@@ -310,21 +411,11 @@ export default function LecturePage({
     );
   }
 
-  const scrollToSection = (index: number) => {
-    sectionRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  const formatDuration = (seconds?: number) => {
-    if (!seconds) return null;
-    const m = Math.floor(seconds / 60);
-    return m < 60 ? `${m} min` : `${Math.floor(m / 60)}h ${m % 60}m`;
-  };
-
   return (
     <div className="min-h-screen bg-[#F7F4EE]">
       {/* Nav */}
       <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3 sm:gap-4">
             <Link href="/dashboard" className="text-[#8a7f6f] hover:text-[#1a1815] transition-colors">
               <ArrowLeft className="w-5 h-5" />
@@ -361,7 +452,7 @@ export default function LecturePage({
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20 sm:pb-6">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20 sm:pb-6">
         {/* Header */}
         <div className="mb-5">
           <h1 className="text-xl font-bold text-[#1a1815] mb-1.5" style={{ fontFamily: "'Georgia', serif" }}>
@@ -381,6 +472,11 @@ export default function LecturePage({
                 {lecture.quality_score}% quality
               </span>
             )}
+            {lecture?.duration_seconds && (
+              <span className="text-[11px] text-[#8a7f6f]">
+                {formatDuration(lecture.duration_seconds)}
+              </span>
+            )}
             <span className="text-[11px] text-[#8a7f6f]">
               {sections.length} sections
             </span>
@@ -389,7 +485,7 @@ export default function LecturePage({
 
         {/* Tabs */}
         <div className="flex gap-0 border-b border-[rgba(217,185,130,0.25)] mb-6">
-          {(["notes", "transcript", "quiz"] as const).map((tab) => (
+          {(["notes", "transcript", "flashcards"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -405,31 +501,7 @@ export default function LecturePage({
         </div>
 
         <div className="flex gap-6">
-          {/* Left Sidebar — Table of Contents (desktop only) */}
-          {activeTab === "notes" && sections.length > 0 && (
-            <aside className="hidden xl:block w-52 flex-shrink-0">
-              <div className="sticky top-20">
-                <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest mb-3">Contents</p>
-                <nav className="space-y-0.5">
-                  {sections.map((section, i) => (
-                    <button
-                      key={i}
-                      onClick={() => scrollToSection(i)}
-                      className={`block w-full text-left text-xs py-1.5 px-2.5 rounded-lg transition-all truncate ${
-                        activeSection === i
-                          ? "bg-purple-500/10 text-purple-700 font-semibold"
-                          : "text-[#8a7f6f] hover:text-[#2C2A25] hover:bg-[#EDE8DF]/50"
-                      }`}
-                    >
-                      {section.heading}
-                    </button>
-                  ))}
-                </nav>
-              </div>
-            </aside>
-          )}
-
-          {/* Notes Column */}
+          {/* Main Content Column */}
           <div className="flex-1 min-w-0">
             {activeTab === "notes" && (
               <div className="space-y-5">
@@ -445,7 +517,7 @@ export default function LecturePage({
                         {section.heading}
                       </h2>
                       <span
-                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ml-3 ${
                           section.source_type === "original"
                             ? "bg-purple-500/10 text-purple-700"
                             : "bg-amber-500/10 text-amber-700"
@@ -537,7 +609,6 @@ export default function LecturePage({
                             <X className="w-3.5 h-3.5" />
                           </button>
                         </div>
-                        {/* Difficulty selector */}
                         <div className="flex gap-1.5 mb-3">
                           {["beginner", "intermediate", "advanced"].map((level) => (
                             <button
@@ -598,81 +669,146 @@ export default function LecturePage({
               </div>
             )}
 
-            {activeTab === "quiz" && (
-              <div className="text-center py-16">
-                <GraduationCap className="w-12 h-12 text-[#8a7f6f] mx-auto mb-4" />
-                <p className="text-[#1a1815] font-medium">Quiz Mode</p>
-                <p className="text-sm text-[#8a7f6f] mt-1 mb-4">
-                  Use Learn Mode on any section to generate quiz questions.
-                </p>
-                <Link
-                  href={`/lecture/${id}/learn`}
-                  className="inline-block text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white px-5 py-2.5 rounded-[10px] font-medium shadow-md shadow-purple-500/15"
-                >
-                  Start Learn Mode
-                </Link>
+            {activeTab === "flashcards" && (
+              <div>
+                {flashcards.length > 0 ? (
+                  <>
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-sm text-[#8a7f6f]">
+                        {flashcards.length} cards from definitions and key concepts
+                      </p>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {flashcards.map((card, i) => (
+                        <FlashCard key={i} front={card.front} back={card.back} type={card.type} />
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-16">
+                    <RotateCcw className="w-12 h-12 text-[#8a7f6f] mx-auto mb-4" />
+                    <p className="text-[#1a1815] font-medium">No flashcards yet</p>
+                    <p className="text-sm text-[#8a7f6f] mt-1">
+                      Flashcards are generated from definitions and key points in your notes.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          {/* Right Sidebar — Lecture Info (desktop only) */}
+          {/* Right Sidebar — unified panel (desktop only) */}
           <aside className="hidden lg:block w-56 flex-shrink-0">
-            <div className="sticky top-20 space-y-4">
-              {/* Lecture info card */}
+            <div className="sticky top-20 space-y-3">
+              {/* Study progress card */}
               <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4">
-                <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest mb-3">Lecture Info</p>
-                <div className="space-y-2.5">
-                  {lecture?.subject && (
-                    <div>
-                      <p className="text-[10px] text-[#8a7f6f] mb-0.5">Subject</p>
-                      <p className="text-xs font-medium text-[#1a1815]">{lecture.subject}</p>
+                <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest mb-3">Your Progress</p>
+                {studyStats ? (
+                  <>
+                    <div className="flex items-baseline gap-1.5 mb-2">
+                      <span className="text-2xl font-bold text-[#1a1815]">{studyStats.avgMastery}%</span>
+                      <span className="text-[11px] text-[#8a7f6f]">mastery</span>
                     </div>
-                  )}
-                  {lecture?.duration_seconds && (
-                    <div>
-                      <p className="text-[10px] text-[#8a7f6f] mb-0.5">Duration</p>
-                      <p className="text-xs font-medium text-[#1a1815]">{formatDuration(lecture.duration_seconds)}</p>
+                    {/* Progress bar */}
+                    <div className="h-1.5 bg-[#EDE8DF] rounded-full overflow-hidden mb-2">
+                      <div
+                        className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all"
+                        style={{ width: `${studyStats.avgMastery}%` }}
+                      />
                     </div>
-                  )}
-                  <div>
-                    <p className="text-[10px] text-[#8a7f6f] mb-0.5">Sections</p>
-                    <p className="text-xs font-medium text-[#1a1815]">{sections.length} sections</p>
-                  </div>
-                  {lecture?.quality_score && (
-                    <div>
-                      <p className="text-[10px] text-[#8a7f6f] mb-0.5">Quality</p>
-                      <p className="text-xs font-medium text-green-700">{lecture.quality_score}%</p>
-                    </div>
-                  )}
-                </div>
+                    <p className="text-[11px] text-[#8a7f6f] mb-3">
+                      {studyStats.completedCards} of {studyStats.totalCards} cards · {formatRelativeTime(studyStats.lastStudied)}
+                    </p>
+                    <Link
+                      href={`/lecture/${id}/learn`}
+                      className="flex items-center justify-center gap-1.5 w-full text-xs font-semibold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 py-2 rounded-lg transition-all shadow-sm"
+                    >
+                      <GraduationCap className="w-3.5 h-3.5" />
+                      Continue Learning
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-[#8a7f6f] mb-3">You haven&apos;t started studying this lecture yet.</p>
+                    <Link
+                      href={`/lecture/${id}/learn`}
+                      className="flex items-center justify-center gap-1.5 w-full text-xs font-semibold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 py-2 rounded-lg transition-all shadow-sm"
+                    >
+                      <GraduationCap className="w-3.5 h-3.5" />
+                      Start Learning
+                    </Link>
+                  </>
+                )}
               </div>
+
+              {/* Section map with progress dots */}
+              {sections.length > 0 && (
+                <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4">
+                  <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest mb-3">Sections</p>
+                  <nav className="space-y-0.5">
+                    {sections.map((section, i) => {
+                      const isDone = studyStats?.sectionDone.get(i) || false;
+                      const isActive = activeTab === "notes" && activeSection === i;
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => scrollToSection(i)}
+                          className={`flex items-start gap-2 w-full text-left py-1.5 px-2 rounded-lg transition-all ${
+                            isActive ? "bg-purple-500/8" : "hover:bg-[#EDE8DF]/50"
+                          }`}
+                        >
+                          <div className={`w-2 h-2 rounded-full mt-1 flex-shrink-0 ${
+                            isDone ? "bg-purple-500" : isActive ? "bg-purple-500 ring-2 ring-purple-200" : "bg-[rgba(217,185,130,0.35)]"
+                          }`} />
+                          <span className={`text-[11px] leading-snug ${
+                            isActive ? "text-purple-700 font-semibold" : "text-[#8a7f6f]"
+                          }`}>
+                            {section.heading}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </nav>
+                </div>
+              )}
 
               {/* Quick actions */}
               <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4">
-                <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest mb-3">Quick Actions</p>
-                <div className="space-y-2">
-                  <Link
-                    href={`/lecture/${id}/learn`}
-                    className="flex items-center gap-2 text-xs font-medium text-purple-700 hover:text-purple-600 py-1.5 transition-colors"
-                  >
-                    <GraduationCap className="w-3.5 h-3.5" />
-                    Start Learn Mode
-                  </Link>
+                <div className="space-y-1">
                   <button
                     onClick={handleDownloadPdf}
                     disabled={pdfLoading || !lecture?.notes}
-                    className="flex items-center gap-2 text-xs font-medium text-[#2C2A25] hover:text-[#1a1815] py-1.5 transition-colors disabled:opacity-40"
+                    className="flex items-center gap-2 w-full text-xs text-[#2C2A25] hover:text-[#1a1815] py-1.5 transition-colors disabled:opacity-40"
                   >
                     {pdfLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
                     Download PDF
                   </button>
                   <button
                     onClick={() => setTutorOpen(true)}
-                    className="flex items-center gap-2 text-xs font-medium text-[#2C2A25] hover:text-[#1a1815] py-1.5 transition-colors"
+                    className="flex items-center gap-2 w-full text-xs text-[#2C2A25] hover:text-[#1a1815] py-1.5 transition-colors"
                   >
                     <MessageCircle className="w-3.5 h-3.5" />
                     Ask Tutor
                   </button>
+                </div>
+              </div>
+
+              {/* Lecture info */}
+              <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4">
+                <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest mb-3">Lecture Info</p>
+                <div className="space-y-2">
+                  {lecture?.duration_seconds && (
+                    <div className="flex justify-between">
+                      <span className="text-[11px] text-[#8a7f6f]">Duration</span>
+                      <span className="text-[11px] font-medium text-[#1a1815]">{formatDuration(lecture.duration_seconds)}</span>
+                    </div>
+                  )}
+                  {lecture?.quality_score && (
+                    <div className="flex justify-between">
+                      <span className="text-[11px] text-[#8a7f6f]">Quality</span>
+                      <span className="text-[11px] font-medium text-green-700">{lecture.quality_score}%</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -682,7 +818,6 @@ export default function LecturePage({
       </main>
 
       {/* ── Floating Tutor Composer ── */}
-      {/* FAB button */}
       {!tutorOpen && (
         <button
           onClick={() => setTutorOpen(true)}
@@ -693,7 +828,6 @@ export default function LecturePage({
         </button>
       )}
 
-      {/* Chat panel */}
       {tutorOpen && (
         <div className="fixed bottom-0 left-0 right-0 sm:bottom-6 sm:left-auto sm:right-6 z-50 sm:w-[360px] bg-[#FDFCF9] border-t sm:border border-[rgba(217,185,130,0.35)] sm:rounded-2xl shadow-2xl shadow-black/10 flex flex-col overflow-hidden" style={{ maxHeight: "min(520px, 75vh)" }}>
           {/* Header */}
