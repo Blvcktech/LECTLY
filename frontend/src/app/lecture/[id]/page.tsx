@@ -93,6 +93,10 @@ export default function LecturePage({
   const [explainResult, setExplainResult] = useState<ExplainResult | null>(null);
   const [explainLoading, setExplainLoading] = useState(false);
 
+  // Section refs for TOC scroll
+  const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [activeSection, setActiveSection] = useState(0);
+
   // PDF Download state
   const [pdfLoading, setPdfLoading] = useState(false);
   const { toast } = useToast();
@@ -104,6 +108,27 @@ export default function LecturePage({
   const [tutorLoading, setTutorLoading] = useState(false);
   const tutorEndRef = useRef<HTMLDivElement>(null);
   const tutorInputRef = useRef<HTMLInputElement>(null);
+
+  const notes = lecture?.notes;
+  const sections: NoteSection[] = notes?.sections || [];
+
+  // Track active section via scroll
+  useEffect(() => {
+    if (sections.length === 0) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const idx = sectionRefs.current.indexOf(entry.target as HTMLDivElement);
+            if (idx !== -1) setActiveSection(idx);
+          }
+        }
+      },
+      { rootMargin: "-80px 0px -60% 0px", threshold: 0.1 }
+    );
+    sectionRefs.current.forEach((ref) => { if (ref) observer.observe(ref); });
+    return () => observer.disconnect();
+  }, [sections.length]);
 
   useEffect(() => {
     async function fetchLecture() {
@@ -200,7 +225,7 @@ export default function LecturePage({
       <div className="min-h-screen bg-[#F7F4EE]">
         {/* Nav skeleton */}
         <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 bg-[#EDE8DF] rounded" />
               <div className="w-8 h-8 rounded-[10px] bg-[#EDE8DF]" />
@@ -214,7 +239,7 @@ export default function LecturePage({
         </nav>
 
         {/* Content skeleton */}
-        <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-pulse">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-pulse">
           {/* Title + summary */}
           <div className="mb-5">
             <div className="h-6 w-72 bg-[#EDE8DF] rounded mb-2" />
@@ -285,14 +310,21 @@ export default function LecturePage({
     );
   }
 
-  const notes = lecture?.notes;
-  const sections: NoteSection[] = notes?.sections || [];
+  const scrollToSection = (index: number) => {
+    sectionRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const formatDuration = (seconds?: number) => {
+    if (!seconds) return null;
+    const m = Math.floor(seconds / 60);
+    return m < 60 ? `${m} min` : `${Math.floor(m / 60)}h ${m % 60}m`;
+  };
 
   return (
     <div className="min-h-screen bg-[#F7F4EE]">
       {/* Nav */}
       <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3 sm:gap-4">
             <Link href="/dashboard" className="text-[#8a7f6f] hover:text-[#1a1815] transition-colors">
               <ArrowLeft className="w-5 h-5" />
@@ -329,7 +361,7 @@ export default function LecturePage({
         </div>
       </nav>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20 sm:pb-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20 sm:pb-6">
         {/* Header */}
         <div className="mb-5">
           <h1 className="text-xl font-bold text-[#1a1815] mb-1.5" style={{ fontFamily: "'Georgia', serif" }}>
@@ -373,6 +405,30 @@ export default function LecturePage({
         </div>
 
         <div className="flex gap-6">
+          {/* Left Sidebar — Table of Contents (desktop only) */}
+          {activeTab === "notes" && sections.length > 0 && (
+            <aside className="hidden xl:block w-52 flex-shrink-0">
+              <div className="sticky top-20">
+                <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest mb-3">Contents</p>
+                <nav className="space-y-0.5">
+                  {sections.map((section, i) => (
+                    <button
+                      key={i}
+                      onClick={() => scrollToSection(i)}
+                      className={`block w-full text-left text-xs py-1.5 px-2.5 rounded-lg transition-all truncate ${
+                        activeSection === i
+                          ? "bg-purple-500/10 text-purple-700 font-semibold"
+                          : "text-[#8a7f6f] hover:text-[#2C2A25] hover:bg-[#EDE8DF]/50"
+                      }`}
+                    >
+                      {section.heading}
+                    </button>
+                  ))}
+                </nav>
+              </div>
+            </aside>
+          )}
+
           {/* Notes Column */}
           <div className="flex-1 min-w-0">
             {activeTab === "notes" && (
@@ -380,7 +436,8 @@ export default function LecturePage({
                 {sections.map((section, i) => (
                   <div
                     key={i}
-                    className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 sm:p-5 hover:border-[rgba(217,185,130,0.45)] hover:shadow-sm transition-all"
+                    ref={(el) => { sectionRefs.current[i] = el; }}
+                    className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 sm:p-5 hover:border-[rgba(217,185,130,0.45)] hover:shadow-sm transition-all scroll-mt-20"
                   >
                     {/* Section Header */}
                     <div className="flex items-start justify-between mb-3">
@@ -557,6 +614,69 @@ export default function LecturePage({
               </div>
             )}
           </div>
+
+          {/* Right Sidebar — Lecture Info (desktop only) */}
+          <aside className="hidden lg:block w-56 flex-shrink-0">
+            <div className="sticky top-20 space-y-4">
+              {/* Lecture info card */}
+              <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4">
+                <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest mb-3">Lecture Info</p>
+                <div className="space-y-2.5">
+                  {lecture?.subject && (
+                    <div>
+                      <p className="text-[10px] text-[#8a7f6f] mb-0.5">Subject</p>
+                      <p className="text-xs font-medium text-[#1a1815]">{lecture.subject}</p>
+                    </div>
+                  )}
+                  {lecture?.duration_seconds && (
+                    <div>
+                      <p className="text-[10px] text-[#8a7f6f] mb-0.5">Duration</p>
+                      <p className="text-xs font-medium text-[#1a1815]">{formatDuration(lecture.duration_seconds)}</p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-[10px] text-[#8a7f6f] mb-0.5">Sections</p>
+                    <p className="text-xs font-medium text-[#1a1815]">{sections.length} sections</p>
+                  </div>
+                  {lecture?.quality_score && (
+                    <div>
+                      <p className="text-[10px] text-[#8a7f6f] mb-0.5">Quality</p>
+                      <p className="text-xs font-medium text-green-700">{lecture.quality_score}%</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Quick actions */}
+              <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4">
+                <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest mb-3">Quick Actions</p>
+                <div className="space-y-2">
+                  <Link
+                    href={`/lecture/${id}/learn`}
+                    className="flex items-center gap-2 text-xs font-medium text-purple-700 hover:text-purple-600 py-1.5 transition-colors"
+                  >
+                    <GraduationCap className="w-3.5 h-3.5" />
+                    Start Learn Mode
+                  </Link>
+                  <button
+                    onClick={handleDownloadPdf}
+                    disabled={pdfLoading || !lecture?.notes}
+                    className="flex items-center gap-2 text-xs font-medium text-[#2C2A25] hover:text-[#1a1815] py-1.5 transition-colors disabled:opacity-40"
+                  >
+                    {pdfLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                    Download PDF
+                  </button>
+                  <button
+                    onClick={() => setTutorOpen(true)}
+                    className="flex items-center gap-2 text-xs font-medium text-[#2C2A25] hover:text-[#1a1815] py-1.5 transition-colors"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    Ask Tutor
+                  </button>
+                </div>
+              </div>
+            </div>
+          </aside>
 
         </div>
       </main>

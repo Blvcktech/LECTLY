@@ -32,7 +32,7 @@ export default function UploadPage() {
   }, [getToken]);
   const [state, setState] = useState<UploadState>("idle");
   const [file, setFile] = useState<File | null>(null);
-  const [subject, setSubject] = useState("");
+  const [courseCode, setCourseCode] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
@@ -104,7 +104,7 @@ export default function UploadPage() {
 
     try {
       updateStep(0, false, true);
-      const uploadResult = await uploadLecture(file, subject || undefined);
+      const uploadResult = await uploadLecture(file, undefined);
       setLectureId(uploadResult.id);
       updateStep(0, true, false);
 
@@ -202,32 +202,26 @@ export default function UploadPage() {
 
               {/* Form fields */}
               <div className="w-full lg:w-72 flex-shrink-0 space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-[#8a7f6f] uppercase tracking-wider mb-1.5">
-                    Subject
-                  </label>
-                  <select
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    className="w-full bg-[#FDFCF9] border border-[rgba(217,185,130,0.3)] rounded-[10px] px-3.5 py-2.5 text-sm text-[#1a1815] focus:border-purple-400 focus:outline-none"
-                  >
-                    <option value="">Select subject...</option>
-                    <option value="medicine">Medicine & Pharmacy</option>
-                    <option value="law">Law</option>
-                    <option value="engineering">Engineering</option>
-                    <option value="science">Sciences</option>
-                    <option value="business">Business & Economics</option>
-                    <option value="arts">Arts & Humanities</option>
-                    <option value="cs">Computer Science</option>
-                  </select>
+                {/* Auto-detect info */}
+                <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className="w-2 h-2 rounded-full bg-purple-500" />
+                    <p className="text-xs font-semibold text-[#1a1815] uppercase tracking-wider">Subject</p>
+                  </div>
+                  <p className="text-sm text-[#8a7f6f]">
+                    Auto-detected from your lecture content. No need to pick manually.
+                  </p>
                 </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-[#8a7f6f] uppercase tracking-wider mb-1.5">
-                    Class Code (Optional)
+                    Course Code (Optional)
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. CSC301"
+                    value={courseCode}
+                    onChange={(e) => setCourseCode(e.target.value)}
+                    placeholder="e.g. CSC 301"
                     className="w-full bg-[#FDFCF9] border border-[rgba(217,185,130,0.3)] rounded-[10px] px-3.5 py-2.5 text-sm text-[#1a1815] placeholder:text-[#8a7f6f] focus:border-purple-400 focus:outline-none"
                   />
                 </div>
@@ -270,36 +264,23 @@ export default function UploadPage() {
                 </button>
               </div>
 
-              {/* Subject + Class Code */}
-              <div className="grid sm:grid-cols-2 gap-4 mb-5">
-                <div>
+              {/* Course Code + Auto-detect hint */}
+              <div className="flex items-center gap-4 mb-5">
+                <div className="flex-1">
                   <label className="block text-xs font-semibold text-[#8a7f6f] uppercase tracking-wider mb-1.5">
-                    Subject
-                  </label>
-                  <select
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    className="w-full bg-[#F7F4EE] border border-[rgba(217,185,130,0.3)] rounded-[10px] px-3.5 py-2.5 text-sm text-[#1a1815] focus:border-purple-400 focus:outline-none"
-                  >
-                    <option value="">Auto-detect</option>
-                    <option value="medicine">Medicine & Pharmacy</option>
-                    <option value="law">Law</option>
-                    <option value="engineering">Engineering</option>
-                    <option value="science">Sciences</option>
-                    <option value="business">Business & Economics</option>
-                    <option value="arts">Arts & Humanities</option>
-                    <option value="cs">Computer Science</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-[#8a7f6f] uppercase tracking-wider mb-1.5">
-                    Class Code (Optional)
+                    Course Code (Optional)
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. CSC301"
+                    value={courseCode}
+                    onChange={(e) => setCourseCode(e.target.value)}
+                    placeholder="e.g. CSC 301"
                     className="w-full bg-[#F7F4EE] border border-[rgba(217,185,130,0.3)] rounded-[10px] px-3.5 py-2.5 text-sm text-[#1a1815] placeholder:text-[#8a7f6f] focus:border-purple-400 focus:outline-none"
                   />
+                </div>
+                <div className="flex items-center gap-1.5 pt-5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                  <span className="text-xs text-[#8a7f6f]">Subject auto-detected</span>
                 </div>
               </div>
 

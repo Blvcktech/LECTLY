@@ -54,6 +54,8 @@ You MUST respond with valid JSON in this exact format:
 {
   "title": "Descriptive lecture title based on content",
   "summary": "3-4 sentence overview covering the main topics, why they matter, and what the student will learn",
+  "detected_subject": "The academic subject/department this lecture belongs to. Use one of: Computer Science, Engineering, Medicine, Law, Business, Economics, Sciences, Mathematics, Arts, Humanities, or the most fitting short subject name.",
+  "detected_course_code": "If the lecturer mentions a course code (e.g. CSC 301, PHY 202, ENG 101), extract it here. Otherwise leave as empty string.",
   "sections": [
     {
       "heading": "Clear Topic Heading",
@@ -66,7 +68,8 @@ You MUST respond with valid JSON in this exact format:
 }
 
 IMPORTANT: Return ONLY the JSON object. No markdown, no code blocks, no extra text.
-IMPORTANT: Make your notes DETAILED and EXPANDED. Short, surface-level notes are NOT acceptable. Each section should teach the concept thoroughly."""
+IMPORTANT: Make your notes DETAILED and EXPANDED. Short, surface-level notes are NOT acceptable. Each section should teach the concept thoroughly.
+IMPORTANT: Always detect the subject and course code from the transcript content. If the subject was provided as "auto-detect", figure it out from context."""
 
 EXPLAIN_SYSTEM_PROMPT = """You are Lectly's Explain This feature. A student highlighted a confusing section and wants a simpler explanation.
 
@@ -469,7 +472,24 @@ async def generate_notes(lecture_id: str) -> StructuredNotes:
         # Save notes to database
         sections_data = [s.model_dump() for s in sections]
         db_save_notes(lecture_id, notes.title, notes.summary, sections_data, generated_at)
-        update_lecture(lecture_id, {"status": LectureStatus.READY, "quality_score": 85})
+
+        # Auto-detect subject from LLM response if not manually set
+        lecture_updates: dict = {"status": LectureStatus.READY, "quality_score": 85}
+        current_subject = lecture.get("subject") or ""
+        detected_subject = data.get("detected_subject", "")
+        detected_course_code = data.get("detected_course_code", "")
+
+        if detected_subject and (not current_subject or current_subject == "auto-detect"):
+            lecture_updates["subject"] = detected_subject
+            print(f"[Lectly] Auto-detected subject: {detected_subject}")
+
+        if detected_course_code:
+            # Store course code in subject field as "Subject · CODE" if we have both
+            if detected_subject and (not current_subject or current_subject == "auto-detect"):
+                lecture_updates["subject"] = f"{detected_subject} · {detected_course_code}"
+            print(f"[Lectly] Detected course code: {detected_course_code}")
+
+        update_lecture(lecture_id, lecture_updates)
 
         print(f"[Lectly] Generated notes for {lecture_id}: {len(sections)} sections")
         return notes

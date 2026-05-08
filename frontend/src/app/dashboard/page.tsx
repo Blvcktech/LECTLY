@@ -91,7 +91,7 @@ export default function DashboardPage() {
     };
   }, [getToken]);
 
-  // Get best progress for a lecture (highest mastery across sections)
+  // Get rich progress stats for a lecture
   const getLectureStats = (lectureId: string) => {
     const records = allProgress.filter((p) => p.lecture_id === lectureId);
     if (records.length === 0) return null;
@@ -99,7 +99,33 @@ export default function DashboardPage() {
     const completedCards = records.reduce((s, r) => s + r.completed_cards, 0);
     const avgMastery = Math.round(records.reduce((s, r) => s + r.mastery_pct, 0) / records.length);
     const lastStudiedAt = records.sort((a, b) => b.last_studied_at.localeCompare(a.last_studied_at))[0]?.last_studied_at;
-    return { totalCards, completedCards, avgMastery, lastStudiedAt, sectionCount: records.length };
+    const quizTotal = records.reduce((s, r) => s + r.quiz_total, 0);
+    const quizCorrect = records.reduce((s, r) => s + r.quiz_correct, 0);
+    const quizFailed = quizTotal - quizCorrect;
+    const cardsRemaining = totalCards - completedCards;
+    const estimatedMinLeft = Math.max(1, Math.round(cardsRemaining * 0.5)); // ~30sec per card
+    const isComplete = totalCards > 0 && completedCards >= totalCards;
+    return { totalCards, completedCards, avgMastery, lastStudiedAt, sectionCount: records.length, quizTotal, quizCorrect, quizFailed, cardsRemaining, estimatedMinLeft, isComplete };
+  };
+
+  // Generate contextual status line for a lecture
+  const getStatusText = (lectureId: string, lecture: Lecture) => {
+    const stats = getLectureStats(lectureId);
+    const isReady = lecture.status === "ready";
+
+    if (!isReady) return { text: "Processing...", color: "text-amber-700" };
+
+    if (!stats) {
+      // No progress — check how new it is
+      const ageHours = (Date.now() - new Date(lecture.created_at).getTime()) / 3600000;
+      if (ageHours < 24) return { text: `New · ${formatDuration(lecture.duration_seconds)}`, color: "text-green-700" };
+      return { text: `Not started · ${formatDuration(lecture.duration_seconds)}`, color: "text-[#8a7f6f]" };
+    }
+
+    if (stats.isComplete && stats.avgMastery >= 90) return { text: `Mastered · ${stats.avgMastery}%`, color: "text-green-700" };
+    if (stats.isComplete) return { text: `Completed · ${stats.avgMastery}% mastery`, color: "text-green-700" };
+    if (stats.quizFailed > 0) return { text: `Quiz failed ${stats.quizFailed}× · re-teach ready`, color: "text-amber-700" };
+    return { text: `${stats.completedCards} of ${stats.totalCards} cards · ${formatRelativeTime(stats.lastStudiedAt)}`, color: "text-[#8a7f6f]" };
   };
 
   // Format relative time
@@ -263,7 +289,7 @@ export default function DashboardPage() {
               {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
             </p>
             <h1 className="text-2xl font-bold text-[#1a1815] leading-snug" style={{ fontFamily: "'Georgia', serif" }}>
-              Pick up where{"\n"}you left off.
+              {lastStudied && !loading ? "Pick up where\nyou left off." : lectures.length > 0 && !loading ? "Your lectures." : "Pick up where\nyou left off."}
             </h1>
           </div>
 
@@ -273,6 +299,10 @@ export default function DashboardPage() {
             if (!lecture) return null;
             const title = lecture.notes?.title || lecture.filename;
             const stats = getLectureStats(lecture.id);
+            const sections = lecture.notes?.sections || [];
+            const sectionName = lastStudied.section_index >= 0 && lastStudied.section_index < sections.length
+              ? sections[lastStudied.section_index].heading
+              : null;
 
             return (
               <Link
@@ -281,20 +311,26 @@ export default function DashboardPage() {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    {lecture.subject && (
-                      <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
-                        {lecture.subject} · In Progress
-                      </span>
-                    )}
-                    <h2 className="text-lg font-bold mt-1 truncate" style={{ fontFamily: "'Georgia', serif" }}>
+                    <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
+                      {lecture.subject ? `${lecture.subject} · ` : ""}In Progress
+                    </span>
+                    <h2 className="text-lg font-bold mt-1 leading-snug" style={{ fontFamily: "'Georgia', serif" }}>
                       {title}
                     </h2>
-                    <div className="flex items-center gap-3 mt-2">
-                      <span className="text-xs font-semibold bg-white/15 px-2.5 py-1 rounded-lg">
+                    {sectionName && (
+                      <p className="text-xs text-white/50 mt-0.5 truncate">{sectionName}</p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2 mt-3">
+                      <span className="text-[11px] font-bold bg-white/15 px-2.5 py-1 rounded-lg">
                         {lastStudied.completed_cards}/{lastStudied.total_cards} cards
                       </span>
-                      {stats && (
-                        <span className="text-xs font-semibold bg-white/15 px-2.5 py-1 rounded-lg">
+                      {stats && !stats.isComplete && stats.estimatedMinLeft > 0 && (
+                        <span className="text-[11px] font-bold bg-white/15 px-2.5 py-1 rounded-lg">
+                          {stats.estimatedMinLeft} MIN LEFT
+                        </span>
+                      )}
+                      {stats && stats.isComplete && (
+                        <span className="text-[11px] font-bold bg-green-500/25 text-green-300 px-2.5 py-1 rounded-lg">
                           {stats.avgMastery}% mastery
                         </span>
                       )}
@@ -388,67 +424,66 @@ export default function DashboardPage() {
                 const isReady = lecture.status === "ready";
                 const title = lecture.notes?.title || lecture.filename;
                 const stats = getLectureStats(lecture.id);
+                const status = getStatusText(lecture.id, lecture);
+
+                // Color-coded subject dot
+                const subjectColors: Record<string, string> = {
+                  "Computer Science & Media": "bg-blue-500",
+                  "Engineering": "bg-orange-500",
+                  "Sciences": "bg-green-500",
+                  "Medicine & Pharmacy": "bg-red-500",
+                  "Law": "bg-purple-500",
+                  "Business & Economics": "bg-amber-500",
+                  "Arts & Humanities": "bg-pink-500",
+                };
+                const dotColor = lecture.subject ? (subjectColors[lecture.subject] || "bg-[#8a7f6f]") : "";
 
                 return (
                   <Link
                     key={lecture.id}
                     href={isReady ? `/lecture/${lecture.id}` : "#"}
-                    className="block bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl px-4 py-3.5 hover:border-[rgba(217,185,130,0.5)] hover:shadow-sm transition-all group"
+                    className={`block bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl px-4 py-3.5 hover:border-[rgba(217,185,130,0.5)] hover:shadow-sm transition-all group ${!isReady ? "opacity-75" : ""}`}
                   >
                     <div className="flex items-center gap-3">
-                      {/* Subject badge */}
-                      {lecture.subject ? (
-                        <div className="w-10 h-10 rounded-xl bg-[#EDE8DF] flex items-center justify-center flex-shrink-0">
-                          <span className="text-[10px] font-bold text-[#2C2A25] uppercase leading-none text-center">
-                            {lecture.subject.length > 6 ? lecture.subject.substring(0, 6) : lecture.subject}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isReady ? "bg-purple-500/8" : "bg-amber-500/10"}`}>
-                          {isReady ? <FileText className="w-5 h-5 text-purple-600" /> : <Clock className="w-5 h-5 text-amber-600 animate-pulse" />}
-                        </div>
-                      )}
+                      {/* Subject badge with colored dot */}
+                      <div className="flex-shrink-0">
+                        {lecture.subject ? (
+                          <div className="relative">
+                            <div className="w-10 h-10 rounded-xl bg-[#EDE8DF] flex items-center justify-center">
+                              <span className="text-[9px] font-bold text-[#2C2A25] uppercase leading-none text-center px-0.5">
+                                {lecture.subject.length > 6 ? lecture.subject.substring(0, 6) : lecture.subject}
+                              </span>
+                            </div>
+                            <div className={`absolute -top-0.5 -left-0.5 w-3 h-3 rounded-full ${dotColor} border-2 border-[#FDFCF9]`} />
+                          </div>
+                        ) : (
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isReady ? "bg-purple-500/8" : "bg-amber-500/10"}`}>
+                            {isReady ? <FileText className="w-5 h-5 text-purple-600" /> : <Clock className="w-5 h-5 text-amber-600 animate-pulse" />}
+                          </div>
+                        )}
+                      </div>
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-[#1a1815] truncate">
                           {title}
                         </p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          {stats ? (
-                            <>
-                              <span className="text-[11px] text-[#8a7f6f]">
-                                Mastery {stats.avgMastery}%
-                              </span>
-                              <span className="text-[11px] text-[#8a7f6f]">·</span>
-                              <span className="text-[11px] text-[#8a7f6f]">
-                                {formatRelativeTime(stats.lastStudiedAt)}
-                              </span>
-                            </>
-                          ) : isReady ? (
-                            <span className="text-[11px] text-[#8a7f6f]">
-                              New · {formatDuration(lecture.duration_seconds)}
-                            </span>
-                          ) : (
-                            <span className="text-[11px] text-amber-700">
-                              Processing...
-                            </span>
-                          )}
-                        </div>
+                        <p className={`text-[11px] mt-0.5 ${status.color}`}>
+                          {status.text}
+                        </p>
                       </div>
 
-                      {/* Right side: progress or chevron */}
+                      {/* Right side: progress ring or chevron */}
                       <div className="flex items-center gap-2 flex-shrink-0">
                         {stats && (
-                          <div className="w-10 h-10 rounded-full border-2 border-[#EDE8DF] flex items-center justify-center relative">
-                            <svg className="w-10 h-10 absolute" viewBox="0 0 36 36">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center relative">
+                            <svg className="w-10 h-10 absolute -rotate-90" viewBox="0 0 36 36">
                               <circle cx="18" cy="18" r="15.9" fill="none" stroke="#EDE8DF" strokeWidth="2.5" />
                               <circle
                                 cx="18" cy="18" r="15.9" fill="none"
-                                stroke={stats.avgMastery >= 70 ? "#22c55e" : stats.avgMastery >= 40 ? "#f59e0b" : "#8a7f6f"}
+                                stroke={stats.avgMastery >= 90 ? "#22c55e" : stats.avgMastery >= 70 ? "#22c55e" : stats.avgMastery >= 40 ? "#f59e0b" : "#8a7f6f"}
                                 strokeWidth="2.5"
                                 strokeDasharray={`${stats.avgMastery} ${100 - stats.avgMastery}`}
-                                strokeDashoffset="25"
                                 strokeLinecap="round"
                               />
                             </svg>
@@ -459,16 +494,21 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    {/* Delete button (stops propagation) */}
-                    <div className="flex items-center gap-2 mt-2 pl-[52px]">
+                    {/* Action row */}
+                    <div className="flex items-center gap-2 mt-2.5 pl-[52px]">
                       {isReady && (
                         <button
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/lecture/${lecture.id}/learn`); }}
-                          className="flex items-center gap-1.5 text-xs text-purple-700 bg-purple-500/8 hover:bg-purple-500/15 px-3 py-1.5 rounded-lg transition-colors"
+                          className="flex items-center gap-1.5 text-[11px] font-semibold text-purple-700 bg-purple-500/8 hover:bg-purple-500/15 px-3 py-1.5 rounded-lg transition-colors"
                         >
                           <GraduationCap className="w-3.5 h-3.5" />
-                          {stats ? "Continue learning" : "Start learning"}
+                          {stats?.isComplete ? "Review" : stats ? "Continue learning" : "Start learning"}
                         </button>
+                      )}
+                      {stats && !stats.isComplete && (
+                        <span className="text-[10px] text-[#8a7f6f] font-medium">
+                          ~{stats.estimatedMinLeft} min left
+                        </span>
                       )}
                       <button
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(lecture.id, title); }}
