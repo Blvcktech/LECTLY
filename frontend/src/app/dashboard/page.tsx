@@ -17,8 +17,11 @@ import {
   Trash2,
   Play,
   ChevronRight,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
-import { getLectures, deleteLecture, getAllProgress, Lecture, type StudyProgress } from "@/lib/api";
+import { getLectures, deleteLecture, renameLecture, getAllProgress, Lecture, type StudyProgress } from "@/lib/api";
 import { useUser, useClerk, useAuth } from "@clerk/nextjs";
 import { setAuthToken } from "@/lib/auth";
 import { useToast } from "@/components/Toast";
@@ -49,6 +52,9 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [renameLoading, setRenameLoading] = useState(false);
   const [allProgress, setAllProgress] = useState<StudyProgress[]>([]);
   const [lastStudied, setLastStudied] = useState<StudyProgress | null>(null);
   const { toast, confirm: showConfirm } = useToast();
@@ -156,6 +162,36 @@ export default function DashboardPage() {
     });
   };
 
+  const startRename = (lectureId: string, currentTitle: string) => {
+    setRenamingId(lectureId);
+    setRenameValue(currentTitle);
+  };
+
+  const handleRename = async (lectureId: string) => {
+    const trimmed = renameValue.trim();
+    if (!trimmed) {
+      setRenamingId(null);
+      return;
+    }
+    setRenameLoading(true);
+    try {
+      await renameLecture(lectureId, trimmed);
+      setLectures((prev) =>
+        prev.map((l) =>
+          l.id === lectureId
+            ? { ...l, notes: l.notes ? { ...l.notes, title: trimmed } : l.notes }
+            : l
+        )
+      );
+      toast("Title updated", "success");
+    } catch {
+      toast("Failed to rename. Please try again.", "error");
+    } finally {
+      setRenameLoading(false);
+      setRenamingId(null);
+    }
+  };
+
   const filtered = lectures.filter(
     (l) =>
       l.filename.toLowerCase().includes(search.toLowerCase()) ||
@@ -191,7 +227,7 @@ export default function DashboardPage() {
             Upload
           </Link>
           <Link
-            href="/dashboard"
+            href="/lectures"
             className="flex items-center gap-3 px-3 py-2.5 text-sm text-[#8a7f6f] hover:text-[#1a1815] rounded-lg transition-colors mb-0.5"
           >
             <FileText className="w-4 h-4" />
@@ -465,9 +501,29 @@ export default function DashboardPage() {
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[#1a1815] truncate">
-                          {title}
-                        </p>
+                        {renamingId === lecture.id ? (
+                          <div className="flex items-center gap-1.5" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                            <input
+                              type="text"
+                              value={renameValue}
+                              onChange={(e) => setRenameValue(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === "Enter") handleRename(lecture.id); if (e.key === "Escape") setRenamingId(null); }}
+                              className="text-sm font-semibold text-[#1a1815] bg-white border border-purple-300 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-purple-400 flex-1 min-w-0"
+                              autoFocus
+                              disabled={renameLoading}
+                            />
+                            <button onClick={() => handleRename(lecture.id)} disabled={renameLoading} className="p-1 rounded-md bg-purple-600 text-white hover:bg-purple-500 transition-colors disabled:opacity-40">
+                              {renameLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                            </button>
+                            <button onClick={() => setRenamingId(null)} className="p-1 rounded-md text-[#8a7f6f] hover:text-[#1a1815] transition-colors">
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <p className="text-sm font-semibold text-[#1a1815] truncate">
+                            {title}
+                          </p>
+                        )}
                         <p className={`text-[11px] mt-0.5 ${status.color}`}>
                           {status.text}
                         </p>
@@ -511,9 +567,16 @@ export default function DashboardPage() {
                         </span>
                       )}
                       <button
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); startRename(lecture.id, title); }}
+                        className="flex items-center text-[#8a7f6f] hover:text-purple-600 p-1.5 rounded-lg transition-colors ml-auto"
+                        title="Rename lecture"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(lecture.id, title); }}
                         disabled={deletingId === lecture.id}
-                        className="flex items-center text-[#8a7f6f] hover:text-red-500 p-1.5 rounded-lg transition-colors disabled:opacity-40 ml-auto"
+                        className="flex items-center text-[#8a7f6f] hover:text-red-500 p-1.5 rounded-lg transition-colors disabled:opacity-40"
                         title="Delete lecture"
                       >
                         {deletingId === lecture.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
@@ -613,13 +676,17 @@ export default function DashboardPage() {
             <Home className="w-5 h-5" />
             <span className="text-[10px] font-medium">Home</span>
           </Link>
+          <Link href="/lectures" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+            <FileText className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Lectures</span>
+          </Link>
           <Link href="/upload" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
             <Upload className="w-5 h-5" />
             <span className="text-[10px] font-medium">Upload</span>
           </Link>
           <Link href="/profile" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
             <User className="w-5 h-5" />
-            <span className="text-[10px] font-medium">Profile</span>
+            <span className="text-[10px] font-medium">You</span>
           </Link>
         </div>
       </nav>

@@ -15,6 +15,9 @@ import {
   Target,
   Zap,
   Clock,
+  Home,
+  FileText,
+  Upload,
 } from "lucide-react";
 import { useUser, useClerk, useAuth } from "@clerk/nextjs";
 import { setAuthToken } from "@/lib/auth";
@@ -301,11 +304,15 @@ export default function ProfilePage() {
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#FDFCF9] border-t border-[rgba(217,185,130,0.25)] backdrop-blur-xl">
         <div className="flex items-center justify-around h-14">
           <Link href="/dashboard" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
-            <BookOpen className="w-5 h-5" />
+            <Home className="w-5 h-5" />
             <span className="text-[10px] font-medium">Home</span>
           </Link>
+          <Link href="/lectures" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+            <FileText className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Lectures</span>
+          </Link>
           <Link href="/upload" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
-            <Zap className="w-5 h-5" />
+            <Upload className="w-5 h-5" />
             <span className="text-[10px] font-medium">Upload</span>
           </Link>
           <Link href="/profile" className="flex flex-col items-center gap-0.5 text-purple-600">
