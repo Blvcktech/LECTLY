@@ -59,6 +59,15 @@ html {
   background: rgba(107, 92, 231, 0.04);
 }
 
+/* Hide scrollbar utility — for horizontal dot indicators etc */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Smooth scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

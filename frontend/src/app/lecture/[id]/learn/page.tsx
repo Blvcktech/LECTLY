@@ -890,7 +890,7 @@ export default function LearnModePage({
       </nav>
 
       <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-        <div className="flex-1 flex gap-6 py-6">
+        <div className="flex-1 flex gap-6 py-6 pb-36 sm:pb-6">
           {/* ── Left sidebar: Topic Picker ── */}
           <div className="w-72 flex-shrink-0 hidden lg:block">
             <div className="sticky top-20">
@@ -1118,34 +1118,36 @@ export default function LearnModePage({
                   return (
                     <div className="flex-1 flex flex-col">
                       {/* Progress dots */}
-                      <div className="flex items-center justify-center gap-1.5 mb-5">
-                        {cardFlow.map((card, i) => {
-                          const isQuiz = card.type === "quiz";
-                          const isAnalogy = card.type === "analogy";
-                          return (
-                            <button
-                              key={i}
-                              onClick={() => setCardIndex(i)}
-                              className={`transition-all duration-300 rounded-full ${
-                                i === cardIndex
-                                  ? isQuiz
-                                    ? "w-8 h-2.5 bg-gradient-to-r from-green-500 to-emerald-500"
-                                    : isAnalogy
-                                    ? "w-8 h-2.5 bg-gradient-to-r from-amber-500 to-orange-500"
-                                    : "w-8 h-2.5 bg-[#1a1815]"
-                                  : i < cardIndex
-                                  ? isQuiz
-                                    ? "w-2.5 h-2.5 bg-green-400/50"
-                                    : "w-2.5 h-2.5 bg-[#1a1815]/40"
-                                  : isQuiz
-                                  ? "w-2.5 h-2.5 bg-green-300/30"
-                                  : "w-2.5 h-2.5 bg-[#8a7f6f]/30"
-                              }`}
-                              aria-label={`Go to card ${i + 1}`}
-                            />
-                          );
-                        })}
-                        <span className="ml-3 text-[11px] font-medium text-[#8a7f6f]">
+                      <div className="flex items-center justify-center gap-1.5 mb-5 overflow-x-auto px-2 scrollbar-hide">
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          {cardFlow.map((card, i) => {
+                            const isQuiz = card.type === "quiz";
+                            const isAnalogy = card.type === "analogy";
+                            return (
+                              <button
+                                key={i}
+                                onClick={() => setCardIndex(i)}
+                                className={`transition-all duration-300 rounded-full flex-shrink-0 ${
+                                  i === cardIndex
+                                    ? isQuiz
+                                      ? "w-8 h-2.5 bg-gradient-to-r from-green-500 to-emerald-500"
+                                      : isAnalogy
+                                      ? "w-8 h-2.5 bg-gradient-to-r from-amber-500 to-orange-500"
+                                      : "w-8 h-2.5 bg-[#1a1815]"
+                                    : i < cardIndex
+                                    ? isQuiz
+                                      ? "w-2.5 h-2.5 bg-green-400/50"
+                                      : "w-2.5 h-2.5 bg-[#1a1815]/40"
+                                    : isQuiz
+                                    ? "w-2.5 h-2.5 bg-green-300/30"
+                                    : "w-2.5 h-2.5 bg-[#8a7f6f]/30"
+                                }`}
+                                aria-label={`Go to card ${i + 1}`}
+                              />
+                            );
+                          })}
+                        </div>
+                        <span className="ml-3 text-[11px] font-medium text-[#8a7f6f] flex-shrink-0">
                           {cardIndex + 1} / {totalFlowCards}
                         </span>
                       </div>
@@ -1402,9 +1404,13 @@ export default function LearnModePage({
                         </div>
                       )}
 
-                      {/* Keyboard hint */}
-                      <p className="text-center text-[11px] text-[#8a7f6f] mt-4">
+                      {/* Keyboard hint — desktop only */}
+                      <p className="text-center text-[11px] text-[#8a7f6f] mt-4 hidden sm:block">
                         Use arrow keys to navigate cards
+                      </p>
+                      {/* Swipe hint — mobile only */}
+                      <p className="text-center text-[11px] text-[#8a7f6f] mt-4 sm:hidden">
+                        Tap the buttons or dots to navigate
                       </p>
                     </div>
                   );
@@ -1562,7 +1568,7 @@ export default function LearnModePage({
         <div className="sticky bottom-0 z-40 bg-[#FDFCF9] border-t border-[rgba(217,185,130,0.3)]">
           {/* Expanded conversation area */}
           {tutorExpanded && (
-            <div className="max-w-3xl mx-auto px-4 sm:px-6" style={{ maxHeight: "35vh", overflowY: "auto" }}>
+            <div className="max-w-3xl mx-auto px-4 sm:px-6" style={{ maxHeight: "45vh", overflowY: "auto" }}>
               {/* Collapse handle */}
               <div className="sticky top-0 z-10 bg-[#FDFCF9] pt-2 pb-1 flex items-center justify-between border-b border-[rgba(217,185,130,0.15)]">
                 <span className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest">Tutor</span>

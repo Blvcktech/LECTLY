@@ -28,6 +28,7 @@ import {
   type NoteSection,
   type TutorMessage,
 } from "@/lib/api";
+import { useToast } from "@/components/Toast";
 
 // ── Tutor message renderer (markdown-aware) ──
 function TutorBubble({ content }: { content: string }) {
@@ -94,6 +95,7 @@ export default function LecturePage({
 
   // PDF Download state
   const [pdfLoading, setPdfLoading] = useState(false);
+  const { toast } = useToast();
 
   // Tutor chat state (floating composer)
   const [tutorOpen, setTutorOpen] = useState(false);
@@ -145,8 +147,9 @@ export default function LecturePage({
     setPdfLoading(true);
     try {
       await downloadNotesPdf(id);
+      toast("PDF downloaded", "success");
     } catch {
-      alert("Failed to download PDF. Please try again.");
+      toast("Failed to download PDF. Please try again.", "error");
     } finally {
       setPdfLoading(false);
     }
@@ -326,7 +329,7 @@ export default function LecturePage({
         </div>
       </nav>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20 sm:pb-6">
         {/* Header */}
         <div className="mb-5">
           <h1 className="text-xl font-bold text-[#1a1815] mb-1.5" style={{ fontFamily: "'Georgia', serif" }}>
@@ -563,7 +566,7 @@ export default function LecturePage({
       {!tutorOpen && (
         <button
           onClick={() => setTutorOpen(true)}
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-full shadow-lg shadow-purple-500/25 flex items-center justify-center transition-all hover:scale-105"
+          className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-50 w-13 h-13 sm:w-14 sm:h-14 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-full shadow-lg shadow-purple-500/25 flex items-center justify-center transition-all hover:scale-105"
           title="Ask Tutor"
         >
           <MessageCircle className="w-6 h-6" />
@@ -572,7 +575,7 @@ export default function LecturePage({
 
       {/* Chat panel */}
       {tutorOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-[360px] max-w-[calc(100vw-2rem)] bg-[#FDFCF9] border border-[rgba(217,185,130,0.35)] rounded-2xl shadow-2xl shadow-black/10 flex flex-col overflow-hidden" style={{ maxHeight: "min(520px, 70vh)" }}>
+        <div className="fixed bottom-0 left-0 right-0 sm:bottom-6 sm:left-auto sm:right-6 z-50 sm:w-[360px] bg-[#FDFCF9] border-t sm:border border-[rgba(217,185,130,0.35)] sm:rounded-2xl shadow-2xl shadow-black/10 flex flex-col overflow-hidden" style={{ maxHeight: "min(520px, 75vh)" }}>
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(217,185,130,0.25)] bg-gradient-to-r from-purple-600 to-blue-600">
             <div className="flex items-center gap-2">

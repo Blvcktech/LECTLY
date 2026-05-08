@@ -21,6 +21,7 @@ import {
 import { getLectures, deleteLecture, getAllProgress, Lecture, type StudyProgress } from "@/lib/api";
 import { useUser, useClerk, useAuth } from "@clerk/nextjs";
 import { setAuthToken } from "@/lib/auth";
+import { useToast } from "@/components/Toast";
 
 function formatDuration(seconds?: number): string {
   if (!seconds) return "—";
@@ -50,6 +51,7 @@ export default function DashboardPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [allProgress, setAllProgress] = useState<StudyProgress[]>([]);
   const [lastStudied, setLastStudied] = useState<StudyProgress | null>(null);
+  const { toast, confirm: showConfirm } = useToast();
 
   useEffect(() => {
     let cancelled = false;
@@ -113,17 +115,19 @@ export default function DashboardPage() {
     return `${days}d ago`;
   };
 
-  const handleDelete = async (lectureId: string, title: string) => {
-    if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
-    setDeletingId(lectureId);
-    try {
-      await deleteLecture(lectureId);
-      setLectures((prev) => prev.filter((l) => l.id !== lectureId));
-    } catch {
-      alert("Failed to delete lecture. Please try again.");
-    } finally {
-      setDeletingId(null);
-    }
+  const handleDelete = (lectureId: string, title: string) => {
+    showConfirm(`Delete "${title}"? This cannot be undone.`, async () => {
+      setDeletingId(lectureId);
+      try {
+        await deleteLecture(lectureId);
+        setLectures((prev) => prev.filter((l) => l.id !== lectureId));
+        toast("Lecture deleted", "success");
+      } catch {
+        toast("Failed to delete lecture. Please try again.", "error");
+      } finally {
+        setDeletingId(null);
+      }
+    });
   };
 
   const filtered = lectures.filter(
@@ -481,25 +485,83 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Empty State */}
-          {!loading && !error && filtered.length === 0 && (
+          {/* Empty State — search returned nothing */}
+          {!loading && !error && filtered.length === 0 && search && (
             <div className="text-center py-14">
               <div className="w-14 h-14 rounded-2xl bg-[#EDE8DF] flex items-center justify-center mx-auto mb-4">
-                <Upload className="w-7 h-7 text-[#8a7f6f]" />
+                <Search className="w-7 h-7 text-[#8a7f6f]" />
               </div>
-              <p className="text-[#1a1815] font-medium mb-1.5 text-sm">No lectures found</p>
-              <p className="text-xs text-[#8a7f6f] mb-5">
-                {search
-                  ? "Try a different search term"
-                  : "Upload your first lecture to get started"}
+              <p className="text-[#1a1815] font-medium mb-1.5 text-sm">No results for &ldquo;{search}&rdquo;</p>
+              <p className="text-xs text-[#8a7f6f] mb-4">
+                Try a different search term or check the spelling
               </p>
-              <Link
-                href="/upload"
-                className="inline-flex items-center gap-2 text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white px-5 py-2.5 rounded-[10px] font-medium shadow-md shadow-purple-500/15 transition-all"
+              <button
+                onClick={() => setSearch("")}
+                className="text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
               >
-                <Upload className="w-4 h-4" />
-                Upload Lecture
-              </Link>
+                Clear search
+              </button>
+            </div>
+          )}
+
+          {/* Onboarding — brand new user, no lectures at all */}
+          {!loading && !error && lectures.length === 0 && !search && (
+            <div className="py-10">
+              <div className="text-center mb-8">
+                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-100 to-blue-50 border border-purple-200/30 flex items-center justify-center mx-auto mb-5">
+                  <GraduationCap className="w-10 h-10 text-purple-600" />
+                </div>
+                <h2 className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "'Georgia', serif" }}>
+                  Welcome to Lectly{user?.firstName ? `, ${user.firstName}` : ""}
+                </h2>
+                <p className="text-sm text-[#8a7f6f] max-w-sm mx-auto leading-relaxed">
+                  Upload a lecture recording and Lectly will turn it into structured notes, flashcards, and quizzes — with an AI tutor to help you study.
+                </p>
+              </div>
+
+              {/* How it works */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8 max-w-lg mx-auto">
+                <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
+                  <div className="w-9 h-9 rounded-xl bg-purple-500/8 flex items-center justify-center mx-auto mb-2">
+                    <Upload className="w-4.5 h-4.5 text-purple-600" />
+                  </div>
+                  <p className="text-xs font-semibold text-[#1a1815] mb-0.5">Upload</p>
+                  <p className="text-[11px] text-[#8a7f6f] leading-relaxed">Drop an audio or video lecture file</p>
+                </div>
+                <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/8 flex items-center justify-center mx-auto mb-2">
+                    <FileText className="w-4.5 h-4.5 text-amber-600" />
+                  </div>
+                  <p className="text-xs font-semibold text-[#1a1815] mb-0.5">Get Notes</p>
+                  <p className="text-[11px] text-[#8a7f6f] leading-relaxed">AI generates structured study notes</p>
+                </div>
+                <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
+                  <div className="w-9 h-9 rounded-xl bg-green-500/8 flex items-center justify-center mx-auto mb-2">
+                    <GraduationCap className="w-4.5 h-4.5 text-green-600" />
+                  </div>
+                  <p className="text-xs font-semibold text-[#1a1815] mb-0.5">Learn</p>
+                  <p className="text-[11px] text-[#8a7f6f] leading-relaxed">Study with cards, quizzes & AI tutor</p>
+                </div>
+              </div>
+
+              {/* CTA */}
+              <div className="text-center">
+                <Link
+                  href="/upload"
+                  className="inline-flex items-center gap-2 text-sm bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-purple-500/20 transition-all hover:shadow-xl hover:shadow-purple-500/25"
+                >
+                  <Upload className="w-4.5 h-4.5" />
+                  Upload Your First Lecture
+                </Link>
+                <p className="text-[11px] text-[#8a7f6f] mt-3">Supports MP3, MP4, WAV, M4A — up to 25MB</p>
+              </div>
+            </div>
+          )}
+
+          {/* Empty after filter — has lectures but filtered shows none */}
+          {!loading && !error && filtered.length === 0 && lectures.length > 0 && !search && (
+            <div className="text-center py-14">
+              <p className="text-[#8a7f6f] text-sm">No lectures match the current filter.</p>
             </div>
           )}
         </main>
