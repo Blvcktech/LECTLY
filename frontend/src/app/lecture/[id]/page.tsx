@@ -335,7 +335,7 @@ export default function LecturePage({
       <div className="min-h-screen bg-[#F7F4EE]">
         {/* Nav skeleton */}
         <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 bg-[#EDE8DF] rounded" />
               <div className="w-8 h-8 rounded-[10px] bg-[#EDE8DF]" />
@@ -349,7 +349,7 @@ export default function LecturePage({
         </nav>
 
         {/* Content skeleton */}
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-pulse">
+        <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-pulse">
           <div className="mb-5">
             <div className="h-6 w-72 bg-[#EDE8DF] rounded mb-2" />
             <div className="h-3.5 w-full max-w-lg bg-[#EDE8DF]/60 rounded mb-1.5" />
@@ -415,7 +415,7 @@ export default function LecturePage({
     <div className="min-h-screen bg-[#F7F4EE]">
       {/* Nav */}
       <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3 sm:gap-4">
             <Link href="/dashboard" className="text-[#8a7f6f] hover:text-[#1a1815] transition-colors">
               <ArrowLeft className="w-5 h-5" />
@@ -452,7 +452,7 @@ export default function LecturePage({
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20 sm:pb-6">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20 sm:pb-6">
         {/* Header */}
         <div className="mb-5">
           <h1 className="text-xl font-bold text-[#1a1815] mb-1.5" style={{ fontFamily: "'Georgia', serif" }}>
