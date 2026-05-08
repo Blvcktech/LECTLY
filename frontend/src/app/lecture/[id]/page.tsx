@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, use, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   BookOpen,
   ArrowLeft,
@@ -11,7 +12,9 @@ import {
   AlertCircle,
   FileText,
   X,
-  Flag,
+  Trash2,
+  Pencil,
+  Check,
   Download,
   MessageCircle,
   Send,
@@ -25,6 +28,8 @@ import {
   downloadNotesPdf,
   askTutor,
   getLectureProgress,
+  renameLecture,
+  deleteLecture,
   type Lecture,
   type ExplainResult,
   type NoteSection,
@@ -115,10 +120,20 @@ export default function LecturePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const router = useRouter();
   const [lecture, setLecture] = useState<Lecture | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"notes" | "transcript" | "flashcards">("notes");
+
+  // Rename state
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState("");
+  const [renameLoading, setRenameLoading] = useState(false);
+  const renameInputRef = useRef<HTMLInputElement>(null);
+
+  // Delete state
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Explain This state
   const [explainSection, setExplainSection] = useState<number | null>(null);
@@ -135,7 +150,7 @@ export default function LecturePage({
 
   // PDF Download state
   const [pdfLoading, setPdfLoading] = useState(false);
-  const { toast } = useToast();
+  const { toast, confirm: showConfirm } = useToast();
 
   // Tutor chat state (floating composer)
   const [tutorOpen, setTutorOpen] = useState(false);
@@ -263,6 +278,55 @@ export default function LecturePage({
     } finally {
       setPdfLoading(false);
     }
+  };
+
+  // Rename handlers
+  const startRename = () => {
+    setRenameValue(notes?.title || lecture?.filename || "");
+    setIsRenaming(true);
+    setTimeout(() => renameInputRef.current?.focus(), 50);
+  };
+
+  const handleRename = async () => {
+    const trimmed = renameValue.trim();
+    if (!trimmed || trimmed === (notes?.title || lecture?.filename)) {
+      setIsRenaming(false);
+      return;
+    }
+    setRenameLoading(true);
+    try {
+      await renameLecture(id, trimmed);
+      // Update local state
+      setLecture((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          notes: prev.notes ? { ...prev.notes, title: trimmed } : prev.notes,
+        };
+      });
+      toast("Title updated", "success");
+    } catch {
+      toast("Failed to rename. Please try again.", "error");
+    } finally {
+      setRenameLoading(false);
+      setIsRenaming(false);
+    }
+  };
+
+  // Delete handler
+  const handleDelete = () => {
+    const title = notes?.title || lecture?.filename || "this lecture";
+    showConfirm(`Delete "${title}"? This cannot be undone.`, async () => {
+      setDeleteLoading(true);
+      try {
+        await deleteLecture(id);
+        toast("Lecture deleted", "success");
+        router.push("/dashboard");
+      } catch {
+        toast("Failed to delete. Please try again.", "error");
+        setDeleteLoading(false);
+      }
+    });
   };
 
   // Scroll tutor chat to bottom when new messages arrive
@@ -429,6 +493,14 @@ export default function LecturePage({
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={handleDelete}
+              disabled={deleteLoading}
+              className="flex items-center gap-1.5 text-xs sm:text-sm text-[#8a7f6f] hover:text-red-500 border border-[rgba(217,185,130,0.35)] hover:border-red-300 px-2.5 sm:px-3 py-2 rounded-[10px] font-medium transition-all disabled:opacity-40"
+              title="Delete lecture"
+            >
+              {deleteLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+            </button>
+            <button
               onClick={handleDownloadPdf}
               disabled={pdfLoading || !lecture?.notes}
               className="flex items-center gap-1.5 text-xs sm:text-sm text-[#2C2A25] hover:text-[#1a1815] border border-[rgba(217,185,130,0.35)] hover:border-[rgba(217,185,130,0.6)] px-2.5 sm:px-3 py-2 rounded-[10px] font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
@@ -455,9 +527,41 @@ export default function LecturePage({
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20 sm:pb-6">
         {/* Header */}
         <div className="mb-5">
-          <h1 className="text-xl font-bold text-[#1a1815] mb-1.5" style={{ fontFamily: "'Georgia', serif" }}>
-            {notes?.title || lecture?.filename || "Lecture Notes"}
-          </h1>
+          <div className="flex items-center gap-2 mb-1.5 group">
+            {isRenaming ? (
+              <div className="flex items-center gap-2 flex-1">
+                <input
+                  ref={renameInputRef}
+                  type="text"
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleRename(); if (e.key === "Escape") setIsRenaming(false); }}
+                  className="text-xl font-bold text-[#1a1815] bg-[#FDFCF9] border border-purple-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-purple-400 flex-1"
+                  style={{ fontFamily: "'Georgia', serif" }}
+                  disabled={renameLoading}
+                />
+                <button onClick={handleRename} disabled={renameLoading} className="p-1.5 rounded-lg bg-purple-600 text-white hover:bg-purple-500 transition-colors disabled:opacity-40">
+                  {renameLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                </button>
+                <button onClick={() => setIsRenaming(false)} className="p-1.5 rounded-lg text-[#8a7f6f] hover:text-[#1a1815] transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <>
+                <h1 className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>
+                  {notes?.title || lecture?.filename || "Lecture Notes"}
+                </h1>
+                <button
+                  onClick={startRename}
+                  className="p-1 rounded-lg text-[#8a7f6f] hover:text-purple-600 opacity-0 group-hover:opacity-100 transition-all"
+                  title="Rename lecture"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+              </>
+            )}
+          </div>
           {notes?.summary && (
             <p className="text-sm text-[#8a7f6f] leading-relaxed max-w-2xl">{notes.summary}</p>
           )}
@@ -585,10 +689,6 @@ export default function LecturePage({
                         <GraduationCap className="w-3.5 h-3.5" />
                         Learn This
                       </Link>
-                      <button className="flex items-center gap-1.5 text-xs text-[#8a7f6f] hover:text-[#2C2A25] px-3 py-1.5 rounded-lg border border-[rgba(217,185,130,0.25)] transition-colors">
-                        <Flag className="w-3 h-3" />
-                        Flag Issue
-                      </button>
                     </div>
 
                     {/* Explain Result */}
@@ -789,6 +889,21 @@ export default function LecturePage({
                   >
                     <MessageCircle className="w-3.5 h-3.5" />
                     Ask Tutor
+                  </button>
+                  <button
+                    onClick={startRename}
+                    className="flex items-center gap-2 w-full text-xs text-[#2C2A25] hover:text-[#1a1815] py-1.5 transition-colors"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    Rename
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={deleteLoading}
+                    className="flex items-center gap-2 w-full text-xs text-[#8a7f6f] hover:text-red-500 py-1.5 transition-colors disabled:opacity-40"
+                  >
+                    {deleteLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                    Delete Lecture
                   </button>
                 </div>
               </div>

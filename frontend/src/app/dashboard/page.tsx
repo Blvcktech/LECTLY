@@ -198,7 +198,7 @@ export default function DashboardPage() {
             Lectures
           </Link>
           <Link
-            href="#"
+            href="/profile"
             className="flex items-center gap-3 px-3 py-2.5 text-sm text-[#8a7f6f] hover:text-[#1a1815] rounded-lg transition-colors"
           >
             <User className="w-4 h-4" />
@@ -617,7 +617,7 @@ export default function DashboardPage() {
             <Upload className="w-5 h-5" />
             <span className="text-[10px] font-medium">Upload</span>
           </Link>
-          <Link href="#" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
             <User className="w-5 h-5" />
             <span className="text-[10px] font-medium">Profile</span>
           </Link>

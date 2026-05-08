@@ -25,6 +25,7 @@ from app.services.notes import generate_notes, explain_text, learn_mode, ask_tut
 from app.services.pdf_export import generate_notes_pdf
 from app.database import (
     delete_lecture as db_delete_lecture,
+    update_lecture as update_lecture_db,
     ensure_clerk_user,
     save_progress as db_save_progress,
     get_progress as db_get_progress,
@@ -249,6 +250,40 @@ async def delete_lecture(lecture_id: str):
     db_delete_lecture(lecture_id)
 
     return {"message": "Lecture deleted successfully", "lecture_id": lecture_id}
+
+
+@router.patch("/lectures/{lecture_id}")
+async def update_lecture_details(lecture_id: str, request: Request):
+    """Update lecture details (title, subject)."""
+    from datetime import datetime
+    from app.database import save_notes
+
+    lecture = await get_lecture(lecture_id)
+    if not lecture:
+        raise HTTPException(status_code=404, detail="Lecture not found")
+
+    body = await request.json()
+    updates = {}
+
+    if "title" in body and body["title"]:
+        title = body["title"].strip()
+        if lecture.get("notes"):
+            notes = lecture["notes"]
+            save_notes(
+                lecture_id,
+                title,
+                notes.get("summary", ""),
+                notes.get("sections", []),
+                datetime.utcnow(),
+            )
+
+    if "subject" in body:
+        updates["subject"] = body["subject"]
+
+    if updates:
+        update_lecture_db(lecture_id, updates)
+
+    return {"message": "Lecture updated", "lecture_id": lecture_id}
 
 
 # ──────────────────────────────────────────────

@@ -292,6 +292,18 @@ export async function deleteLecture(lectureId: string): Promise<void> {
   }
 }
 
+export async function renameLecture(lectureId: string, title: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/lectures/${lectureId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ title }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to rename lecture");
+  }
+}
+
 export async function askTutor(
   lectureId: string,
   question: string,
