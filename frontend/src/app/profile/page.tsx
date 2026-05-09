@@ -173,7 +173,7 @@ export default function ProfilePage() {
                 <p className="text-xs text-[#8a7f6f]">Free Plan</p>
               </div>
               <button
-                onClick={() => router.push("/dashboard")}
+                onClick={() => router.push("/profile/account")}
                 className="text-xs text-[#8a7f6f] border border-[rgba(217,185,130,0.35)] hover:border-[rgba(217,185,130,0.6)] px-3 py-1.5 rounded-lg transition-colors"
               >
                 Edit
@@ -254,27 +254,27 @@ export default function ProfilePage() {
                 Settings
               </p>
 
-              <button className="flex items-center justify-between w-full px-4 py-3 hover:bg-[#F7F4EE] transition-colors">
+              <Link href="/profile/account" className="flex items-center justify-between w-full px-4 py-3 hover:bg-[#F7F4EE] transition-colors">
                 <div className="flex items-center gap-3">
                   <User className="w-4 h-4 text-[#8a7f6f]" />
                   <span className="text-sm text-[#1a1815]">Account</span>
                 </div>
                 <ChevronRight className="w-4 h-4 text-[#8a7f6f]" />
-              </button>
+              </Link>
 
               <div className="border-t border-[rgba(217,185,130,0.15)] mx-4" />
 
-              <button className="flex items-center justify-between w-full px-4 py-3 hover:bg-[#F7F4EE] transition-colors">
+              <Link href="/profile/learning" className="flex items-center justify-between w-full px-4 py-3 hover:bg-[#F7F4EE] transition-colors">
                 <div className="flex items-center gap-3">
                   <GraduationCap className="w-4 h-4 text-[#8a7f6f]" />
                   <span className="text-sm text-[#1a1815]">Learning preferences</span>
                 </div>
                 <ChevronRight className="w-4 h-4 text-[#8a7f6f]" />
-              </button>
+              </Link>
 
               <div className="border-t border-[rgba(217,185,130,0.15)] mx-4" />
 
-              <button className="flex items-center justify-between w-full px-4 py-3 hover:bg-[#F7F4EE] transition-colors">
+              <Link href="/profile/subscription" className="flex items-center justify-between w-full px-4 py-3 hover:bg-[#F7F4EE] transition-colors">
                 <div className="flex items-center gap-3">
                   <Flame className="w-4 h-4 text-[#8a7f6f]" />
                   <span className="text-sm text-[#1a1815]">Subscription</span>
@@ -285,7 +285,7 @@ export default function ProfilePage() {
                   </span>
                   <ChevronRight className="w-4 h-4 text-[#8a7f6f]" />
                 </div>
-              </button>
+              </Link>
             </div>
 
             {/* Sign out */}
