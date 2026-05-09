@@ -14,6 +14,9 @@ import {
   Loader2,
   CheckCircle2,
   AlertCircle,
+  Home,
+  FileText,
+  User,
 } from "lucide-react";
 import { uploadLecture, processLecture } from "@/lib/api";
 
@@ -147,7 +150,7 @@ export default function UploadPage() {
       </nav>
 
       {/* Main */}
-      <main className="flex-1 px-4 py-10 sm:py-12">
+      <main className="flex-1 px-4 py-10 sm:py-12 pb-24">
         <div className="w-full max-w-4xl mx-auto">
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-[#1a1815] mb-1.5" style={{ fontFamily: "'Georgia', serif" }}>
@@ -389,6 +392,28 @@ export default function UploadPage() {
           )}
         </div>
       </main>
+
+      {/* Mobile Bottom Nav */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#FDFCF9] border-t border-[rgba(217,185,130,0.25)] backdrop-blur-xl">
+        <div className="flex items-center justify-around h-14">
+          <Link href="/dashboard" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+            <Home className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Home</span>
+          </Link>
+          <Link href="/lectures" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+            <FileText className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Lectures</span>
+          </Link>
+          <Link href="/upload" className="flex flex-col items-center gap-0.5 text-purple-600">
+            <Upload className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Upload</span>
+          </Link>
+          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+            <User className="w-5 h-5" />
+            <span className="text-[10px] font-medium">You</span>
+          </Link>
+        </div>
+      </nav>
     </div>
   );
 }
