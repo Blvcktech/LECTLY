@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 10080  # 7 days
 
+    # Clerk (set CLERK_ISSUER in .env, e.g. "https://your-app.clerk.accounts.dev")
+    clerk_issuer: str = ""
+
     # File Storage
     upload_dir: str = "./uploads"
     processed_dir: str = "./processed"

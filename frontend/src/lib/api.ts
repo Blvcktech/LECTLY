@@ -331,6 +331,26 @@ export async function askTutor(
   return res.json();
 }
 
+export interface UserLimits {
+  tier: string;
+  lectures_used: number;
+  lectures_limit: number;
+  lectures_remaining: number;
+  can_upload: boolean;
+}
+
+export async function getUserLimits(): Promise<UserLimits> {
+  const res = await fetch(`${API_URL}/api/user/limits`, {
+    headers: { ...authHeaders() },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch user limits");
+  }
+
+  return res.json();
+}
+
 export async function healthCheck(): Promise<{
   status: string;
   openai_configured: boolean;

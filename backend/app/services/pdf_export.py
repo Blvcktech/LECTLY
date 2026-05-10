@@ -26,14 +26,15 @@ from reportlab.platypus import (
 from app.database import get_lecture as db_get_lecture
 
 
-# ── Brand Colors ──
-PURPLE = HexColor("#7C3AED")
-DARK_BG = HexColor("#1E293B")
-LIGHT_GRAY = HexColor("#64748B")
-MEDIUM_GRAY = HexColor("#94A3B8")
+# ── Quiet Study Brand Colors ──
+PURPLE = HexColor("#9333EA")        # purple-600
+DARK_TEXT = HexColor("#1a1815")     # primary dark
+LIGHT_GRAY = HexColor("#8a7f6f")   # secondary text
+MEDIUM_GRAY = HexColor("#b5ad9e")  # muted text
 WHITE = HexColor("#FFFFFF")
-LIGHT_PURPLE = HexColor("#EDE9FE")
-SECTION_BG = HexColor("#F8FAFC")
+CREAM = HexColor("#F7F4EE")        # background
+PAPER = HexColor("#FDFCF9")        # card background
+GOLD_BORDER = HexColor("#D9B982")  # accent border
 
 
 def _get_styles():
@@ -46,7 +47,7 @@ def _get_styles():
         fontName="Helvetica-Bold",
         fontSize=22,
         leading=28,
-        textColor=HexColor("#1E293B"),
+        textColor=DARK_TEXT,
         spaceAfter=6,
     ))
 
@@ -56,7 +57,7 @@ def _get_styles():
         fontName="Helvetica",
         fontSize=10,
         leading=16,
-        textColor=HexColor("#64748B"),
+        textColor=LIGHT_GRAY,
         spaceAfter=16,
         alignment=TA_JUSTIFY,
     ))
@@ -67,7 +68,7 @@ def _get_styles():
         fontName="Helvetica-Bold",
         fontSize=14,
         leading=20,
-        textColor=HexColor("#7C3AED"),
+        textColor=PURPLE,
         spaceBefore=20,
         spaceAfter=8,
     ))
@@ -78,7 +79,7 @@ def _get_styles():
         fontName="Helvetica",
         fontSize=10,
         leading=16,
-        textColor=HexColor("#334155"),
+        textColor=HexColor("#2C2A25"),
         spaceAfter=8,
         alignment=TA_JUSTIFY,
     ))
@@ -89,7 +90,7 @@ def _get_styles():
         fontName="Helvetica",
         fontSize=9.5,
         leading=14,
-        textColor=HexColor("#334155"),
+        textColor=HexColor("#2C2A25"),
         leftIndent=16,
         spaceAfter=4,
     ))
@@ -100,7 +101,7 @@ def _get_styles():
         fontName="Helvetica-Bold",
         fontSize=9.5,
         leading=14,
-        textColor=HexColor("#1E293B"),
+        textColor=DARK_TEXT,
         leftIndent=16,
     ))
 
@@ -110,7 +111,7 @@ def _get_styles():
         fontName="Helvetica",
         fontSize=9.5,
         leading=14,
-        textColor=HexColor("#475569"),
+        textColor=LIGHT_GRAY,
         leftIndent=16,
         spaceAfter=6,
     ))
@@ -120,7 +121,7 @@ def _get_styles():
         name="Footer",
         fontName="Helvetica",
         fontSize=8,
-        textColor=HexColor("#94A3B8"),
+        textColor=MEDIUM_GRAY,
         alignment=TA_CENTER,
     ))
 
@@ -130,7 +131,7 @@ def _get_styles():
         fontName="Helvetica-Bold",
         fontSize=8,
         leading=12,
-        textColor=HexColor("#7C3AED"),
+        textColor=PURPLE,
         spaceAfter=4,
     ))
 
@@ -226,7 +227,7 @@ def generate_notes_pdf(lecture_id: str) -> bytes:
     story.append(HRFlowable(
         width="100%",
         thickness=0.5,
-        color=HexColor("#E2E8F0"),
+        color=GOLD_BORDER,
         spaceAfter=10,
     ))
 
@@ -292,7 +293,7 @@ def generate_notes_pdf(lecture_id: str) -> bytes:
         section_elements.append(HRFlowable(
             width="100%",
             thickness=0.3,
-            color=HexColor("#E2E8F0"),
+            color=GOLD_BORDER,
             spaceAfter=4,
         ))
 

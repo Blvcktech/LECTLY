@@ -405,6 +405,18 @@ def delete_lecture(lecture_id: str) -> bool:
     return deleted
 
 
+def count_user_lectures(user_id: str) -> int:
+    """Count how many lectures a user has."""
+    conn = get_connection()
+    row = _fetchone(
+        conn,
+        f"SELECT COUNT(*) as cnt FROM lectures WHERE user_id = {P}",
+        (user_id,),
+    )
+    conn.close()
+    return row["cnt"] if row else 0
+
+
 def list_lectures(user_id: Optional[str] = None) -> list[dict]:
     """List lectures with their notes (for dashboard). Optionally filter by user."""
     conn = get_connection()

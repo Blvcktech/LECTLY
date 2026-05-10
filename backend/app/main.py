@@ -30,16 +30,33 @@ app = FastAPI(
 )
 
 
+# Parse allowed origins from settings
+_allowed_origins = set(
+    origin.strip()
+    for origin in settings.allowed_origins.split(",")
+    if origin.strip()
+)
+
+
 # Manual CORS middleware to guarantee headers are always set — even on errors
 class CORSAlwaysMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        origin = request.headers.get("origin", "")
+
+        # Only allow configured origins (or any origin in debug mode)
+        if settings.debug or origin in _allowed_origins:
+            allow_origin = origin
+        else:
+            allow_origin = ""
+
         # Handle preflight OPTIONS requests
         if request.method == "OPTIONS":
             response = Response()
-            response.headers["Access-Control-Allow-Origin"] = "*"
-            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
-            response.headers["Access-Control-Allow-Headers"] = "*"
-            response.headers["Access-Control-Max-Age"] = "3600"
+            if allow_origin:
+                response.headers["Access-Control-Allow-Origin"] = allow_origin
+                response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+                response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+                response.headers["Access-Control-Max-Age"] = "3600"
             return response
 
         try:
@@ -49,9 +66,10 @@ class CORSAlwaysMiddleware(BaseHTTPMiddleware):
                 status_code=500,
                 content={"detail": str(e)},
             )
-        response.headers["Access-Control-Allow-Origin"] = "*"
-        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
-        response.headers["Access-Control-Allow-Headers"] = "*"
+        if allow_origin:
+            response.headers["Access-Control-Allow-Origin"] = allow_origin
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
         return response
 
 
@@ -65,9 +83,8 @@ app.include_router(lectures_router)
 async def root():
     return {
         "app": "Lectly API",
-        "version": "0.2.0",
+        "version": "0.3.0",
         "status": "running",
-        "cors": "open",
         "docs": "/docs",
     }
 
