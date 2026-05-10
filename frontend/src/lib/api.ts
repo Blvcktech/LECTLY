@@ -233,7 +233,8 @@ export async function explainText(
 export async function learnMode(
   lectureId: string,
   level: string = "intermediate",
-  sectionIndex?: number
+  sectionIndex?: number,
+  cardStyle: string = "mixed"
 ): Promise<LearnResult> {
   const res = await fetch(`${API_URL}/api/learn`, {
     method: "POST",
@@ -242,6 +243,7 @@ export async function learnMode(
       lecture_id: lectureId,
       level,
       section_index: sectionIndex,
+      card_style: cardStyle,
     }),
   });
 

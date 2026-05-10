@@ -351,6 +351,27 @@ export default function LearnModePage({
   const [learnResult, setLearnResult] = useState<LearnResult | null>(null);
   const [learnLoading, setLearnLoading] = useState(false);
 
+  // Card style preference from settings
+  const [cardStyle, setCardStyle] = useState("mixed");
+
+  // Load learning preferences from localStorage (set in Settings > Learning Preferences)
+  useEffect(() => {
+    try {
+      const prefs = localStorage.getItem("lectly_learning_prefs");
+      if (prefs) {
+        const parsed = JSON.parse(prefs);
+        if (parsed.difficulty && ["beginner", "intermediate", "advanced"].includes(parsed.difficulty)) {
+          setLearnLevel(parsed.difficulty);
+        }
+        if (parsed.cardStyle && ["mixed", "explanations", "quizzes"].includes(parsed.cardStyle)) {
+          setCardStyle(parsed.cardStyle);
+        }
+      }
+    } catch {
+      // ignore — use default
+    }
+  }, []);
+
   // Quiz state
   const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({});
   const [quizRevealed, setQuizRevealed] = useState<Record<number, boolean>>({});
@@ -745,7 +766,7 @@ export default function LearnModePage({
     setTutorExpanded(false);
     setChatMessages([]);
     try {
-      const result = await learnMode(id, learnLevel, sectionIndex);
+      const result = await learnMode(id, learnLevel, sectionIndex, cardStyle);
       setLearnResult(result);
 
       // Resume from last card if there's existing progress

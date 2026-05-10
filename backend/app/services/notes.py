@@ -557,7 +557,14 @@ async def learn_mode(request: LearnModeRequest) -> LearnModeResponse:
             for s in sections:
                 content += f"## {s['heading']}\n{s['content']}\n\n"
 
-        user_message = f"Level: {request.level}\n\nThe student's lecture covered this:\n{content}\n\nNow teach this topic PROPERLY. Go beyond what the lecturer said. Explain it like an expert tutor."
+        # Card style instruction
+        style_instruction = ""
+        if request.card_style == "explanations":
+            style_instruction = "\n\nIMPORTANT: The student prefers EXPLANATION cards. Generate 0 quiz questions. Focus entirely on clear explanations, analogies, and examples."
+        elif request.card_style == "quizzes":
+            style_instruction = "\n\nIMPORTANT: The student prefers QUIZ cards. Generate at least 5-6 quiz questions. Keep explanations brief and focus on testing understanding."
+
+        user_message = f"Level: {request.level}\n\nThe student's lecture covered this:\n{content}\n\nNow teach this topic PROPERLY. Go beyond what the lecturer said. Explain it like an expert tutor.{style_instruction}"
 
         # Try up to 2 times — retry if response is incomplete (missing key fields)
         data = None

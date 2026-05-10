@@ -18,7 +18,7 @@ import {
   FileText,
   User,
 } from "lucide-react";
-import { uploadLecture, processLecture } from "@/lib/api";
+import { uploadLecture, processLecture, getUserLimits, type UserLimits } from "@/lib/api";
 
 const ACCEPTED_EXTENSIONS = /\.(mp3|wav|m4a|aac|ogg|mp4|wma|flac|webm|opus|caf)$/i;
 const MAX_SIZE_MB = 500;
@@ -30,8 +30,14 @@ export default function UploadPage() {
   const router = useRouter();
   const { getToken } = useAuth();
 
+  const [limits, setLimits] = useState<UserLimits | null>(null);
+
   useEffect(() => {
-    getToken().then(setAuthToken);
+    getToken().then((token) => {
+      setAuthToken(token);
+      // Fetch limits after token is set
+      getUserLimits().then(setLimits).catch(() => {});
+    });
   }, [getToken]);
   const [state, setState] = useState<UploadState>("idle");
   const [file, setFile] = useState<File | null>(null);
@@ -161,8 +167,48 @@ export default function UploadPage() {
             </p>
           </div>
 
+          {/* Lecture limit info */}
+          {limits && limits.can_upload && (
+            <div className="mb-4 flex items-center gap-2 text-xs text-[#8a7f6f]">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              {limits.lectures_remaining} of {limits.lectures_limit} free lectures remaining
+            </div>
+          )}
+
+          {/* Limit reached — upgrade prompt */}
+          {limits && !limits.can_upload && (
+            <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl p-8 text-center">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-amber-500/10 flex items-center justify-center">
+                <AlertCircle className="w-7 h-7 text-amber-600" />
+              </div>
+              <h2
+                className="text-lg font-bold text-[#1a1815] mb-2"
+                style={{ fontFamily: "'Georgia', serif" }}
+              >
+                Free tier limit reached
+              </h2>
+              <p className="text-sm text-[#8a7f6f] mb-5 max-w-sm mx-auto">
+                You&apos;ve used all {limits.lectures_limit} free lectures. Upgrade to Basic for {limits.lectures_limit === 3 ? "8" : "more"} lectures per month.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link
+                  href="/profile/subscription"
+                  className="inline-flex items-center justify-center bg-[#1a1815] hover:bg-[#2a2520] text-white px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors"
+                >
+                  View plans
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className="inline-flex items-center justify-center border border-[rgba(217,185,130,0.35)] text-[#1a1815] px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-[#F7F4EE] transition-colors"
+                >
+                  Back to lectures
+                </Link>
+              </div>
+            </div>
+          )}
+
           {/* Upload Zone + Form */}
-          {(state === "idle" || state === "error") && (
+          {(state === "idle" || state === "error") && (!limits || limits.can_upload) && (
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Upload zone */}
               <div className="flex-1">

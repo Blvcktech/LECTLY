@@ -76,6 +76,7 @@ class LearnModeRequest(BaseModel):
     lecture_id: str
     section_index: Optional[int] = None
     level: str = "intermediate"
+    card_style: str = "mixed"  # "mixed", "explanations", "quizzes"
 
 
 class QuizQuestion(BaseModel):

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -12,6 +12,10 @@ import {
   Home,
   FileText,
   Upload,
+  Pencil,
+  Check,
+  X,
+  Loader2,
 } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 
@@ -19,6 +23,50 @@ export default function AccountPage() {
   const router = useRouter();
   const { user } = useUser();
   const [copied, setCopied] = useState(false);
+
+  // Editing state
+  const [editing, setEditing] = useState(false);
+  const [editFirst, setEditFirst] = useState("");
+  const [editLast, setEditLast] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Sync edit fields when user data loads
+  useEffect(() => {
+    if (user) {
+      setEditFirst(user.firstName || "");
+      setEditLast(user.lastName || "");
+    }
+  }, [user]);
+
+  const handleStartEdit = () => {
+    setEditFirst(user?.firstName || "");
+    setEditLast(user?.lastName || "");
+    setEditing(true);
+    setSaveSuccess(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditing(false);
+  };
+
+  const handleSave = async () => {
+    if (!user || !editFirst.trim()) return;
+    setSaving(true);
+    try {
+      await user.update({
+        firstName: editFirst.trim(),
+        lastName: editLast.trim(),
+      });
+      setEditing(false);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2000);
+    } catch (err) {
+      console.error("Failed to update profile:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const initials = user
     ? `${(user.firstName || "")[0] || ""}${(user.lastName || "")[0] || ""}`.toUpperCase() || "U"
@@ -72,19 +120,79 @@ export default function AccountPage() {
 
         {/* Account Details */}
         <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl overflow-hidden mb-4">
-          <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest px-4 pt-4 pb-2">
-            Account details
-          </p>
+          <div className="flex items-center justify-between px-4 pt-4 pb-2">
+            <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest">
+              Account details
+            </p>
+            {!editing ? (
+              <button
+                onClick={handleStartEdit}
+                className="flex items-center gap-1 text-[11px] text-purple-600 hover:text-purple-700 font-medium"
+              >
+                <Pencil className="w-3 h-3" />
+                Edit
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleCancelEdit}
+                  className="p-1 text-[#8a7f6f] hover:text-[#1a1815] transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={!editFirst.trim() || saving}
+                  className="flex items-center gap-1 text-[11px] text-white bg-[#1a1815] hover:bg-[#2a2520] disabled:opacity-40 px-2.5 py-1 rounded-md font-medium transition-colors"
+                >
+                  {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                  Save
+                </button>
+              </div>
+            )}
+          </div>
 
-          <div className="px-4 py-3">
-            <div className="flex items-center gap-3">
-              <User className="w-4 h-4 text-[#8a7f6f]" />
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] text-[#b5ad9e] mb-0.5">Full name</p>
-                <p className="text-sm text-[#1a1815]">{user?.fullName || "—"}</p>
+          {/* Name fields */}
+          {editing ? (
+            <div className="px-4 py-3 space-y-3">
+              <div>
+                <label className="text-[10px] text-[#b5ad9e] mb-1 block">First name</label>
+                <input
+                  type="text"
+                  value={editFirst}
+                  onChange={(e) => setEditFirst(e.target.value)}
+                  autoFocus
+                  className="w-full px-3 py-2 bg-[#F7F4EE] border border-[rgba(217,185,130,0.3)] rounded-lg text-sm text-[#1a1815] placeholder:text-[#b5ad9e] focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400/20"
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
+                />
+              </div>
+              <div>
+                <label className="text-[10px] text-[#b5ad9e] mb-1 block">Last name</label>
+                <input
+                  type="text"
+                  value={editLast}
+                  onChange={(e) => setEditLast(e.target.value)}
+                  className="w-full px-3 py-2 bg-[#F7F4EE] border border-[rgba(217,185,130,0.3)] rounded-lg text-sm text-[#1a1815] placeholder:text-[#b5ad9e] focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400/20"
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
+                />
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="px-4 py-3">
+              <div className="flex items-center gap-3">
+                <User className="w-4 h-4 text-[#8a7f6f]" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] text-[#b5ad9e] mb-0.5">Full name</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-[#1a1815]">{user?.fullName || "—"}</p>
+                    {saveSuccess && (
+                      <span className="text-[10px] text-emerald-600 font-medium">Updated!</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="border-t border-[rgba(217,185,130,0.15)] mx-4" />
 

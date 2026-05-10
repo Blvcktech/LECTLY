@@ -25,6 +25,7 @@ import { getLectures, deleteLecture, renameLecture, getAllProgress, Lecture, typ
 import { useUser, useClerk, useAuth } from "@clerk/nextjs";
 import { setAuthToken } from "@/lib/auth";
 import { useToast } from "@/components/Toast";
+import OnboardingModal from "@/components/OnboardingModal";
 
 function formatDuration(seconds?: number): string {
   if (!seconds) return "—";
@@ -203,6 +204,9 @@ export default function DashboardPage() {
 
   return (
     <div className="flex min-h-screen bg-[#F7F4EE]">
+      {/* Onboarding modal for email sign-ups without a name */}
+      <OnboardingModal />
+
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-60 border-r border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]">
         <div className="px-5 py-4 flex items-center gap-2.5">
