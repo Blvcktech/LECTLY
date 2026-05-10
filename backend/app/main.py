@@ -6,7 +6,7 @@ The AI-powered lecture companion that doesn't just take notes — it teaches.
 
 import os
 from fastapi import FastAPI, Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
 from app.config import get_settings
@@ -26,54 +26,27 @@ os.makedirs(settings.processed_dir, exist_ok=True)
 app = FastAPI(
     title="Lectly API",
     description="AI-powered lecture processing: audio cleanup, transcription, structured notes, and Learn Mode.",
-    version="0.2.1",
+    version="0.3.0",
 )
 
 
 # Parse allowed origins from settings
-_allowed_origins = set(
+_allowed_origins = [
     origin.strip()
     for origin in settings.allowed_origins.split(",")
     if origin.strip()
+]
+
+# Use FastAPI's built-in CORSMiddleware — more reliable than custom BaseHTTPMiddleware
+# (BaseHTTPMiddleware has known issues with streaming/upload requests in Starlette)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_allowed_origins if not settings.debug else ["*"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+    max_age=3600,
 )
-
-
-# Manual CORS middleware to guarantee headers are always set — even on errors
-class CORSAlwaysMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        origin = request.headers.get("origin", "")
-
-        # Only allow configured origins (or any origin in debug mode)
-        if settings.debug or origin in _allowed_origins:
-            allow_origin = origin
-        else:
-            allow_origin = ""
-
-        # Handle preflight OPTIONS requests
-        if request.method == "OPTIONS":
-            response = Response()
-            if allow_origin:
-                response.headers["Access-Control-Allow-Origin"] = allow_origin
-                response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-                response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-                response.headers["Access-Control-Max-Age"] = "3600"
-            return response
-
-        try:
-            response = await call_next(request)
-        except Exception as e:
-            response = JSONResponse(
-                status_code=500,
-                content={"detail": str(e)},
-            )
-        if allow_origin:
-            response.headers["Access-Control-Allow-Origin"] = allow_origin
-            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-            response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-        return response
-
-
-app.add_middleware(CORSAlwaysMiddleware)
 
 # Routes
 app.include_router(lectures_router)

@@ -223,20 +223,39 @@ async def get_lecture_detail(lecture_id: str, request: Request):
 
 
 @router.post("/explain", response_model=ExplainResponse)
-async def explain_section(request: ExplainRequest):
+async def explain_section(request: ExplainRequest, http_request: Request):
     """Explain a highlighted section of notes in simpler terms."""
+    _require_user_id(http_request)
     return await explain_text(request)
 
 
 @router.post("/learn", response_model=LearnModeResponse)
-async def activate_learn_mode(request: LearnModeRequest):
+async def activate_learn_mode(request: LearnModeRequest, http_request: Request):
     """Activate Learn Mode for a lecture section."""
+    user_id = _require_user_id(http_request)
+
+    # Verify the user owns this lecture
+    lecture = await get_lecture(request.lecture_id)
+    if not lecture:
+        raise HTTPException(status_code=404, detail="Lecture not found")
+    if lecture.get("user_id") and lecture["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
     return await learn_mode(request)
 
 
 @router.post("/tutor/ask", response_model=TutorAskResponse)
-async def tutor_ask(request: TutorAskRequest):
+async def tutor_ask(request: TutorAskRequest, http_request: Request):
     """Ask the AI Tutor a question about a lecture. Context-aware, conversational."""
+    user_id = _require_user_id(http_request)
+
+    # Verify ownership
+    lecture_check = await get_lecture(request.lecture_id)
+    if not lecture_check:
+        raise HTTPException(status_code=404, detail="Lecture not found")
+    if lecture_check.get("user_id") and lecture_check["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
     try:
         # Convert conversation history to dicts for the service
         history = [{"role": msg.role, "content": msg.content} for msg in request.conversation_history]

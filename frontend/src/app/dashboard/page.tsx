@@ -67,6 +67,8 @@ export default function DashboardPage() {
       try {
         setLoading(true);
         setError(null);
+
+        // Ensure auth token is set before API calls
         const token = await getToken();
         setAuthToken(token);
 
@@ -96,7 +98,8 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [getToken]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Get rich progress stats for a lecture
   const getLectureStats = (lectureId: string) => {

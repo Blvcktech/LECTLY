@@ -93,7 +93,8 @@ export default function LecturesPage() {
     }
     fetchData();
     return () => { cancelled = true; };
-  }, [getToken]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Progress helpers
   const getLectureStats = (lectureId: string) => {

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   BookOpen,
-  Settings,
   ChevronRight,
   LogOut,
   User,
@@ -55,7 +54,8 @@ export default function ProfilePage() {
     }
     fetchData();
     return () => { cancelled = true; };
-  }, [getToken]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Compute study stats
   const stats = useMemo(() => {
@@ -129,14 +129,11 @@ export default function ProfilePage() {
       <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={() => router.back()} className="text-[#8a7f6f] hover:text-[#1a1815] transition-colors">
+            <button onClick={() => router.push("/dashboard")} className="text-[#8a7f6f] hover:text-[#1a1815] transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </button>
             <span className="text-sm font-semibold text-[#1a1815]">You</span>
           </div>
-          <Link href="/dashboard" className="text-[#8a7f6f] hover:text-[#1a1815] transition-colors">
-            <Settings className="w-5 h-5" />
-          </Link>
         </div>
       </nav>
 

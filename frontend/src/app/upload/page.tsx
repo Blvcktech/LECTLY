@@ -38,7 +38,8 @@ export default function UploadPage() {
       // Fetch limits after token is set
       getUserLimits().then(setLimits).catch(() => {});
     });
-  }, [getToken]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [state, setState] = useState<UploadState>("idle");
   const [file, setFile] = useState<File | null>(null);
   const [courseCode, setCourseCode] = useState("");
