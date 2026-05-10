@@ -155,21 +155,26 @@ export default function UploadPage() {
     setFailedStep(null);
 
     const startStep = retryFromStep ?? 0;
+    // Use a local variable because React state updates are async
+    let currentLectureId = lectureId;
 
     try {
       // Step 0: Upload (skip if retrying from a later step)
       if (startStep <= 0) {
         updateStep(0, false, true);
         const uploadResult = await uploadLecture(file, undefined);
+        currentLectureId = uploadResult.id;
         setLectureId(uploadResult.id);
         updateStep(0, true, false);
       }
 
       // Step 1-2: Process (transcribe + generate notes)
       if (startStep <= 1) {
+        if (!currentLectureId) {
+          throw new Error("No lecture ID available. Please try uploading again.");
+        }
         updateStep(1, false, true);
-        const id = lectureId || ""; // use existing lectureId if retrying
-        await processLecture(id);
+        await processLecture(currentLectureId);
         updateStep(1, true, false);
         updateStep(2, true, false);
       }

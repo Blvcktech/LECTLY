@@ -26,7 +26,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { getLectures, deleteLecture, renameLecture, getAllProgress, Lecture, type StudyProgress } from "@/lib/api";
-import { useUser, useClerk, useAuth } from "@clerk/nextjs";
+import { useUser, useAuth } from "@clerk/nextjs";
 import { setAuthToken } from "@/lib/auth";
 import { useToast } from "@/components/Toast";
 
@@ -52,7 +52,6 @@ type FilterKey = "all" | "in-progress" | "not-started" | "completed";
 export default function LecturesPage() {
   const router = useRouter();
   const { user } = useUser();
-  const { signOut } = useClerk();
   const { getToken } = useAuth();
 
   const [search, setSearch] = useState("");
@@ -243,12 +242,13 @@ export default function LecturesPage() {
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">New Lecture</span>
               </Link>
-              <button
-                onClick={() => signOut({ redirectUrl: "/" })}
+              <Link
+                href="/profile"
+                title="Profile & settings"
                 className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-xs text-white font-bold hover:opacity-80 transition-opacity cursor-pointer"
               >
                 {user?.firstName?.charAt(0).toUpperCase() || "U"}
-              </button>
+              </Link>
             </div>
           </div>
         </header>
