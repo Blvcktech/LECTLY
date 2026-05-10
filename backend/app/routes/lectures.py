@@ -94,6 +94,10 @@ def _get_user_id_from_header(request: Request) -> Optional[str]:
         except jwt.InvalidTokenError as e:
             print(f"[Lectly] JWT verification failed: {e}")
             return None
+        except Exception as e:
+            # JWKS fetch failed, key not found, network error, etc.
+            # Fall through to dev fallback so the app doesn't crash
+            print(f"[Lectly] JWKS verification error (falling back to decode): {e}")
 
     # ── Local dev fallback: decode without verification (CLERK_ISSUER not set) ──
     try:
