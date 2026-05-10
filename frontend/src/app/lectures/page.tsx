@@ -23,6 +23,7 @@ import {
   Filter,
   LayoutGrid,
   LayoutList,
+  AlertCircle,
 } from "lucide-react";
 import { getLectures, deleteLecture, renameLecture, getAllProgress, Lecture, type StudyProgress } from "@/lib/api";
 import { useUser, useClerk, useAuth } from "@clerk/nextjs";
@@ -355,10 +356,20 @@ export default function LecturesPage() {
           {/* Error */}
           {!loading && error && (
             <div className="text-center py-14">
-              <p className="text-red-600 font-medium mb-2 text-sm">Something went wrong</p>
-              <p className="text-xs text-[#8a7f6f] mb-5">{error}</p>
-              <button onClick={() => window.location.reload()} className="text-sm bg-[#FDFCF9] border border-[rgba(217,185,130,0.35)] px-4 py-2 rounded-[10px]">
-                Try Again
+              <div className="w-14 h-14 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-7 h-7 text-red-500" />
+              </div>
+              <p className="text-[#1a1815] font-semibold mb-1" style={{ fontFamily: "'Georgia', serif" }}>Something went wrong</p>
+              <p className="text-sm text-[#8a7f6f] mb-5">
+                {error.includes("fetch") || error.includes("NetworkError")
+                  ? "Can't reach the server. Check your internet connection."
+                  : error}
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="flex items-center gap-2 text-sm font-semibold bg-[#1a1815] hover:bg-[#2a2520] text-white px-5 py-2.5 rounded-xl transition-colors mx-auto"
+              >
+                Try again
               </button>
             </div>
           )}

@@ -22,8 +22,6 @@ import {
   Code,
   Send,
   Sparkles,
-  Bookmark,
-  Settings,
   Layers,
   PenTool,
   FileText,
@@ -867,13 +865,29 @@ export default function LearnModePage({
   if (error && !lecture) {
     return (
       <div className="min-h-screen bg-[#F7F4EE] flex items-center justify-center px-4">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <p className="text-[#1a1815] font-medium mb-2">Error</p>
-          <p className="text-[#8a7f6f] text-sm mb-6">{error}</p>
-          <Link href={`/lecture/${id}`} className="text-purple-600 hover:text-purple-700 text-sm">
-            Back to Notes
-          </Link>
+        <div className="text-center max-w-sm">
+          <div className="w-14 h-14 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-7 h-7 text-red-500" />
+          </div>
+          <p className="text-[#1a1815] font-semibold mb-1" style={{ fontFamily: "'Georgia', serif" }}>
+            Something went wrong
+          </p>
+          <p className="text-[#8a7f6f] text-sm mb-5">
+            {error.includes("fetch") || error.includes("NetworkError")
+              ? "Can't reach the server. Check your internet connection."
+              : error}
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <button
+              onClick={() => window.location.reload()}
+              className="flex items-center gap-2 text-sm font-semibold bg-[#1a1815] hover:bg-[#2a2520] text-white px-5 py-2.5 rounded-xl transition-colors"
+            >
+              Try again
+            </button>
+            <Link href={`/lecture/${id}`} className="text-sm text-[#8a7f6f] hover:text-[#1a1815] transition-colors">
+              Back to notes
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -900,12 +914,7 @@ export default function LearnModePage({
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            <button className="text-[#8a7f6f] hover:text-[#1a1815] p-1.5 rounded-lg hover:bg-amber-100/50 transition-colors">
-              <Bookmark className="w-4.5 h-4.5" />
-            </button>
-            <button className="text-[#8a7f6f] hover:text-[#1a1815] p-1.5 rounded-lg hover:bg-amber-100/50 transition-colors">
-              <Settings className="w-4.5 h-4.5" />
-            </button>
+            {/* Reserved for future: bookmark, settings */}
           </div>
         </div>
       </nav>

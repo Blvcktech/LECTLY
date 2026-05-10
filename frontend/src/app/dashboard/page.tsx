@@ -15,11 +15,11 @@ import {
   Home,
   User,
   Trash2,
-  Play,
   ChevronRight,
   Pencil,
   Check,
   X,
+  AlertCircle,
 } from "lucide-react";
 import { getLectures, deleteLecture, renameLecture, getAllProgress, Lecture, type StudyProgress } from "@/lib/api";
 import { useUser, useClerk, useAuth } from "@clerk/nextjs";
@@ -326,15 +326,57 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Header with date */}
-          <div className="mb-6">
-            <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest mb-1">
-              {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-            </p>
-            <h1 className="text-2xl font-bold text-[#1a1815] leading-snug" style={{ fontFamily: "'Georgia', serif" }}>
-              {lastStudied && !loading ? "Pick up where\nyou left off." : lectures.length > 0 && !loading ? "Your lectures." : "Pick up where\nyou left off."}
+          {/* Header with greeting */}
+          <div className="mb-5">
+            <h1 className="text-xl font-bold text-[#1a1815] leading-snug" style={{ fontFamily: "'Georgia', serif" }}>
+              {!loading && user?.firstName ? `Good ${new Date().getHours() < 12 ? "morning" : new Date().getHours() < 17 ? "afternoon" : "evening"}, ${user.firstName}` : "Your dashboard"}
             </h1>
+            {!loading && lectures.length > 0 && (
+              <p className="text-sm text-[#8a7f6f] mt-1">
+                {lectures.length} lecture{lectures.length !== 1 ? "s" : ""} uploaded. {Math.max(0, 3 - lectures.length)} remaining on free plan.
+              </p>
+            )}
           </div>
+
+          {/* Quick stats row */}
+          {!loading && lectures.length > 0 && (
+            <div className="grid grid-cols-3 gap-2 mb-5">
+              <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-3 text-center">
+                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>
+                  {lectures.length}
+                </p>
+                <p className="text-[11px] text-[#8a7f6f] mt-0.5">Lectures</p>
+              </div>
+              <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-3 text-center">
+                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>
+                  {allProgress.length > 0
+                    ? `${Math.round(allProgress.filter(p => p.mastery_pct > 0).reduce((s, p) => s + p.mastery_pct, 0) / Math.max(1, allProgress.filter(p => p.mastery_pct > 0).length))}%`
+                    : "—"}
+                </p>
+                <p className="text-[11px] text-[#8a7f6f] mt-0.5">Avg mastery</p>
+              </div>
+              <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-3 text-center">
+                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>
+                  {(() => {
+                    const studyDates = new Set<string>();
+                    allProgress.forEach(p => {
+                      if (p.last_studied_at) studyDates.add(new Date(p.last_studied_at).toISOString().split("T")[0]);
+                    });
+                    let streak = 0;
+                    const today = new Date();
+                    for (let i = 0; i < 365; i++) {
+                      const d = new Date(today);
+                      d.setDate(today.getDate() - i);
+                      if (studyDates.has(d.toISOString().split("T")[0])) streak++;
+                      else if (i > 0) break;
+                    }
+                    return streak;
+                  })()}
+                </p>
+                <p className="text-[11px] text-[#8a7f6f] mt-0.5">Day streak</p>
+              </div>
+            </div>
+          )}
 
           {/* ── Continuity Card: Last studied ── */}
           {lastStudied && !loading && (() => {
@@ -379,8 +421,8 @@ export default function DashboardPage() {
                       )}
                     </div>
                   </div>
-                  <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center flex-shrink-0 ml-4 group-hover:scale-105 transition-transform">
-                    <Play className="w-5 h-5 text-[#1a1815] ml-0.5" />
+                  <div className="flex-shrink-0 ml-4 bg-white/10 hover:bg-white/15 rounded-xl px-4 py-2.5 text-sm font-semibold text-white group-hover:bg-white/20 transition-colors">
+                    Continue →
                   </div>
                 </div>
               </Link>
@@ -393,9 +435,9 @@ export default function DashboardPage() {
               Recent Lectures
             </h2>
             {lectures.length > 0 && (
-              <span className="text-[11px] font-medium text-[#8a7f6f]">
-                All {lectures.length} →
-              </span>
+              <Link href="/lectures" className="text-[11px] font-semibold text-purple-600 hover:text-purple-700 transition-colors">
+                View all
+              </Link>
             )}
           </div>
 
@@ -447,23 +489,30 @@ export default function DashboardPage() {
           {/* Error State */}
           {!loading && error && (
             <div className="text-center py-14">
-              <p className="text-red-600 font-medium mb-2 text-sm">
+              <div className="w-14 h-14 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-7 h-7 text-red-500" />
+              </div>
+              <p className="text-[#1a1815] font-semibold mb-1" style={{ fontFamily: "'Georgia', serif" }}>
                 Something went wrong
               </p>
-              <p className="text-xs text-[#8a7f6f] mb-5">{error}</p>
+              <p className="text-sm text-[#8a7f6f] mb-5">
+                {error.includes("fetch") || error.includes("NetworkError")
+                  ? "Can't reach the server. Check your internet connection."
+                  : error}
+              </p>
               <button
                 onClick={() => window.location.reload()}
-                className="inline-flex items-center gap-2 text-sm bg-[#FDFCF9] border border-[rgba(217,185,130,0.35)] hover:border-purple-400 text-[#1a1815] px-4 py-2 rounded-[10px] transition-colors"
+                className="flex items-center gap-2 text-sm font-semibold bg-[#1a1815] hover:bg-[#2a2520] text-white px-5 py-2.5 rounded-xl transition-colors mx-auto"
               >
-                Try Again
+                Try again
               </button>
             </div>
           )}
 
-          {/* Lectures List */}
+          {/* Lectures List — show max 4 on dashboard */}
           {!loading && !error && (
             <div className="space-y-2">
-              {filtered.map((lecture) => {
+              {filtered.slice(0, 4).map((lecture) => {
                 const isReady = lecture.status === "ready";
                 const title = lecture.notes?.title || lecture.filename;
                 const stats = getLectureStats(lecture.id);
@@ -592,6 +641,16 @@ export default function DashboardPage() {
                   </Link>
                 );
               })}
+
+              {/* Show "View all" if there are more lectures than displayed */}
+              {filtered.length > 4 && (
+                <Link
+                  href="/lectures"
+                  className="block text-center py-3 text-sm font-semibold text-purple-600 hover:text-purple-700 bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl hover:border-[rgba(217,185,130,0.5)] transition-all"
+                >
+                  View all {filtered.length} lectures →
+                </Link>
+              )}
             </div>
           )}
 

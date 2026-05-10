@@ -17,6 +17,8 @@ import {
   Home,
   FileText,
   User,
+  RotateCcw,
+  WifiOff,
 } from "lucide-react";
 import { uploadLecture, processLecture, getUserLimits, type UserLimits } from "@/lib/api";
 
@@ -52,6 +54,8 @@ export default function UploadPage() {
     { label: "Transcribing with AI", done: false, active: false },
     { label: "Generating structured notes", done: false, active: false },
   ]);
+  const [failedStep, setFailedStep] = useState<number | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback((f: File) => {
@@ -94,6 +98,8 @@ export default function UploadPage() {
     setError("");
     setProgress(0);
     setLectureId("");
+    setFailedStep(null);
+    setRetryCount(0);
     setSteps([
       { label: "Uploading audio", done: false, active: false },
       { label: "Transcribing with AI", done: false, active: false },
@@ -108,26 +114,93 @@ export default function UploadPage() {
     );
   };
 
-  const processFile = async () => {
+  const getErrorMessage = (err: unknown, step: number): string => {
+    const raw = err instanceof Error ? err.message : "";
+
+    // Network / connection errors
+    if (raw === "Failed to fetch" || raw.includes("NetworkError") || raw.includes("net::")) {
+      return "Can't reach the server. Check your internet connection and try again.";
+    }
+
+    // Timeout
+    if (raw.includes("aborted") || raw.includes("timeout") || raw.includes("AbortError")) {
+      return step === 0
+        ? "Upload timed out. Your file may be too large — try a shorter recording."
+        : "Processing took too long. This can happen with very long lectures — try again.";
+    }
+
+    // Server errors
+    if (raw.includes("500") || raw.includes("Internal Server Error")) {
+      return "Our server hit an error. This is on our end — please try again in a moment.";
+    }
+
+    // Auth errors
+    if (raw.includes("401") || raw.includes("Authentication")) {
+      return "Your session expired. Please refresh the page and try again.";
+    }
+
+    // Tier limit
+    if (raw.includes("403") || raw.includes("limit")) {
+      return raw;
+    }
+
+    // Fallback
+    return raw || "Something went wrong. Please try again.";
+  };
+
+  const processFile = async (retryFromStep?: number) => {
     if (!file) return;
     setState("processing");
+    setError("");
+    setFailedStep(null);
+
+    const startStep = retryFromStep ?? 0;
 
     try {
-      updateStep(0, false, true);
-      const uploadResult = await uploadLecture(file, undefined);
-      setLectureId(uploadResult.id);
-      updateStep(0, true, false);
+      // Step 0: Upload (skip if retrying from a later step)
+      if (startStep <= 0) {
+        updateStep(0, false, true);
+        const uploadResult = await uploadLecture(file, undefined);
+        setLectureId(uploadResult.id);
+        updateStep(0, true, false);
+      }
 
-      updateStep(1, false, true);
-      const processResult = await processLecture(uploadResult.id);
-      updateStep(1, true, false);
-      updateStep(2, true, false);
+      // Step 1-2: Process (transcribe + generate notes)
+      if (startStep <= 1) {
+        updateStep(1, false, true);
+        const id = lectureId || ""; // use existing lectureId if retrying
+        await processLecture(id);
+        updateStep(1, true, false);
+        updateStep(2, true, false);
+      }
 
       setState("done");
+      setRetryCount(0);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      // Determine which step failed
+      const doneSteps = steps.filter(s => s.done).length;
+      const failed = doneSteps === 0 ? 0 : doneSteps;
+      setFailedStep(failed);
+      setRetryCount(prev => prev + 1);
+
+      // Mark the active step as no longer active
+      setSteps(prev => prev.map(s => ({ ...s, active: false })));
+
+      const message = getErrorMessage(err, failed);
       setError(message);
       setState("error");
+    }
+  };
+
+  const retryFromFailedStep = () => {
+    if (failedStep === null) {
+      processFile();
+    } else if (failedStep === 0) {
+      // Upload failed — need to start over
+      processFile(0);
+    } else {
+      // Processing failed — retry from processing step (upload already done)
+      processFile(1);
     }
   };
 
@@ -287,11 +360,66 @@ export default function UploadPage() {
             </div>
           )}
 
-          {/* Error */}
+          {/* Error with retry */}
           {state === "error" && error && (
-            <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-              <p className="text-sm text-red-700">{error}</p>
+            <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-5">
+              <div className="flex items-start gap-3 mb-4">
+                {error.includes("internet") || error.includes("server") ? (
+                  <WifiOff className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                ) : (
+                  <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                )}
+                <div>
+                  <p className="text-sm font-semibold text-red-800 mb-1">
+                    {failedStep === 0 ? "Upload failed" : "Processing failed"}
+                  </p>
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
+
+              {/* Show completed steps if any */}
+              {failedStep !== null && failedStep > 0 && (
+                <div className="mb-4 pl-8">
+                  {steps.map((step, i) => (
+                    <div key={step.label} className="flex items-center gap-2 text-xs py-0.5">
+                      {step.done ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+                      ) : i === failedStep ? (
+                        <AlertCircle className="w-3.5 h-3.5 text-red-500" />
+                      ) : (
+                        <div className="w-3.5 h-3.5 rounded-full border border-[rgba(217,185,130,0.4)]" />
+                      )}
+                      <span className={step.done ? "text-green-700" : i === failedStep ? "text-red-700 font-medium" : "text-[#8a7f6f]"}>
+                        {step.label}
+                        {i === failedStep && " — failed"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-center gap-3 pl-8">
+                {retryCount < 3 && !error.includes("limit") && !error.includes("session expired") && (
+                  <button
+                    onClick={() => retryFromFailedStep()}
+                    className="flex items-center gap-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    {failedStep === 0 ? "Retry upload" : "Retry processing"}
+                  </button>
+                )}
+                <button
+                  onClick={removeFile}
+                  className="text-sm text-red-600 hover:text-red-800 font-medium transition-colors"
+                >
+                  Start over
+                </button>
+                {retryCount >= 3 && (
+                  <span className="text-xs text-red-500 ml-auto">
+                    Multiple retries failed. Try a different file or come back later.
+                  </span>
+                )}
+              </div>
             </div>
           )}
 
@@ -335,7 +463,7 @@ export default function UploadPage() {
               </div>
 
               <button
-                onClick={processFile}
+                onClick={() => processFile()}
                 className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white py-3 rounded-xl font-semibold transition-all shadow-md shadow-purple-500/15"
               >
                 <Upload className="w-5 h-5" />
@@ -353,45 +481,43 @@ export default function UploadPage() {
                 <div className="absolute inset-[8px] rounded-full border-[3px] border-transparent border-t-blue-500 animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
               </div>
               <h3 className="text-lg font-bold text-[#1a1815] mb-1" style={{ fontFamily: "'Georgia', serif" }}>
-                Processing Your Lecture
+                Processing your lecture
               </h3>
               <p className="text-sm text-[#8a7f6f] mb-7">
-                This usually takes 2-3 minutes
+                This usually takes 1–3 minutes
               </p>
-              <div className="space-y-2 text-left max-w-xs mx-auto mb-6">
-                {steps.map((step) => (
-                  <div
-                    key={step.label}
-                    className="flex items-center gap-3 text-sm py-1"
-                  >
-                    {step.done ? (
-                      <CheckCircle2 className="w-[18px] h-[18px] text-green-600" />
-                    ) : step.active ? (
-                      <Loader2 className="w-[18px] h-[18px] text-purple-500 animate-spin" />
-                    ) : (
-                      <div className="w-[18px] h-[18px] rounded-full border-2 border-[rgba(217,185,130,0.4)] flex-shrink-0" />
-                    )}
-                    <span
-                      className={
-                        step.done
-                          ? "text-green-700"
-                          : step.active
-                          ? "text-[#1a1815] font-semibold"
-                          : "text-[#8a7f6f]"
-                      }
-                    >
-                      {step.label}
-                    </span>
-                  </div>
-                ))}
+              <div className="space-y-2 text-left max-w-sm mx-auto mb-6">
+                {steps.map((step, i) => {
+                  const timeEstimates = ["a few seconds", "~30–60 seconds", "~30–60 seconds"];
+                  return (
+                    <div key={step.label} className="flex items-center gap-3 text-sm py-1.5">
+                      {step.done ? (
+                        <CheckCircle2 className="w-[18px] h-[18px] text-green-600 flex-shrink-0" />
+                      ) : step.active ? (
+                        <Loader2 className="w-[18px] h-[18px] text-purple-500 animate-spin flex-shrink-0" />
+                      ) : (
+                        <div className="w-[18px] h-[18px] rounded-full border-2 border-[rgba(217,185,130,0.4)] flex-shrink-0" />
+                      )}
+                      <span className={`flex-1 ${step.done ? "text-green-700" : step.active ? "text-[#1a1815] font-semibold" : "text-[#8a7f6f]"}`}>
+                        {step.label}
+                      </span>
+                      {step.done && (
+                        <span className="text-[11px] text-green-600 font-medium">Done</span>
+                      )}
+                      {step.active && (
+                        <span className="text-[11px] text-purple-600 font-medium">{timeEstimates[i]}</span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
               {/* Progress bar */}
-              <div className="max-w-xs mx-auto">
+              <div className="max-w-sm mx-auto">
                 <div className="flex justify-between mb-1.5">
                   <span className="text-xs text-[#8a7f6f]">Progress</span>
                   <span className="text-xs text-purple-600 font-semibold">
-                    {steps.filter(s => s.done).length === 0 && steps.some(s => s.active) ? "33%" :
-                     steps.filter(s => s.done).length === 1 ? "45%" :
+                    {steps.filter(s => s.done).length === 0 && steps.some(s => s.active) ? "15%" :
+                     steps.filter(s => s.done).length === 1 ? "40%" :
                      steps.filter(s => s.done).length === 2 ? "80%" :
                      steps.filter(s => s.done).length === 3 ? "100%" : "0%"}
                   </span>
@@ -400,8 +526,8 @@ export default function UploadPage() {
                   <div
                     className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-500"
                     style={{
-                      width: steps.filter(s => s.done).length === 0 && steps.some(s => s.active) ? "33%" :
-                             steps.filter(s => s.done).length === 1 ? "45%" :
+                      width: steps.filter(s => s.done).length === 0 && steps.some(s => s.active) ? "15%" :
+                             steps.filter(s => s.done).length === 1 ? "40%" :
                              steps.filter(s => s.done).length === 2 ? "80%" :
                              steps.filter(s => s.done).length === 3 ? "100%" : "0%"
                     }}
