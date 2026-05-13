@@ -45,7 +45,7 @@ function formatDate(iso: string): string {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user } = useUser();
+  const { user, isLoaded: userLoaded } = useUser();
   const { getToken } = useAuth();
   const [search, setSearch] = useState("");
   const [lectures, setLectures] = useState<Lecture[]>([]);
@@ -60,6 +60,10 @@ export default function DashboardPage() {
   const { toast, confirm: showConfirm } = useToast();
 
   useEffect(() => {
+    // Wait for Clerk to fully load user before fetching — prevents
+    // unauthenticated requests that would return 401
+    if (!userLoaded) return;
+
     let cancelled = false;
 
     async function fetchData() {
@@ -98,7 +102,7 @@ export default function DashboardPage() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [userLoaded]);
 
   // Get rich progress stats for a lecture
   const getLectureStats = (lectureId: string) => {

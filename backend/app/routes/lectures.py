@@ -201,7 +201,7 @@ async def process_lecture(lecture_id: str, request: Request):
 @router.get("/lectures")
 async def get_lectures(request: Request):
     """List all lectures for the current user."""
-    user_id = _get_user_id_from_header(request)
+    user_id = _require_user_id(request)
     lectures = await list_lectures(user_id=user_id)
     return {"lectures": lectures, "count": len(lectures)}
 

@@ -51,7 +51,7 @@ type FilterKey = "all" | "in-progress" | "not-started" | "completed";
 
 export default function LecturesPage() {
   const router = useRouter();
-  const { user } = useUser();
+  const { user, isLoaded: userLoaded } = useUser();
   const { getToken } = useAuth();
 
   const [search, setSearch] = useState("");
@@ -70,6 +70,10 @@ export default function LecturesPage() {
   const { toast, confirm: showConfirm } = useToast();
 
   useEffect(() => {
+    // Wait for Clerk to fully load user before fetching — prevents
+    // unauthenticated requests that would return 401
+    if (!userLoaded) return;
+
     let cancelled = false;
     async function fetchData() {
       try {
@@ -94,7 +98,7 @@ export default function LecturesPage() {
     fetchData();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [userLoaded]);
 
   // Progress helpers
   const getLectureStats = (lectureId: string) => {
