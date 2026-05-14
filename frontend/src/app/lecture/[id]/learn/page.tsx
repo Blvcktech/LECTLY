@@ -1266,9 +1266,9 @@ export default function LearnModePage({
                             </div>
 
                             <div className="p-6 sm:p-8 pt-4">
-                              <h2 className="text-lg font-bold text-[#1a1815] leading-snug mb-5" style={{ fontFamily: "'Georgia', serif" }}>
-                                {q.question}
-                              </h2>
+                              <div className="text-lg font-bold text-[#1a1815] leading-snug mb-5" style={{ fontFamily: "'Georgia', serif" }}>
+                                <RenderBody text={q.question} />
+                              </div>
 
                               {/* Options */}
                               <div className="space-y-2.5">
@@ -1305,7 +1305,7 @@ export default function LearnModePage({
                                          isRevealed && isSelected && !isCorrectOpt ? <XCircle className="w-4 h-4" /> :
                                          String.fromCharCode(65 + oi)}
                                       </div>
-                                      <span className={isRevealed && isSelected && !isCorrectOpt ? "line-through" : ""}>{opt}</span>
+                                      <span className={isRevealed && isSelected && !isCorrectOpt ? "line-through" : ""}><RenderInline text={opt} /></span>
                                       {isRevealed && isSelected && !isCorrectOpt && (
                                         <span className="ml-auto text-[10px] font-bold text-red-500 uppercase">Your pick</span>
                                       )}
@@ -1325,10 +1325,10 @@ export default function LearnModePage({
                                     : "bg-amber-50 border border-amber-200/50 text-amber-900"
                                 }`}>
                                   {isCorrect ? (
-                                    <p><strong>Correct!</strong> {q.explanation}</p>
+                                    <div><p className="mb-2"><strong>Correct!</strong></p><RenderBody text={q.explanation} /></div>
                                   ) : (
                                     <>
-                                      <p className="mb-3"><strong>Not quite.</strong> {q.explanation}</p>
+                                      <div className="mb-3"><p className="mb-2"><strong>Not quite.</strong></p><RenderBody text={q.explanation} /></div>
 
                                       {/* Reteach */}
                                       {reteachIndex === qi && (reteachLoading || reteachText) ? (
