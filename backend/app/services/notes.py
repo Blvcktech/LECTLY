@@ -1,8 +1,9 @@
 """
 Note generation service.
 
-Takes raw transcript and generates structured, hierarchical notes
-using Google Gemini 2.0 Flash.
+Takes raw transcript and generates structured, hierarchical notes.
+Uses Gemini 2.5 Flash for note/flashcard generation.
+Uses Claude Haiku for tutoring, Learn Mode, and explanations.
 """
 
 import json
@@ -309,6 +310,80 @@ def _call_gemini(system_prompt: str, user_message: str, json_mode: bool = True, 
     raise Exception("Gemini API failed after all retries")
 
 
+def _call_claude(system_prompt: str, user_message: str, json_mode: bool = True, temperature: float = 0.3) -> str:
+    """Call Anthropic Claude Haiku for high-quality educational responses."""
+    import time as _time
+    settings = get_settings()
+    key = settings.anthropic_api_key
+
+    if not key:
+        raise ValueError("No Anthropic API key")
+
+    api_url = "https://api.anthropic.com/v1/messages"
+    headers = {
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
+    }
+
+    payload = {
+        "model": "claude-haiku-4-5-20251001",
+        "max_tokens": 8192,
+        "temperature": temperature,
+        "system": system_prompt,
+        "messages": [
+            {"role": "user", "content": user_message}
+        ],
+    }
+
+    # Retry up to 3 times on transient errors (429, 529)
+    max_retries = 3
+    for attempt in range(max_retries):
+        print(f"[Lectly] Calling Claude Haiku{'(JSON)' if json_mode else ' (text)'}{'...' if attempt == 0 else f' (retry {attempt})...'}")
+
+        response = http_requests.post(api_url, headers=headers, json=payload, timeout=120)
+
+        if response.status_code == 200:
+            result = response.json()
+            text = result["content"][0]["text"].strip()
+            print(f"[Lectly] Claude response received ({len(text)} chars)")
+            return text
+
+        # Retry on transient errors
+        if response.status_code in (429, 529) and attempt < max_retries - 1:
+            wait = (attempt + 1) * 3
+            print(f"[Lectly] Claude {response.status_code}, retrying in {wait}s...")
+            _time.sleep(wait)
+            continue
+
+        # Non-retryable error or final attempt
+        raise Exception(f"Claude API error ({response.status_code}): {response.text[:200]}")
+
+    raise Exception("Claude API failed after all retries")
+
+
+def _call_claude_with_fallback(system_prompt: str, user_message: str, json_mode: bool = True, temperature: float = 0.3) -> str:
+    """
+    Call Claude Haiku for educational content, with Gemini fallback.
+    Used for tutoring, Learn Mode, and explanations.
+    """
+    try:
+        return _call_claude(system_prompt, user_message, json_mode=json_mode, temperature=temperature)
+    except Exception as e:
+        print(f"[Lectly] Claude failed: {e}")
+        print(f"[Lectly] Falling back to Gemini for educational content...")
+
+    # Fallback to Gemini
+    try:
+        return _call_gemini(system_prompt, user_message, json_mode=json_mode, temperature=temperature)
+    except Exception as e:
+        print(f"[Lectly] Gemini also failed: {e}")
+        print(f"[Lectly] Falling back to Groq...")
+
+    # Last resort fallback
+    return _call_groq(system_prompt, user_message)
+
+
 def _call_groq(system_prompt: str, user_message: str) -> str:
     """Call Groq API with Llama 3.1 8B (fallback)."""
     settings = get_settings()
@@ -514,7 +589,7 @@ async def explain_text(request: ExplainRequest) -> ExplainResponse:
     """Explain a highlighted section of notes in simpler terms."""
     try:
         user_message = f"Level: {request.level}\n\nText to explain:\n{request.text}"
-        raw_response = _call_llm(EXPLAIN_SYSTEM_PROMPT, user_message)
+        raw_response = _call_claude_with_fallback(EXPLAIN_SYSTEM_PROMPT, user_message)
         data = _parse_json_response(raw_response)
 
         return ExplainResponse(
@@ -569,7 +644,7 @@ async def learn_mode(request: LearnModeRequest) -> LearnModeResponse:
         # Try up to 2 times — retry if response is incomplete (missing key fields)
         data = None
         for attempt in range(2):
-            raw_response = _call_llm(LEARN_MODE_PROMPT, user_message)
+            raw_response = _call_claude_with_fallback(LEARN_MODE_PROMPT, user_message)
             data = _parse_json_response(raw_response)
 
             # Validate completeness
@@ -839,13 +914,13 @@ async def ask_tutor(
 
     print(f"[Lectly] Ask Tutor for lecture {lecture_id}: \"{question[:80]}...\"")
 
-    # Call LLM — tutor uses plain text response, not JSON
+    # Call Claude Haiku — tutor uses plain text response, not JSON
     # Higher temperature (0.5) for more natural, teaching-style responses
     try:
-        response = _call_gemini(TUTOR_SYSTEM_PROMPT, user_message, json_mode=False, temperature=0.5)
+        response = _call_claude_with_fallback(TUTOR_SYSTEM_PROMPT, user_message, json_mode=False, temperature=0.5)
     except Exception as e:
-        print(f"[Lectly] Gemini failed for tutor: {e}, falling back to Groq")
-        response = _call_groq(TUTOR_SYSTEM_PROMPT, user_message)
+        print(f"[Lectly] All LLMs failed for tutor: {e}")
+        response = "I'm having trouble connecting right now. Please try again in a moment."
 
     print(f"[Lectly] Tutor response: {len(response)} chars")
     return response
