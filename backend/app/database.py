@@ -157,6 +157,19 @@ def init_db():
                 FOREIGN KEY (lecture_id) REFERENCES lectures(id) ON DELETE CASCADE
             )
         """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS learn_mode_cache (
+                id SERIAL PRIMARY KEY,
+                lecture_id TEXT NOT NULL,
+                section_index INTEGER NOT NULL,
+                level TEXT NOT NULL DEFAULT 'intermediate',
+                card_style TEXT NOT NULL DEFAULT 'mixed',
+                response_json TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(lecture_id, section_index, level, card_style),
+                FOREIGN KEY (lecture_id) REFERENCES lectures(id) ON DELETE CASCADE
+            )
+        """)
         conn.commit()
     else:
         cursor.executescript("""
@@ -219,6 +232,18 @@ def init_db():
                 created_at TEXT NOT NULL,
                 UNIQUE(user_id, lecture_id, section_index),
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (lecture_id) REFERENCES lectures(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS learn_mode_cache (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                lecture_id TEXT NOT NULL,
+                section_index INTEGER NOT NULL,
+                level TEXT NOT NULL DEFAULT 'intermediate',
+                card_style TEXT NOT NULL DEFAULT 'mixed',
+                response_json TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(lecture_id, section_index, level, card_style),
                 FOREIGN KEY (lecture_id) REFERENCES lectures(id) ON DELETE CASCADE
             );
         """)
@@ -527,6 +552,49 @@ def save_notes(lecture_id: str, title: str, summary: str, sections: list, genera
         )
     conn.commit()
     conn.close()
+
+
+# ──────────────────────────────────────────────
+# Learn Mode Cache
+# ──────────────────────────────────────────────
+
+def save_learn_mode_cache(lecture_id: str, section_index: int, level: str, card_style: str, response_json: str):
+    """Cache a Learn Mode response for instant retrieval."""
+    conn = get_connection()
+    if USE_POSTGRES:
+        _execute(
+            conn,
+            f"""INSERT INTO learn_mode_cache (lecture_id, section_index, level, card_style, response_json, created_at)
+               VALUES ({P}, {P}, {P}, {P}, {P}, {P})
+               ON CONFLICT(lecture_id, section_index, level, card_style) DO UPDATE SET
+               response_json = EXCLUDED.response_json,
+               created_at = EXCLUDED.created_at""",
+            (lecture_id, section_index, level, card_style, response_json, datetime.utcnow().isoformat()),
+        )
+    else:
+        _execute(
+            conn,
+            f"""INSERT INTO learn_mode_cache (lecture_id, section_index, level, card_style, response_json, created_at)
+               VALUES ({P}, {P}, {P}, {P}, {P}, {P})
+               ON CONFLICT(lecture_id, section_index, level, card_style) DO UPDATE SET
+               response_json = excluded.response_json,
+               created_at = excluded.created_at""",
+            (lecture_id, section_index, level, card_style, response_json, datetime.utcnow().isoformat()),
+        )
+    conn.commit()
+    conn.close()
+
+
+def get_learn_mode_cache(lecture_id: str, section_index: int, level: str, card_style: str) -> Optional[str]:
+    """Retrieve cached Learn Mode response. Returns JSON string or None."""
+    conn = get_connection()
+    row = _fetchone(
+        conn,
+        f"SELECT response_json FROM learn_mode_cache WHERE lecture_id = {P} AND section_index = {P} AND level = {P} AND card_style = {P}",
+        (lecture_id, section_index, level, card_style),
+    )
+    conn.close()
+    return row["response_json"] if row else None
 
 
 # ──────────────────────────────────────────────

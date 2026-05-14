@@ -28,7 +28,13 @@ from app.models.lecture import (
     ResourceItem,
     LectureStatus,
 )
-from app.database import get_lecture as db_get_lecture, update_lecture, save_notes as db_save_notes
+from app.database import (
+    get_lecture as db_get_lecture,
+    update_lecture,
+    save_notes as db_save_notes,
+    save_learn_mode_cache,
+    get_learn_mode_cache,
+)
 
 
 # ──────────────────────────────────────────────
@@ -609,6 +615,105 @@ async def explain_text(request: ExplainRequest) -> ExplainResponse:
         )
 
 
+def _build_learn_mode_response(data: dict, level: str) -> LearnModeResponse:
+    """Parse raw LLM JSON into a LearnModeResponse. Used by both cache and live generation."""
+    # Parse quiz
+    quiz = []
+    for q in data.get("quiz", []):
+        quiz.append(
+            QuizQuestion(
+                question=q.get("question", ""),
+                options=q.get("options", []),
+                correct_index=q.get("correct_index", 0),
+                explanation=q.get("explanation", ""),
+            )
+        )
+
+    # Parse explanation — handle both structured format and legacy string format
+    explanation_raw = data.get("explanation", "")
+    lesson_sections = []
+
+    if isinstance(explanation_raw, dict):
+        for s in explanation_raw.get("sections", []):
+            lesson_sections.append(
+                LessonSection(subtitle=s.get("subtitle", ""), body=s.get("body", ""))
+            )
+    elif isinstance(explanation_raw, list):
+        for item in explanation_raw:
+            if isinstance(item, dict) and "subtitle" in item:
+                lesson_sections.append(
+                    LessonSection(subtitle=item.get("subtitle", ""), body=item.get("body", ""))
+                )
+            elif isinstance(item, dict):
+                for k, v in item.items():
+                    lesson_sections.append(LessonSection(subtitle=str(k), body=str(v)))
+                    break
+            else:
+                lesson_sections.append(LessonSection(subtitle="", body=str(item)))
+    elif isinstance(explanation_raw, str):
+        paragraphs = [p.strip() for p in explanation_raw.split("\n\n") if p.strip()]
+        if len(paragraphs) <= 1:
+            lesson_sections.append(LessonSection(subtitle="Overview", body=explanation_raw))
+        else:
+            lesson_sections.append(LessonSection(subtitle="Introduction", body=paragraphs[0]))
+            for i, p in enumerate(paragraphs[1:], 1):
+                lesson_sections.append(LessonSection(subtitle=f"Part {i}", body=p))
+
+    # Parse analogy
+    analogy_raw = data.get("analogy", "")
+    if isinstance(analogy_raw, list):
+        analogy_raw = " ".join(str(a) for a in analogy_raw)
+
+    # Parse examples
+    examples_raw = data.get("examples", [])
+    examples = []
+    if isinstance(examples_raw, str):
+        examples = [ExampleItem(title="Example", problem=examples_raw, solution="")]
+    else:
+        for i, e in enumerate(examples_raw):
+            if isinstance(e, dict):
+                problem = e.get("problem", "")
+                solution = e.get("solution", "")
+                description = e.get("description", "")
+                if not problem and description:
+                    problem = description
+                code = e.get("code")
+                if code and str(code).lower() in ("null", "none", ""):
+                    code = None
+                examples.append(ExampleItem(
+                    title=e.get("title", f"Example {i + 1}"),
+                    problem=problem, solution=solution, description=description, code=code,
+                ))
+            else:
+                examples.append(ExampleItem(title=f"Example {i + 1}", problem=str(e), solution=""))
+
+    # Parse resources
+    resources_raw = data.get("resources", [])
+    resources = []
+    if isinstance(resources_raw, str):
+        resources = [ResourceItem(title="Resource", description=resources_raw)]
+    else:
+        for r in resources_raw:
+            if isinstance(r, dict):
+                resources.append(ResourceItem(
+                    title=r.get("title", "Resource"),
+                    description=r.get("description", ""),
+                    url=r.get("url", r.get("link", "")),
+                ))
+            else:
+                resources.append(ResourceItem(title=str(r), description=""))
+
+    return LearnModeResponse(
+        topic=data.get("topic", "Lecture Topic"),
+        explanation=lesson_sections,
+        analogy=str(analogy_raw),
+        examples=examples,
+        quiz=quiz,
+        resources=resources,
+        level=level,
+    )
+
+
 async def learn_mode(request: LearnModeRequest) -> LearnModeResponse:
     """Activate Learn Mode — AI teaches lecture content back step-by-step."""
     lecture = db_get_lecture(request.lecture_id)
@@ -619,6 +724,16 @@ async def learn_mode(request: LearnModeRequest) -> LearnModeResponse:
     notes = lecture.get("notes")
     if not notes:
         raise ValueError("No notes available. Process the lecture first.")
+
+    # Check cache first — instant response if we've generated this before
+    section_idx = request.section_index if request.section_index is not None else -1
+    cached = get_learn_mode_cache(
+        request.lecture_id, section_idx, request.level, request.card_style or "mixed"
+    )
+    if cached:
+        print(f"[Lectly] Learn Mode cache hit for {request.lecture_id} section {section_idx}")
+        data = json.loads(cached)
+        return _build_learn_mode_response(data, request.level)
 
     try:
         # Get the specific section or full notes
@@ -671,119 +786,18 @@ async def learn_mode(request: LearnModeRequest) -> LearnModeResponse:
         if data is None:
             raise ValueError("Failed to generate Learn Mode content")
 
-        # Parse quiz
-        quiz = []
-        for q in data.get("quiz", []):
-            quiz.append(
-                QuizQuestion(
-                    question=q.get("question", ""),
-                    options=q.get("options", []),
-                    correct_index=q.get("correct_index", 0),
-                    explanation=q.get("explanation", ""),
-                )
+        # Cache the response for instant retrieval next time
+        try:
+            save_learn_mode_cache(
+                request.lecture_id, section_idx,
+                request.level, request.card_style or "mixed",
+                json.dumps(data),
             )
+            print(f"[Lectly] Learn Mode cached for {request.lecture_id} section {section_idx}")
+        except Exception as cache_err:
+            print(f"[Lectly] Cache save failed (non-fatal): {cache_err}")
 
-        # Parse explanation — handle both new structured format and legacy string format
-        explanation_raw = data.get("explanation", "")
-        lesson_sections = []
-
-        if isinstance(explanation_raw, dict):
-            # New structured format: {"sections": [{"subtitle": ..., "body": ...}]}
-            for s in explanation_raw.get("sections", []):
-                lesson_sections.append(
-                    LessonSection(
-                        subtitle=s.get("subtitle", ""),
-                        body=s.get("body", ""),
-                    )
-                )
-        elif isinstance(explanation_raw, list):
-            # List of sections or strings
-            for item in explanation_raw:
-                if isinstance(item, dict) and "subtitle" in item:
-                    lesson_sections.append(
-                        LessonSection(
-                            subtitle=item.get("subtitle", ""),
-                            body=item.get("body", ""),
-                        )
-                    )
-                elif isinstance(item, dict):
-                    # Generic dict — use first key as subtitle, value as body
-                    for k, v in item.items():
-                        lesson_sections.append(LessonSection(subtitle=str(k), body=str(v)))
-                        break
-                else:
-                    lesson_sections.append(LessonSection(subtitle="", body=str(item)))
-        elif isinstance(explanation_raw, str):
-            # Legacy plain string — split into paragraphs and create sections
-            paragraphs = [p.strip() for p in explanation_raw.split("\n\n") if p.strip()]
-            if len(paragraphs) <= 1:
-                lesson_sections.append(LessonSection(subtitle="Overview", body=explanation_raw))
-            else:
-                lesson_sections.append(LessonSection(subtitle="Introduction", body=paragraphs[0]))
-                for i, p in enumerate(paragraphs[1:], 1):
-                    lesson_sections.append(LessonSection(subtitle=f"Part {i}", body=p))
-
-        # Parse analogy
-        analogy_raw = data.get("analogy", "")
-        if isinstance(analogy_raw, list):
-            analogy_raw = " ".join(str(a) for a in analogy_raw)
-
-        # Parse examples — handle new problem/solution format and legacy description format
-        examples_raw = data.get("examples", [])
-        examples = []
-        if isinstance(examples_raw, str):
-            examples = [ExampleItem(title="Example", problem=examples_raw, solution="")]
-        else:
-            for i, e in enumerate(examples_raw):
-                if isinstance(e, dict):
-                    # Handle both new (problem/solution) and old (description) formats
-                    problem = e.get("problem", "")
-                    solution = e.get("solution", "")
-                    description = e.get("description", "")
-
-                    # If old format (description only), split into problem/solution if possible
-                    if not problem and description:
-                        problem = description
-
-                    code = e.get("code")
-                    if code and str(code).lower() in ("null", "none", ""):
-                        code = None
-
-                    examples.append(ExampleItem(
-                        title=e.get("title", f"Example {i + 1}"),
-                        problem=problem,
-                        solution=solution,
-                        description=description,
-                        code=code,
-                    ))
-                else:
-                    examples.append(ExampleItem(title=f"Example {i + 1}", problem=str(e), solution=""))
-
-        # Parse resources — handle both new structured format and legacy string format
-        resources_raw = data.get("resources", [])
-        resources = []
-        if isinstance(resources_raw, str):
-            resources = [ResourceItem(title="Resource", description=resources_raw)]
-        else:
-            for r in resources_raw:
-                if isinstance(r, dict):
-                    resources.append(ResourceItem(
-                        title=r.get("title", "Resource"),
-                        description=r.get("description", ""),
-                        url=r.get("url", r.get("link", "")),
-                    ))
-                else:
-                    resources.append(ResourceItem(title=str(r), description=""))
-
-        return LearnModeResponse(
-            topic=data.get("topic", "Lecture Topic"),
-            explanation=lesson_sections,
-            analogy=str(analogy_raw),
-            examples=examples,
-            quiz=quiz,
-            resources=resources,
-            level=request.level,
-        )
+        return _build_learn_mode_response(data, request.level)
 
     except Exception as e:
         print(f"[Lectly] Learn Mode failed: {e}")
