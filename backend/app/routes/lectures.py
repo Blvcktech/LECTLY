@@ -7,6 +7,7 @@ from fastapi.responses import Response
 from typing import Optional
 
 from app.config import get_settings
+from app.rate_limit import limiter
 from app.models.lecture import (
     LectureUploadResponse,
     LectureResponse,
@@ -119,6 +120,7 @@ def _require_user_id(request: Request) -> str:
 
 
 @router.post("/upload", response_model=LectureUploadResponse)
+@limiter.limit("10/hour")
 async def upload_lecture(
     request: Request,
     file: UploadFile = File(...),
@@ -171,6 +173,7 @@ async def upload_lecture(
 
 
 @router.post("/lectures/{lecture_id}/process")
+@limiter.limit("10/hour")
 async def process_lecture(lecture_id: str, request: Request):
     """Trigger full processing pipeline: transcribe → generate notes."""
     user_id = _require_user_id(request)
@@ -223,34 +226,37 @@ async def get_lecture_detail(lecture_id: str, request: Request):
 
 
 @router.post("/explain", response_model=ExplainResponse)
-async def explain_section(request: ExplainRequest, http_request: Request):
+@limiter.limit("30/hour")
+async def explain_section(body: ExplainRequest, request: Request):
     """Explain a highlighted section of notes in simpler terms."""
-    _require_user_id(http_request)
-    return await explain_text(request)
+    _require_user_id(request)
+    return await explain_text(body)
 
 
 @router.post("/learn", response_model=LearnModeResponse)
-async def activate_learn_mode(request: LearnModeRequest, http_request: Request):
+@limiter.limit("20/hour")
+async def activate_learn_mode(body: LearnModeRequest, request: Request):
     """Activate Learn Mode for a lecture section."""
-    user_id = _require_user_id(http_request)
+    user_id = _require_user_id(request)
 
     # Verify the user owns this lecture
-    lecture = await get_lecture(request.lecture_id)
+    lecture = await get_lecture(body.lecture_id)
     if not lecture:
         raise HTTPException(status_code=404, detail="Lecture not found")
     if lecture.get("user_id") and lecture["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    return await learn_mode(request)
+    return await learn_mode(body)
 
 
 @router.post("/tutor/ask", response_model=TutorAskResponse)
-async def tutor_ask(request: TutorAskRequest, http_request: Request):
+@limiter.limit("60/hour")
+async def tutor_ask(body: TutorAskRequest, request: Request):
     """Ask the AI Tutor a question about a lecture. Context-aware, conversational."""
-    user_id = _require_user_id(http_request)
+    user_id = _require_user_id(request)
 
     # Verify ownership
-    lecture_check = await get_lecture(request.lecture_id)
+    lecture_check = await get_lecture(body.lecture_id)
     if not lecture_check:
         raise HTTPException(status_code=404, detail="Lecture not found")
     if lecture_check.get("user_id") and lecture_check["user_id"] != user_id:
@@ -258,38 +264,38 @@ async def tutor_ask(request: TutorAskRequest, http_request: Request):
 
     try:
         # Convert conversation history to dicts for the service
-        history = [{"role": msg.role, "content": msg.content} for msg in request.conversation_history]
+        history = [{"role": msg.role, "content": msg.content} for msg in body.conversation_history]
 
         # Convert card context to dict if present
         card_ctx = None
-        if request.card_context:
+        if body.card_context:
             card_ctx = {
-                "card_type": request.card_context.card_type,
-                "card_content": request.card_context.card_content,
-                "card_title": request.card_context.card_title,
-                "quiz_question": request.card_context.quiz_question,
-                "quiz_options": request.card_context.quiz_options,
-                "student_answer": request.card_context.student_answer,
-                "correct_answer": request.card_context.correct_answer,
+                "card_type": body.card_context.card_type,
+                "card_content": body.card_context.card_content,
+                "card_title": body.card_context.card_title,
+                "quiz_question": body.card_context.quiz_question,
+                "quiz_options": body.card_context.quiz_options,
+                "student_answer": body.card_context.student_answer,
+                "correct_answer": body.card_context.correct_answer,
             }
 
         answer = await ask_tutor(
-            lecture_id=request.lecture_id,
-            question=request.question,
+            lecture_id=body.lecture_id,
+            question=body.question,
             conversation_history=history,
-            current_section_index=request.current_section_index,
+            current_section_index=body.current_section_index,
             card_context=card_ctx,
         )
 
         # Try to detect which section was referenced in the answer
         section_referenced = None
-        if request.current_section_index is not None:
+        if body.current_section_index is not None:
             from app.database import get_lecture as db_get
-            lecture = db_get(request.lecture_id)
+            lecture = db_get(body.lecture_id)
             if lecture and lecture.get("notes"):
                 sections = lecture["notes"].get("sections", [])
-                if request.current_section_index < len(sections):
-                    section_referenced = sections[request.current_section_index].get("heading")
+                if body.current_section_index < len(sections):
+                    section_referenced = sections[body.current_section_index].get("heading")
 
         return TutorAskResponse(
             answer=answer,

@@ -9,9 +9,12 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
+from slowapi.errors import RateLimitExceeded
+
 from app.config import get_settings
 from app.database import init_db
 from app.routes.lectures import router as lectures_router
+from app.rate_limit import limiter, rate_limit_exceeded_handler
 
 
 settings = get_settings()
@@ -28,6 +31,10 @@ app = FastAPI(
     description="AI-powered lecture processing: audio cleanup, transcription, structured notes, and Learn Mode.",
     version="0.3.0",
 )
+
+# Rate limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
 
 # Parse allowed origins from settings
