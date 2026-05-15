@@ -22,7 +22,7 @@ export class RateLimitError extends Error {
 }
 
 /** Check response for common error codes and throw descriptive errors. */
-function checkResponse(res: Response, fallbackMsg: string) {
+async function checkResponse(res: Response, fallbackMsg: string): Promise<void> {
   if (res.ok) return;
   if (res.status === 429) {
     const retry = parseInt(res.headers.get("Retry-After") || "60", 10);
@@ -35,12 +35,8 @@ function checkResponse(res: Response, fallbackMsg: string) {
     throw new Error("You don't have permission to do this.");
   }
   // For other errors, try to get detail from response body
-  return res
-    .json()
-    .catch(() => ({ detail: fallbackMsg }))
-    .then((err: { detail?: string }) => {
-      throw new Error(err.detail || fallbackMsg);
-    });
+  const err = await res.json().catch(() => ({ detail: fallbackMsg }));
+  throw new Error(err.detail || fallbackMsg);
 }
 
 // ── Types ──────────────────────────────────────
