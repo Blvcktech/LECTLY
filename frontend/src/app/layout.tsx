@@ -27,12 +27,27 @@ export const metadata: Metadata = {
     "transcription",
     "learn mode",
   ],
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Lectly",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
+  icons: [
+    { rel: "icon", url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    { rel: "icon", url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    { rel: "apple-touch-icon", url: "/apple-touch-icon.png", sizes: "180x180" },
+  ],
 };
 
 export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  themeColor: "#1a1815",
 };
 
 export default function RootLayout({
