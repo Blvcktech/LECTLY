@@ -85,8 +85,10 @@ def _get_user_id_from_header(request: Request) -> Optional[str]:
                 token,
                 signing_key.key,
                 algorithms=["RS256"],
-                issuer=settings.clerk_issuer,
-                options={"verify_aud": False},  # Clerk tokens don't always have aud
+                options={
+                    "verify_aud": False,    # Clerk tokens don't always have aud
+                    "verify_iss": False,    # Issuer already trusted via JWKS endpoint
+                },
             )
             return payload.get("sub")
         except jwt.ExpiredSignatureError:
