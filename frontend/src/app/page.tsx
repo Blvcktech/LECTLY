@@ -680,9 +680,9 @@ export default function Home() {
             &copy; {new Date().getFullYear()} Lectly. Built for students, by students.
           </p>
           <div className="flex gap-5 text-[11px] text-[#8a7f6f]">
-            <a href="#" className="hover:text-[#1a1815] transition-colors">Privacy</a>
-            <a href="#" className="hover:text-[#1a1815] transition-colors">Terms</a>
-            <a href="#" className="hover:text-[#1a1815] transition-colors">Contact</a>
+            <a href="/privacy" className="hover:text-[#1a1815] transition-colors">Privacy</a>
+            <a href="/terms" className="hover:text-[#1a1815] transition-colors">Terms</a>
+            <a href="mailto:lectlyapp@gmail.com" className="hover:text-[#1a1815] transition-colors">Contact</a>
           </div>
         </div>
       </footer>
