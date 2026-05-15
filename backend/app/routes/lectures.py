@@ -1,5 +1,5 @@
 """
-Lecture routes — upload, process, retrieve, explain, learn, tutor.
+Lecture routes — upload, process, retrieve, explain, learn, tutor, solve.
 """
 
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Request
@@ -17,12 +17,14 @@ from app.models.lecture import (
     LearnModeResponse,
     TutorAskRequest,
     TutorAskResponse,
+    SolveModeRequest,
+    SolveModeResponse,
     ProgressSaveRequest,
     ProgressResponse,
 )
 import os
 from app.services.audio import save_upload, transcribe_audio, get_lecture, list_lectures
-from app.services.notes import generate_notes, explain_text, learn_mode, ask_tutor
+from app.services.notes import generate_notes, explain_text, learn_mode, ask_tutor, solve_problem
 from app.services.pdf_export import generate_notes_pdf
 from app.database import (
     delete_lecture as db_delete_lecture,
@@ -309,6 +311,28 @@ async def tutor_ask(body: TutorAskRequest, request: Request):
     except Exception as e:
         print(f"[Lectly] Tutor ask failed: {e}")
         raise HTTPException(status_code=500, detail=f"Tutor error: {str(e)}")
+
+
+@router.post("/solve", response_model=SolveModeResponse)
+@limiter.limit("20/hour")
+async def solve_mode(body: SolveModeRequest, request: Request):
+    """Solve Mode — walk through a problem step by step."""
+    user_id = _require_user_id(request)
+
+    # Verify the user owns this lecture
+    lecture = await get_lecture(body.lecture_id)
+    if not lecture:
+        raise HTTPException(status_code=404, detail="Lecture not found")
+    if lecture.get("user_id") and lecture["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    try:
+        return await solve_problem(body)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        print(f"[Lectly] Solve Mode failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Solve Mode error: {str(e)}")
 
 
 @router.get("/lectures/{lecture_id}/pdf")

@@ -22,6 +22,7 @@ import {
   Code,
   RotateCcw,
   WifiOff,
+  Zap,
 } from "lucide-react";
 import {
   getLecture,
@@ -531,6 +532,14 @@ export default function LecturePage({
               <span className="hidden sm:inline">{pdfLoading ? "Generating..." : "PDF"}</span>
             </button>
             <Link
+              href={`/lecture/${id}/solve`}
+              className="flex items-center gap-1.5 text-xs sm:text-sm bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white px-3 sm:px-4 py-2 rounded-[10px] font-medium transition-all shadow-md shadow-blue-500/15"
+            >
+              <Zap className="w-4 h-4" />
+              <span className="hidden sm:inline">Solve Mode</span>
+              <span className="sm:hidden">Solve</span>
+            </Link>
+            <Link
               href={`/lecture/${id}/learn`}
               className="flex items-center gap-1.5 text-xs sm:text-sm bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-3 sm:px-4 py-2 rounded-[10px] font-medium transition-all shadow-md shadow-purple-500/15"
             >
@@ -706,6 +715,13 @@ export default function LecturePage({
                       >
                         <GraduationCap className="w-3.5 h-3.5" />
                         Learn This
+                      </Link>
+                      <Link
+                        href={`/lecture/${id}/solve?section=${i}`}
+                        className="flex items-center gap-1.5 text-xs font-medium text-blue-700 bg-blue-100/60 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
+                      >
+                        <Zap className="w-3.5 h-3.5" />
+                        Solve
                       </Link>
                     </div>
 

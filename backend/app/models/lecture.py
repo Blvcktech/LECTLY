@@ -152,6 +152,37 @@ class TutorAskResponse(BaseModel):
 # Progress Tracking models
 # ──────────────────────────────────────────────
 
+# ──────────────────────────────────────────────
+# Solve Mode models
+# ──────────────────────────────────────────────
+
+class SolveModeRequest(BaseModel):
+    lecture_id: str
+    problem: str
+    student_attempt: Optional[str] = None  # optional: what the student tried
+    section_index: Optional[int] = None
+
+
+class SolveStep(BaseModel):
+    step_number: int
+    title: str
+    content: str
+    key_insight: str = ""
+
+
+class SolveModeResponse(BaseModel):
+    problem_restatement: str
+    given: list[str] = []
+    find: str = ""
+    concept: str = ""
+    steps: list[SolveStep]
+    answer: str
+    verification: str = ""
+    common_mistakes: list[str] = []
+    follow_up: str = ""
+    lecture_connection: str = ""
+
+
 class ProgressSaveRequest(BaseModel):
     lecture_id: str
     section_index: int = -1

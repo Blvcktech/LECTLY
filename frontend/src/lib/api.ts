@@ -7,6 +7,42 @@ import { authHeaders } from "./auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+// ── Error Classes ─────────────────────────────
+
+export class RateLimitError extends Error {
+  retryAfter: number;
+  constructor(retryAfter: number = 60) {
+    const minutes = Math.ceil(retryAfter / 60);
+    super(
+      `You're using Lectly too quickly. Please wait ${minutes} minute${minutes > 1 ? "s" : ""} and try again.`
+    );
+    this.name = "RateLimitError";
+    this.retryAfter = retryAfter;
+  }
+}
+
+/** Check response for common error codes and throw descriptive errors. */
+function checkResponse(res: Response, fallbackMsg: string) {
+  if (res.ok) return;
+  if (res.status === 429) {
+    const retry = parseInt(res.headers.get("Retry-After") || "60", 10);
+    throw new RateLimitError(retry);
+  }
+  if (res.status === 401) {
+    throw new Error("Session expired. Please sign in again.");
+  }
+  if (res.status === 403) {
+    throw new Error("You don't have permission to do this.");
+  }
+  // For other errors, try to get detail from response body
+  return res
+    .json()
+    .catch(() => ({ detail: fallbackMsg }))
+    .then((err: { detail?: string }) => {
+      throw new Error(err.detail || fallbackMsg);
+    });
+}
+
 // ── Types ──────────────────────────────────────
 
 export interface LectureUpload {
@@ -97,6 +133,26 @@ export interface LearnResult {
   level: string;
 }
 
+export interface SolveStep {
+  step_number: number;
+  title: string;
+  content: string;
+  key_insight: string;
+}
+
+export interface SolveResult {
+  problem_restatement: string;
+  given: string[];
+  find: string;
+  concept: string;
+  steps: SolveStep[];
+  answer: string;
+  verification: string;
+  common_mistakes: string[];
+  follow_up: string;
+  lecture_connection: string;
+}
+
 export interface TutorMessage {
   role: "user" | "tutor";
   content: string;
@@ -147,10 +203,7 @@ export async function uploadLecture(
     body: formData,
   });
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: "Upload failed" }));
-    throw new Error(err.detail || "Upload failed");
-  }
+  await checkResponse(res, "Upload failed");
 
   return res.json();
 }
@@ -171,10 +224,7 @@ export async function processLecture(
 
     clearTimeout(timeoutId);
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: "Processing failed" }));
-      throw new Error(err.detail || "Processing failed");
-    }
+    await checkResponse(res, "Processing failed");
 
     return res.json();
   } catch (err) {
@@ -191,9 +241,7 @@ export async function getLecture(lectureId: string): Promise<Lecture> {
     headers: { ...authHeaders() },
   });
 
-  if (!res.ok) {
-    throw new Error("Lecture not found");
-  }
+  await checkResponse(res, "Lecture not found");
 
   return res.json();
 }
@@ -206,9 +254,7 @@ export async function getLectures(): Promise<{
     headers: { ...authHeaders() },
   });
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch lectures");
-  }
+  await checkResponse(res, "Failed to fetch lectures");
 
   return res.json();
 }
@@ -223,9 +269,7 @@ export async function explainText(
     body: JSON.stringify({ text, level }),
   });
 
-  if (!res.ok) {
-    throw new Error("Explain failed");
-  }
+  await checkResponse(res, "Explain failed");
 
   return res.json();
 }
@@ -247,9 +291,29 @@ export async function learnMode(
     }),
   });
 
-  if (!res.ok) {
-    throw new Error("Learn Mode failed");
-  }
+  await checkResponse(res, "Learn Mode failed");
+
+  return res.json();
+}
+
+export async function solveMode(
+  lectureId: string,
+  problem: string,
+  sectionIndex?: number,
+  studentAttempt?: string
+): Promise<SolveResult> {
+  const res = await fetch(`${API_URL}/api/solve`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({
+      lecture_id: lectureId,
+      problem,
+      section_index: sectionIndex,
+      student_attempt: studentAttempt || null,
+    }),
+  });
+
+  await checkResponse(res, "Solve Mode failed");
 
   return res.json();
 }
@@ -259,9 +323,7 @@ export async function downloadNotesPdf(lectureId: string): Promise<void> {
     headers: { ...authHeaders() },
   });
 
-  if (!res.ok) {
-    throw new Error("Failed to generate PDF");
-  }
+  await checkResponse(res, "Failed to generate PDF");
 
   // Get filename from Content-Disposition header or use default
   const disposition = res.headers.get("Content-Disposition");
@@ -289,9 +351,7 @@ export async function deleteLecture(lectureId: string): Promise<void> {
     headers: { ...authHeaders() },
   });
 
-  if (!res.ok) {
-    throw new Error("Failed to delete lecture");
-  }
+  await checkResponse(res, "Failed to delete lecture");
 }
 
 export async function renameLecture(lectureId: string, title: string): Promise<void> {
@@ -301,9 +361,7 @@ export async function renameLecture(lectureId: string, title: string): Promise<v
     body: JSON.stringify({ title }),
   });
 
-  if (!res.ok) {
-    throw new Error("Failed to rename lecture");
-  }
+  await checkResponse(res, "Failed to rename lecture");
 }
 
 export async function askTutor(
@@ -325,10 +383,7 @@ export async function askTutor(
     }),
   });
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: "Tutor request failed" }));
-    throw new Error(err.detail || "Tutor request failed");
-  }
+  await checkResponse(res, "Tutor request failed");
 
   return res.json();
 }
@@ -346,9 +401,7 @@ export async function getUserLimits(): Promise<UserLimits> {
     headers: { ...authHeaders() },
   });
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch user limits");
-  }
+  await checkResponse(res, "Failed to fetch user limits");
 
   return res.json();
 }
@@ -380,9 +433,7 @@ export async function saveProgress(data: {
     body: JSON.stringify(data),
   });
 
-  if (!res.ok) {
-    throw new Error("Failed to save progress");
-  }
+  await checkResponse(res, "Failed to save progress");
 
   return res.json();
 }
@@ -395,9 +446,7 @@ export async function getAllProgress(): Promise<{
     headers: { ...authHeaders() },
   });
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch progress");
-  }
+  await checkResponse(res, "Failed to fetch progress");
 
   return res.json();
 }
@@ -409,9 +458,7 @@ export async function getLectureProgress(
     headers: { ...authHeaders() },
   });
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch lecture progress");
-  }
+  await checkResponse(res, "Failed to fetch lecture progress");
 
   return res.json();
 }

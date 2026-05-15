@@ -27,6 +27,9 @@ from app.models.lecture import (
     ExampleItem,
     ResourceItem,
     LectureStatus,
+    SolveModeRequest,
+    SolveModeResponse,
+    SolveStep,
 )
 from app.database import (
     get_lecture as db_get_lecture,
@@ -607,6 +610,125 @@ Warm, direct, encouraging. You're sitting right next to them — not lecturing f
 ## Response Format
 
 Plain text with markdown formatting. NOT JSON. Start with the answer. No summaries, no topic overviews, no preambles. Just teach."""
+
+
+SOLVE_MODE_PROMPT = """You are Lectly's Solve Mode — an expert problem-solving tutor who walks students through problems step by step.
+
+You don't just give answers. You TEACH the student how to solve the problem by breaking it down into clear, logical steps they can follow and replicate on their own.
+
+## Your Role
+
+You receive:
+1. A PROBLEM the student wants to solve (could be from their lecture, textbook, or their own question)
+2. LECTURE CONTEXT from their notes (so you can connect the solution to what they're learning)
+3. The SUBJECT AREA (to calibrate your approach)
+
+## Step-by-Step Framework
+
+For EVERY problem, follow this structure:
+
+### Phase 1: Understand
+- Restate the problem clearly
+- Identify what's given and what's being asked
+- Note any constraints, edge cases, or assumptions
+
+### Phase 2: Plan
+- Identify which concept/formula/method applies
+- Explain WHY this approach works (connect to lecture material)
+- Outline the solution strategy before diving in
+
+### Phase 3: Solve
+- Execute step by step with clear explanations at each step
+- Show ALL work — never skip steps
+- For calculations: include units, intermediate results, and dimensional analysis
+- For code: explain logic before/after each block
+- For analysis: state your reasoning explicitly
+
+### Phase 4: Verify
+- Check the answer makes sense (units, magnitude, edge cases)
+- Discuss common mistakes students make on this type of problem
+- Note any alternative approaches
+
+### Phase 5: Extend
+- Suggest a follow-up question that tests deeper understanding
+- Connect back to the lecture: "This relates to [concept from notes] because..."
+
+## Subject-Specific Protocols
+
+### Math / Physics / Engineering / Chemistry
+- Write ALL equations in proper markdown math notation
+- Show every algebraic step — never say "simplifying gives..."
+- Include units at every step for physics/engineering
+- Check dimensional consistency
+- Provide numerical answer AND interpretation
+
+### Computer Science / Programming
+- Write complete, runnable code (not pseudocode unless asked)
+- Use clear variable names and comments
+- Trace through the code with a concrete example
+- Discuss time/space complexity
+- Show sample input → output
+
+### Law
+- Identify the legal issue(s)
+- State the relevant rule/statute/precedent
+- Apply the rule to the facts (IRAC method)
+- Reach a conclusion with reasoning
+- Note any counterarguments
+
+### Business / Economics
+- Identify the business problem/decision
+- List relevant frameworks (Porter's Five Forces, SWOT, NPV, etc.)
+- Apply the framework with actual numbers/data where possible
+- State assumptions explicitly
+- Provide actionable recommendation
+
+### Medicine / Health Sciences
+- Follow clinical reasoning (symptoms → differential → tests → diagnosis)
+- Explain the pathophysiology
+- Connect to relevant anatomy/pharmacology
+- Note red flags and when to escalate
+
+### Humanities / Social Sciences
+- Identify the thesis or central question
+- Present multiple perspectives
+- Use evidence and citations from the lecture
+- Build a structured argument
+- Acknowledge complexity and nuance
+
+## Output Format
+
+Return JSON:
+```json
+{
+  "problem_restatement": "Clear restatement of what we're solving",
+  "given": ["List of given information"],
+  "find": "What we need to determine",
+  "concept": "The key concept/method being applied",
+  "steps": [
+    {
+      "step_number": 1,
+      "title": "Short step title",
+      "content": "Detailed explanation with work shown (markdown supported)",
+      "key_insight": "Why this step matters or common mistake to avoid"
+    }
+  ],
+  "answer": "Final answer clearly stated",
+  "verification": "How we know the answer is correct",
+  "common_mistakes": ["Mistake 1 students make", "Mistake 2"],
+  "follow_up": "A related problem to try next",
+  "lecture_connection": "How this connects to the student's lecture material"
+}
+```
+
+## Critical Rules
+
+- NEVER skip steps. The student needs to see every intermediate step.
+- NEVER say "it's obvious" or "clearly" — if it were obvious, they wouldn't be asking.
+- Always show your work. The process matters more than the answer.
+- Use the lecture context to make connections — "Remember from your notes that..."
+- If the problem is ambiguous, solve it both ways and explain the difference.
+- For wrong student attempts: identify EXACTLY where they went wrong and why."""
 
 
 # ──────────────────────────────────────────────
@@ -1297,3 +1419,78 @@ async def ask_tutor(
 
     print(f"[Lectly] Tutor response: {len(response)} chars")
     return response
+
+
+# ──────────────────────────────────────────────
+# Solve Mode
+# ──────────────────────────────────────────────
+
+async def solve_problem(request: SolveModeRequest) -> SolveModeResponse:
+    """Solve Mode — walk through a problem step by step."""
+    lecture = db_get_lecture(request.lecture_id)
+
+    if not lecture:
+        raise ValueError(f"Lecture {request.lecture_id} not found")
+
+    notes = lecture.get("notes")
+    if not notes:
+        raise ValueError("No notes available. Process the lecture first.")
+
+    # Build lecture context
+    sections = notes.get("sections", [])
+    if request.section_index is not None and request.section_index < len(sections):
+        section = sections[request.section_index]
+        lecture_context = f"Topic: {section['heading']}\n\nContent: {section['content']}\n\nKey Points: {', '.join(section.get('key_points', []))}"
+    else:
+        lecture_context = notes.get("summary", "") + "\n\n"
+        for s in sections[:6]:  # Limit to avoid token overflow
+            lecture_context += f"## {s['heading']}\n{s['content']}\n\n"
+
+    # Build user message
+    user_message_parts = [
+        f"PROBLEM TO SOLVE:\n{request.problem}",
+    ]
+
+    if request.student_attempt:
+        user_message_parts.append(f"\nSTUDENT'S ATTEMPT (find where they went wrong):\n{request.student_attempt}")
+
+    subject = lecture.get("subject", "")
+    if subject:
+        user_message_parts.append(f"\nSUBJECT: {subject}")
+
+    user_message_parts.append(f"\nLECTURE CONTEXT (use to connect solution to what they're learning):\n{lecture_context}")
+
+    user_message = "\n".join(user_message_parts)
+
+    print(f"[Lectly] Solve Mode for lecture {request.lecture_id}: \"{request.problem[:80]}...\"")
+
+    try:
+        raw_response = _call_claude_with_fallback(SOLVE_MODE_PROMPT, user_message, json_mode=True, temperature=0.3)
+        data = _parse_json_response(raw_response)
+
+        # Build response
+        steps = []
+        for s in data.get("steps", []):
+            steps.append(SolveStep(
+                step_number=s.get("step_number", len(steps) + 1),
+                title=s.get("title", f"Step {len(steps) + 1}"),
+                content=s.get("content", ""),
+                key_insight=s.get("key_insight", ""),
+            ))
+
+        return SolveModeResponse(
+            problem_restatement=data.get("problem_restatement", request.problem),
+            given=data.get("given", []),
+            find=data.get("find", ""),
+            concept=data.get("concept", ""),
+            steps=steps,
+            answer=data.get("answer", ""),
+            verification=data.get("verification", ""),
+            common_mistakes=data.get("common_mistakes", []),
+            follow_up=data.get("follow_up", ""),
+            lecture_connection=data.get("lecture_connection", ""),
+        )
+
+    except Exception as e:
+        print(f"[Lectly] Solve Mode failed: {e}")
+        raise e

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Analytics } from "@vercel/analytics/next";
 import { ToastProvider } from "@/components/Toast";
 import AuthSync from "@/components/AuthSync";
 import "./globals.css";
@@ -26,8 +27,35 @@ export const metadata: Metadata = {
     "study",
     "transcription",
     "learn mode",
+    "university",
+    "Nigeria",
   ],
   manifest: "/manifest.json",
+  metadataBase: new URL("https://lectly.vercel.app"),
+  openGraph: {
+    title: "Lectly — Your AI Lecture Companion",
+    description:
+      "Upload messy lecture recordings. Get clean notes. Learn with an AI tutor that teaches it back to you.",
+    url: "https://lectly.vercel.app",
+    siteName: "Lectly",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Lectly — AI-powered lecture notes, Learn Mode, and AI Tutor",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Lectly — Your AI Lecture Companion",
+    description:
+      "Upload messy lecture recordings. Get clean notes. Learn with an AI tutor that teaches it back to you.",
+    images: ["/og-image.png"],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -67,6 +95,7 @@ export default function RootLayout({
         <body className="min-h-full flex flex-col">
           <AuthSync />
           <ToastProvider>{children}</ToastProvider>
+          <Analytics />
         </body>
       </html>
     </ClerkProvider>
