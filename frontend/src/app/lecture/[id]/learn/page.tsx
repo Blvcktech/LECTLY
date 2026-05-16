@@ -379,7 +379,7 @@ export default function LearnModePage({
   const [reteachText, setReteachText] = useState<string>("");
   const [reteachLoading, setReteachLoading] = useState(false);
 
-  // Active mode: 0 = CARDS, 1 = SOLVE, 2 = NOTES
+  // Active mode: 0 = CARDS, 1 = PRACTICE, 2 = NOTES
   const [activeMode, setActiveMode] = useState(0);
 
   // Unified card flow index (concept cards + analogy + quiz cards)
@@ -791,7 +791,7 @@ export default function LearnModePage({
 
   const sections: NoteSection[] = lecture?.notes?.sections || [];
 
-  const modeLabels = ["Cards", "Solve", "Notes"];
+  const modeLabels = ["Cards", "Practice", "Notes"];
   const modeIcons = [Layers, PenTool, FileText];
 
   // Count how many cards are completed (before current index)
@@ -1105,7 +1105,7 @@ export default function LearnModePage({
             {/* ═══ LESSON CONTENT ═══ */}
             {learnResult && !learnLoading && (
               <div className="flex-1 flex flex-col">
-                {/* ── Mode tabs: CARDS | SOLVE | NOTES ── */}
+                {/* ── Mode tabs: CARDS | PRACTICE | NOTES ── */}
                 <div className="mb-6">
                   {/* Progress info line */}
                   <div className="flex items-center gap-3 mb-3">
@@ -1118,7 +1118,7 @@ export default function LearnModePage({
                     </span>
                   </div>
 
-                  {/* Mode switcher — PDF style: CARDS | SOLVE | NOTES */}
+                  {/* Mode switcher: CARDS | PRACTICE | NOTES */}
                   <div className="flex gap-1 bg-[#EDE8DF] rounded-xl p-1">
                     {modeLabels.map((label, i) => {
                       const Icon = modeIcons[i];
@@ -1462,17 +1462,17 @@ export default function LearnModePage({
                   );
                 })()}
 
-                {/* ═══ MODE 1: SOLVE (placeholder) ═══ */}
+                {/* ═══ MODE 1: PRACTICE (placeholder) ═══ */}
                 {activeMode === 1 && (
                   <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
                     <div className="w-16 h-16 rounded-2xl bg-[#EDE8DF] flex items-center justify-center mb-5">
                       <PenTool className="w-8 h-8 text-[#8a7f6f]" />
                     </div>
                     <h2 className="text-lg font-bold text-[#1a1815] mb-2" style={{ fontFamily: "'Georgia', serif" }}>
-                      Solve Mode — Coming Soon
+                      Practice — Coming Soon
                     </h2>
                     <p className="text-sm text-[#8a7f6f] max-w-sm">
-                      Step-by-step problem solving with progressive reveal. Work through calculations and proofs with your tutor guiding each step.
+                      AI-generated practice problems based on your lesson. Work through progressively harder questions with guided hints and step-by-step feedback.
                     </p>
                     <button
                       onClick={() => setActiveMode(0)}
