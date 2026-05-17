@@ -41,6 +41,8 @@ from app.database import (
     get_lecture_progress as db_get_lecture_progress,
     get_all_progress as db_get_all_progress,
     get_last_studied as db_get_last_studied,
+    get_user_tier,
+    get_user_lecture_limit,
 )
 from app.services.push import send_push_to_user
 
@@ -63,14 +65,14 @@ async def upload_lecture(
     # but we need a users row so the foreign key on lectures works)
     ensure_clerk_user(user_id)
 
-    # Enforce free tier lecture limit (3 lectures for free users)
-    # TODO: Check user's subscription tier once payment is integrated
-    FREE_TIER_LIMIT = 3
+    # Enforce lecture limit based on subscription tier
+    lecture_limit = get_user_lecture_limit(user_id)
     current_count = count_user_lectures(user_id)
-    if current_count >= FREE_TIER_LIMIT:
+    tier = get_user_tier(user_id)
+    if current_count >= lecture_limit:
         raise HTTPException(
             status_code=403,
-            detail=f"Free tier limit reached ({FREE_TIER_LIMIT} lectures). Upgrade to upload more.",
+            detail=f"{'Free tier' if tier == 'free' else tier.title() + ' plan'} limit reached ({lecture_limit} lectures). Upgrade to upload more.",
         )
 
     # Validate file extension
@@ -466,14 +468,14 @@ async def get_lecture_progress(lecture_id: str, user_id: str = Depends(get_curre
 async def get_user_limits(user_id: str = Depends(get_current_user)):
     """Get current usage limits for the authenticated user."""
 
-    # TODO: Check subscription tier once payment is integrated
-    FREE_TIER_LIMIT = 3
+    tier = get_user_tier(user_id)
+    lecture_limit = get_user_lecture_limit(user_id)
     current_count = count_user_lectures(user_id)
 
     return {
-        "tier": "free",
+        "tier": tier,
         "lectures_used": current_count,
-        "lectures_limit": FREE_TIER_LIMIT,
-        "lectures_remaining": max(0, FREE_TIER_LIMIT - current_count),
-        "can_upload": current_count < FREE_TIER_LIMIT,
+        "lectures_limit": lecture_limit,
+        "lectures_remaining": max(0, lecture_limit - current_count),
+        "can_upload": current_count < lecture_limit,
     }

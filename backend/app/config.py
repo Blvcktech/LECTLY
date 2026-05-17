@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     max_file_size_mb: int = 500
     allowed_audio_extensions: str = ".mp3,.wav,.m4a,.aac,.ogg"
 
+    # Paystack (set in .env — get keys from dashboard.paystack.com)
+    paystack_secret_key: str = ""
+    paystack_public_key: str = ""
+
     # Processing
     whisper_model: str = "openai/whisper-large-v3"  # Hugging Face Whisper model
     llm_model: str = "mistralai/Mistral-7B-Instruct-v0.3"  # Hugging Face LLM

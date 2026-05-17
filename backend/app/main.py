@@ -17,6 +17,7 @@ from app.config import get_settings
 from app.database import init_db, close_pool
 from app.routes.lectures import router as lectures_router
 from app.routes.push import router as push_router
+from app.routes.payments import router as payments_router
 from app.rate_limit import limiter, rate_limit_exceeded_handler
 
 
@@ -70,6 +71,7 @@ app.add_middleware(
 # Routes
 app.include_router(lectures_router)
 app.include_router(push_router)
+app.include_router(payments_router)
 
 
 @app.get("/")

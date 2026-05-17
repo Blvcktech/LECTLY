@@ -257,6 +257,24 @@ def init_db():
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS subscriptions (
+                id SERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL UNIQUE,
+                tier TEXT NOT NULL DEFAULT 'free',
+                paystack_customer_code TEXT,
+                paystack_subscription_code TEXT,
+                paystack_authorization_code TEXT,
+                paystack_email TEXT,
+                lectures_limit INTEGER NOT NULL DEFAULT 3,
+                current_period_start TEXT,
+                current_period_end TEXT,
+                status TEXT NOT NULL DEFAULT 'active',
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
         conn.commit()
     else:
         cursor.executescript("""
@@ -340,6 +358,23 @@ def init_db():
                 endpoint TEXT NOT NULL UNIQUE,
                 subscription_json TEXT NOT NULL,
                 created_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS subscriptions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL UNIQUE,
+                tier TEXT NOT NULL DEFAULT 'free',
+                paystack_customer_code TEXT,
+                paystack_subscription_code TEXT,
+                paystack_authorization_code TEXT,
+                paystack_email TEXT,
+                lectures_limit INTEGER NOT NULL DEFAULT 3,
+                current_period_start TEXT,
+                current_period_end TEXT,
+                status TEXT NOT NULL DEFAULT 'active',
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
         """)
@@ -883,5 +918,134 @@ def delete_push_subscription(endpoint: str):
             conn,
             f"DELETE FROM push_subscriptions WHERE endpoint = {P}",
             (endpoint,),
+        )
+        conn.commit()
+
+
+# ──────────────────────────────────────────────
+# Subscriptions (Paystack)
+# ──────────────────────────────────────────────
+
+# Tier definitions: tier_name → lectures_limit
+TIER_LIMITS = {
+    "free": 3,
+    "basic": 8,
+    "pro": 20,
+}
+
+
+def get_subscription(user_id: str) -> Optional[dict]:
+    """Get the subscription record for a user. Returns None if no subscription exists."""
+    with _get_conn() as conn:
+        return _fetchone(
+            conn,
+            f"SELECT * FROM subscriptions WHERE user_id = {P}",
+            (user_id,),
+        )
+
+
+def get_user_tier(user_id: str) -> str:
+    """Get the current tier for a user. Defaults to 'free' if no subscription."""
+    sub = get_subscription(user_id)
+    if not sub:
+        return "free"
+    # If subscription has expired or is inactive, treat as free
+    if sub.get("status") != "active":
+        return "free"
+    return sub.get("tier", "free")
+
+
+def get_user_lecture_limit(user_id: str) -> int:
+    """Get the lecture limit based on user's subscription tier."""
+    tier = get_user_tier(user_id)
+    return TIER_LIMITS.get(tier, 3)
+
+
+def upsert_subscription(user_id: str, data: dict) -> dict:
+    """
+    Create or update a subscription for a user.
+
+    data can include: tier, paystack_customer_code, paystack_subscription_code,
+    paystack_authorization_code, paystack_email, lectures_limit,
+    current_period_start, current_period_end, status
+    """
+    now = datetime.utcnow().isoformat()
+    existing = get_subscription(user_id)
+
+    tier = data.get("tier", "basic")
+    lectures_limit = data.get("lectures_limit", TIER_LIMITS.get(tier, 3))
+
+    if existing:
+        # Update existing subscription
+        with _get_conn() as conn:
+            _execute(
+                conn,
+                f"""UPDATE subscriptions SET
+                    tier = {P},
+                    paystack_customer_code = COALESCE({P}, paystack_customer_code),
+                    paystack_subscription_code = COALESCE({P}, paystack_subscription_code),
+                    paystack_authorization_code = COALESCE({P}, paystack_authorization_code),
+                    paystack_email = COALESCE({P}, paystack_email),
+                    lectures_limit = {P},
+                    current_period_start = COALESCE({P}, current_period_start),
+                    current_period_end = COALESCE({P}, current_period_end),
+                    status = {P},
+                    updated_at = {P}
+                WHERE user_id = {P}""",
+                (
+                    tier,
+                    data.get("paystack_customer_code"),
+                    data.get("paystack_subscription_code"),
+                    data.get("paystack_authorization_code"),
+                    data.get("paystack_email"),
+                    lectures_limit,
+                    data.get("current_period_start"),
+                    data.get("current_period_end"),
+                    data.get("status", "active"),
+                    now,
+                    user_id,
+                ),
+            )
+            conn.commit()
+    else:
+        # Create new subscription
+        with _get_conn() as conn:
+            _execute(
+                conn,
+                f"""INSERT INTO subscriptions
+                    (user_id, tier, paystack_customer_code, paystack_subscription_code,
+                     paystack_authorization_code, paystack_email, lectures_limit,
+                     current_period_start, current_period_end, status, created_at, updated_at)
+                    VALUES ({P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P})""",
+                (
+                    user_id,
+                    tier,
+                    data.get("paystack_customer_code"),
+                    data.get("paystack_subscription_code"),
+                    data.get("paystack_authorization_code"),
+                    data.get("paystack_email"),
+                    lectures_limit,
+                    data.get("current_period_start"),
+                    data.get("current_period_end"),
+                    data.get("status", "active"),
+                    now,
+                    now,
+                ),
+            )
+            conn.commit()
+
+    return get_subscription(user_id)
+
+
+def cancel_subscription(user_id: str):
+    """Mark a subscription as cancelled (revert to free tier)."""
+    now = datetime.utcnow().isoformat()
+    with _get_conn() as conn:
+        _execute(
+            conn,
+            f"""UPDATE subscriptions SET
+                tier = 'free', status = 'cancelled', lectures_limit = 3, updated_at = {P}
+            WHERE user_id = {P}""",
+            (now, user_id),
         )
         conn.commit()
