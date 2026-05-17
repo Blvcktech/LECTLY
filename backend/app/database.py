@@ -17,6 +17,15 @@ from contextlib import contextmanager
 from datetime import datetime
 from typing import Optional
 
+from app.cache import (
+    cache,
+    lecture_key,
+    lecture_list_key,
+    learn_cache_key,
+    invalidate_lecture,
+    invalidate_user_lectures,
+)
+
 logger = logging.getLogger("lectly.db")
 
 # ──────────────────────────────────────────────
@@ -411,6 +420,9 @@ def create_lecture(lecture: dict) -> dict:
             ),
         )
         conn.commit()
+    # Invalidate the user's lecture list cache
+    if lecture.get("user_id"):
+        invalidate_user_lectures(lecture["user_id"])
     return lecture
 
 
@@ -444,10 +456,16 @@ def update_lecture(lecture_id: str, updates: dict):
             values,
         )
         conn.commit()
+    invalidate_lecture(lecture_id)
 
 
 def get_lecture(lecture_id: str) -> Optional[dict]:
-    """Get a lecture with its transcript and notes."""
+    """Get a lecture with its transcript and notes. Cached for repeat reads."""
+    # Check cache first
+    cached = cache.get(lecture_key(lecture_id))
+    if cached is not None:
+        return cached
+
     with _get_conn() as conn:
         lecture = _fetchone(conn, f"SELECT * FROM lectures WHERE id = {P}", (lecture_id,))
         if not lecture:
@@ -482,6 +500,11 @@ def get_lecture(lecture_id: str) -> Optional[dict]:
         else:
             lecture["notes"] = None
 
+        # Only cache if lecture is in a stable state (ready or failed)
+        # Don't cache mid-processing lectures since their status changes rapidly
+        if lecture.get("status") in ("ready", "failed"):
+            cache.set(lecture_key(lecture_id), lecture)
+
         return lecture
 
 
@@ -491,6 +514,7 @@ def delete_lecture(lecture_id: str) -> bool:
         cursor = _execute(conn, f"DELETE FROM lectures WHERE id = {P}", (lecture_id,))
         deleted = cursor.rowcount > 0
         conn.commit()
+    invalidate_lecture(lecture_id)
     return deleted
 
 
@@ -506,7 +530,13 @@ def count_user_lectures(user_id: str) -> int:
 
 
 def list_lectures(user_id: Optional[str] = None) -> list[dict]:
-    """List lectures with their notes (for dashboard). Optionally filter by user."""
+    """List lectures with their notes (for dashboard). Optionally filter by user. Cached per user."""
+    # Check cache for user-specific lists
+    if user_id:
+        cached = cache.get(lecture_list_key(user_id))
+        if cached is not None:
+            return cached
+
     with _get_conn() as conn:
         if user_id:
             rows = _fetchall(
@@ -546,6 +576,10 @@ def list_lectures(user_id: Optional[str] = None) -> list[dict]:
 
             lectures.append(lecture)
 
+    # Cache the result for this user
+    if user_id:
+        cache.set(lecture_list_key(user_id), lectures, ttl=120)  # 2 min TTL for lists
+
     return lectures
 
 
@@ -577,6 +611,7 @@ def save_transcript(lecture_id: str, transcript_text: str, segments: list):
                 (lecture_id, transcript_text, json.dumps(segments), datetime.utcnow().isoformat()),
             )
         conn.commit()
+    invalidate_lecture(lecture_id)
 
 
 # ──────────────────────────────────────────────
@@ -611,6 +646,7 @@ def save_notes(lecture_id: str, title: str, summary: str, sections: list, genera
                 (lecture_id, title, summary, json.dumps(sections), generated_at.isoformat()),
             )
         conn.commit()
+    invalidate_lecture(lecture_id)
 
 
 # ──────────────────────────────────────────────
@@ -645,13 +681,23 @@ def save_learn_mode_cache(lecture_id: str, section_index: int, level: str, card_
 
 def get_learn_mode_cache(lecture_id: str, section_index: int, level: str, card_style: str) -> Optional[str]:
     """Retrieve cached Learn Mode response. Returns JSON string or None."""
+    # Check in-memory cache first
+    mem_key = learn_cache_key(lecture_id, section_index, level, card_style)
+    cached = cache.get(mem_key)
+    if cached is not None:
+        return cached
+
     with _get_conn() as conn:
         row = _fetchone(
             conn,
             f"SELECT response_json FROM learn_mode_cache WHERE lecture_id = {P} AND section_index = {P} AND level = {P} AND card_style = {P}",
             (lecture_id, section_index, level, card_style),
         )
-    return row["response_json"] if row else None
+    if row:
+        # Store in memory for next time
+        cache.set(mem_key, row["response_json"])
+        return row["response_json"]
+    return None
 
 
 # ──────────────────────────────────────────────
