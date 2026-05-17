@@ -176,6 +176,10 @@ export default function UploadPage() {
           throw new Error("No lecture ID available. Please try uploading again.");
         }
         updateStep(1, false, true);
+
+        // Notify the NotificationWatcher so it starts tracking this lecture
+        window.dispatchEvent(new CustomEvent("lectly:upload-started"));
+
         await processLecture(currentLectureId, (status) => {
           // Update UI steps based on backend status changes
           if (status === "transcribing" || status === "cleaning") {

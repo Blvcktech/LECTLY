@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
 import { ToastProvider } from "@/components/Toast";
 import AuthSync from "@/components/AuthSync";
+import NotificationWatcher from "@/components/NotificationWatcher";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -100,7 +101,10 @@ export default function RootLayout({
       >
         <body className="min-h-full flex flex-col">
           <AuthSync />
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            <NotificationWatcher />
+            {children}
+          </ToastProvider>
           <Analytics />
         </body>
       </html>
