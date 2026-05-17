@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { ToastProvider } from "@/components/Toast";
 import AuthSync from "@/components/AuthSync";
 import NotificationWatcher from "@/components/NotificationWatcher";
+import PushNotifications from "@/components/PushNotifications";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -103,6 +104,7 @@ export default function RootLayout({
           <AuthSync />
           <ToastProvider>
             <NotificationWatcher />
+            <PushNotifications />
             {children}
           </ToastProvider>
           <Analytics />
