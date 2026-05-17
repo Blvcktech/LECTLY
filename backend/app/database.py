@@ -247,6 +247,16 @@ def init_db():
                 FOREIGN KEY (lecture_id) REFERENCES lectures(id) ON DELETE CASCADE
             )
         """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS push_subscriptions (
+                id SERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                endpoint TEXT NOT NULL UNIQUE,
+                subscription_json TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
         conn.commit()
     else:
         cursor.executescript("""
@@ -322,6 +332,15 @@ def init_db():
                 created_at TEXT NOT NULL,
                 UNIQUE(lecture_id, section_index, level, card_style),
                 FOREIGN KEY (lecture_id) REFERENCES lectures(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS push_subscriptions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                endpoint TEXT NOT NULL UNIQUE,
+                subscription_json TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
         """)
         conn.commit()
@@ -807,3 +826,62 @@ def get_last_studied(user_id: str) -> Optional[dict]:
             f"SELECT * FROM progress WHERE user_id = {P} ORDER BY last_studied_at DESC LIMIT 1",
             (user_id,),
         )
+
+
+# ──────────────────────────────────────────────
+# Push Subscriptions
+# ──────────────────────────────────────────────
+
+def save_push_subscription(user_id: str, subscription: dict) -> dict:
+    """
+    Save a push subscription for a user.
+    Uses the endpoint as a unique key — if the same browser re-subscribes,
+    we update the record instead of creating a duplicate.
+    """
+    endpoint = subscription.get("endpoint", "")
+    sub_json = json.dumps(subscription)
+    now = datetime.utcnow().isoformat()
+
+    with _get_conn() as conn:
+        # Upsert: update if endpoint already exists, insert otherwise
+        if USE_POSTGRES:
+            _execute(
+                conn,
+                f"""INSERT INTO push_subscriptions (user_id, endpoint, subscription_json, created_at)
+                    VALUES ({P}, {P}, {P}, {P})
+                    ON CONFLICT (endpoint) DO UPDATE
+                    SET user_id = EXCLUDED.user_id,
+                        subscription_json = EXCLUDED.subscription_json""",
+                (user_id, endpoint, sub_json, now),
+            )
+        else:
+            _execute(
+                conn,
+                f"""INSERT OR REPLACE INTO push_subscriptions (user_id, endpoint, subscription_json, created_at)
+                    VALUES ({P}, {P}, {P}, {P})""",
+                (user_id, endpoint, sub_json, now),
+            )
+        conn.commit()
+
+    return {"user_id": user_id, "endpoint": endpoint, "created_at": now}
+
+
+def get_user_push_subscriptions(user_id: str) -> list[dict]:
+    """Get all push subscriptions for a user (one per device/browser)."""
+    with _get_conn() as conn:
+        return _fetchall(
+            conn,
+            f"SELECT * FROM push_subscriptions WHERE user_id = {P}",
+            (user_id,),
+        )
+
+
+def delete_push_subscription(endpoint: str):
+    """Remove a push subscription by endpoint (e.g. when user unsubscribes)."""
+    with _get_conn() as conn:
+        _execute(
+            conn,
+            f"DELETE FROM push_subscriptions WHERE endpoint = {P}",
+            (endpoint,),
+        )
+        conn.commit()

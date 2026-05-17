@@ -42,6 +42,7 @@ from app.database import (
     get_all_progress as db_get_all_progress,
     get_last_studied as db_get_last_studied,
 )
+from app.services.push import send_push_to_user
 
 
 router = APIRouter(prefix="/api", tags=["lectures"])
@@ -117,9 +118,41 @@ async def _process_lecture_pipeline(lecture_id: str):
         await generate_notes(lecture_id)
 
         print(f"[Lectly] Background processing complete for {lecture_id}")
+
+        # Step 3: Send push notification — lecture is ready
+        try:
+            lecture = await get_lecture(lecture_id)
+            if lecture and lecture.get("user_id"):
+                title = lecture.get("subject") or lecture.get("filename") or "Your lecture"
+                send_push_to_user(
+                    user_id=lecture["user_id"],
+                    title="Your notes are ready!",
+                    body=f'"{title}" has been processed. Tap to view your notes.',
+                    url=f"/lecture/{lecture_id}",
+                    tag=f"lecture-ready-{lecture_id}",
+                )
+        except Exception as push_err:
+            # Push is non-critical — don't fail the pipeline
+            print(f"[Lectly] Push notification error (non-fatal): {push_err}")
+
     except Exception as e:
         print(f"[Lectly] Background processing FAILED for {lecture_id}: {e}")
         update_lecture_db(lecture_id, {"status": "failed", "error": str(e)})
+
+        # Send push notification for failures too
+        try:
+            lecture = await get_lecture(lecture_id)
+            if lecture and lecture.get("user_id"):
+                title = lecture.get("subject") or lecture.get("filename") or "Your lecture"
+                send_push_to_user(
+                    user_id=lecture["user_id"],
+                    title="Processing failed",
+                    body=f'"{title}" couldn\'t be processed. Tap to retry.',
+                    url=f"/lecture/{lecture_id}",
+                    tag=f"lecture-failed-{lecture_id}",
+                )
+        except Exception:
+            pass
 
 
 @router.post("/lectures/{lecture_id}/process")
