@@ -1,12 +1,17 @@
 """
 Lecture routes — upload, process, retrieve, explain, learn, tutor, solve.
+
+All endpoints use Depends(get_current_user) for authentication.
+This means auth is enforced automatically — you can't accidentally
+add an unprotected endpoint.
 """
 
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Request, BackgroundTasks
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, Request, BackgroundTasks
 from fastapi.responses import Response
 from typing import Optional
 
 from app.config import get_settings
+from app.deps import get_current_user
 from app.rate_limit import limiter
 from app.models.lecture import (
     LectureUploadResponse,
@@ -42,106 +47,16 @@ from app.database import (
 router = APIRouter(prefix="/api", tags=["lectures"])
 
 
-import jwt
-from jwt import PyJWKClient
-import time
-
-# Cache the JWKS client so we don't re-fetch keys on every request
-_jwks_client: Optional[PyJWKClient] = None
-_jwks_client_init_time: float = 0
-
-
-def _get_jwks_client() -> Optional[PyJWKClient]:
-    """Get or create a cached JWKS client for Clerk token verification."""
-    global _jwks_client, _jwks_client_init_time
-    settings = get_settings()
-    if not settings.clerk_issuer:
-        return None
-    # Refresh the client every 6 hours to pick up key rotations
-    if _jwks_client is None or (time.time() - _jwks_client_init_time) > 21600:
-        jwks_url = f"{settings.clerk_issuer.rstrip('/')}/.well-known/jwks.json"
-        _jwks_client = PyJWKClient(jwks_url, cache_keys=True)
-        _jwks_client_init_time = time.time()
-    return _jwks_client
-
-
-def _get_user_id_from_header(request: Request) -> Optional[str]:
-    """
-    Extract user ID from Clerk session token in the Authorization header.
-    Verifies the JWT signature against Clerk's JWKS public keys.
-    Falls back to unverified decode only if CLERK_ISSUER is not configured (local dev).
-    """
-    auth_header = request.headers.get("authorization", "")
-    if not auth_header.startswith("Bearer "):
-        return None
-    token = auth_header[7:]
-
-    settings = get_settings()
-    jwks_client = _get_jwks_client()
-
-    # ── Production: Verify JWT signature with Clerk's JWKS ──
-    if jwks_client and settings.clerk_issuer:
-        try:
-            signing_key = jwks_client.get_signing_key_from_jwt(token)
-            payload = jwt.decode(
-                token,
-                signing_key.key,
-                algorithms=["RS256"],
-                options={
-                    "verify_aud": False,    # Clerk tokens don't always have aud
-                    "verify_iss": False,    # Issuer already trusted via JWKS endpoint
-                },
-            )
-            return payload.get("sub")
-        except jwt.ExpiredSignatureError:
-            print("[Lectly] JWT expired")
-            return None
-        except jwt.InvalidTokenError as e:
-            print(f"[Lectly] JWT verification failed: {e}")
-            return None
-        except Exception as e:
-            # JWKS fetch failed, key not found, network error, etc.
-            # Do NOT fall through to unverified decode — that would be a security hole.
-            print(f"[Lectly] JWKS verification error: {e}")
-            return None
-
-    # ── Local dev fallback: decode without verification ──
-    # ONLY when CLERK_ISSUER is not configured (i.e. local development).
-    # This block is unreachable when clerk_issuer is set because the
-    # production branch above always returns.
-    if not settings.clerk_issuer:
-        try:
-            import json, base64
-            payload_b64 = token.split(".")[1]
-            payload_b64 += "=" * (4 - len(payload_b64) % 4)
-            payload = json.loads(base64.urlsafe_b64decode(payload_b64))
-            return payload.get("sub")
-        except Exception:
-            return None
-
-    return None
-
-
-def _require_user_id(request: Request) -> str:
-    """Extract user ID from request, raising 401 if missing."""
-    user_id = _get_user_id_from_header(request)
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Authentication required")
-    return user_id
-
-
 @router.post("/upload", response_model=LectureUploadResponse)
 @limiter.limit("10/hour")
 async def upload_lecture(
     request: Request,
     file: UploadFile = File(...),
     subject: Optional[str] = Form(None),
+    user_id: str = Depends(get_current_user),
 ):
     """Upload a lecture audio file for processing."""
     settings = get_settings()
-
-    # Require authentication
-    user_id = _require_user_id(request)
 
     # Ensure user exists in our database (Clerk handles real auth,
     # but we need a users row so the foreign key on lectures works)
@@ -209,7 +124,12 @@ async def _process_lecture_pipeline(lecture_id: str):
 
 @router.post("/lectures/{lecture_id}/process")
 @limiter.limit("10/hour")
-async def process_lecture(lecture_id: str, request: Request, background_tasks: BackgroundTasks):
+async def process_lecture(
+    lecture_id: str,
+    request: Request,
+    background_tasks: BackgroundTasks,
+    user_id: str = Depends(get_current_user),
+):
     """
     Trigger full processing pipeline: transcribe → generate notes.
 
@@ -219,7 +139,6 @@ async def process_lecture(lecture_id: str, request: Request, background_tasks: B
     uploaded → processing → transcribing → generating_notes → ready
     (or → failed if something goes wrong).
     """
-    user_id = _require_user_id(request)
 
     lecture = await get_lecture(lecture_id)
     if not lecture:
@@ -248,17 +167,15 @@ async def process_lecture(lecture_id: str, request: Request, background_tasks: B
 
 
 @router.get("/lectures")
-async def get_lectures(request: Request):
+async def get_lectures(user_id: str = Depends(get_current_user)):
     """List all lectures for the current user."""
-    user_id = _require_user_id(request)
     lectures = await list_lectures(user_id=user_id)
     return {"lectures": lectures, "count": len(lectures)}
 
 
 @router.get("/lectures/{lecture_id}")
-async def get_lecture_detail(lecture_id: str, request: Request):
+async def get_lecture_detail(lecture_id: str, user_id: str = Depends(get_current_user)):
     """Get full lecture details including notes."""
-    user_id = _require_user_id(request)
 
     lecture = await get_lecture(lecture_id)
     if not lecture:
@@ -273,17 +190,15 @@ async def get_lecture_detail(lecture_id: str, request: Request):
 
 @router.post("/explain", response_model=ExplainResponse)
 @limiter.limit("30/hour")
-async def explain_section(body: ExplainRequest, request: Request):
+async def explain_section(body: ExplainRequest, request: Request, user_id: str = Depends(get_current_user)):
     """Explain a highlighted section of notes in simpler terms."""
-    _require_user_id(request)
     return await explain_text(body)
 
 
 @router.post("/learn", response_model=LearnModeResponse)
 @limiter.limit("20/hour")
-async def activate_learn_mode(body: LearnModeRequest, request: Request):
+async def activate_learn_mode(body: LearnModeRequest, request: Request, user_id: str = Depends(get_current_user)):
     """Activate Learn Mode for a lecture section."""
-    user_id = _require_user_id(request)
 
     # Verify the user owns this lecture
     lecture = await get_lecture(body.lecture_id)
@@ -297,9 +212,8 @@ async def activate_learn_mode(body: LearnModeRequest, request: Request):
 
 @router.post("/tutor/ask", response_model=TutorAskResponse)
 @limiter.limit("60/hour")
-async def tutor_ask(body: TutorAskRequest, request: Request):
+async def tutor_ask(body: TutorAskRequest, request: Request, user_id: str = Depends(get_current_user)):
     """Ask the AI Tutor a question about a lecture. Context-aware, conversational."""
-    user_id = _require_user_id(request)
 
     # Verify ownership
     lecture_check = await get_lecture(body.lecture_id)
@@ -357,9 +271,8 @@ async def tutor_ask(body: TutorAskRequest, request: Request):
 
 @router.post("/solve", response_model=SolveModeResponse)
 @limiter.limit("20/hour")
-async def solve_mode(body: SolveModeRequest, request: Request):
+async def solve_mode(body: SolveModeRequest, request: Request, user_id: str = Depends(get_current_user)):
     """Solve Mode — walk through a problem step by step."""
-    user_id = _require_user_id(request)
 
     # Verify the user owns this lecture
     lecture = await get_lecture(body.lecture_id)
@@ -378,9 +291,8 @@ async def solve_mode(body: SolveModeRequest, request: Request):
 
 
 @router.get("/lectures/{lecture_id}/pdf")
-async def download_notes_pdf(lecture_id: str, request: Request):
+async def download_notes_pdf(lecture_id: str, user_id: str = Depends(get_current_user)):
     """Download lecture notes as a formatted PDF."""
-    user_id = _require_user_id(request)
 
     # Verify ownership before generating
     lecture_check = await get_lecture(lecture_id)
@@ -413,9 +325,8 @@ async def download_notes_pdf(lecture_id: str, request: Request):
 
 
 @router.delete("/lectures/{lecture_id}")
-async def delete_lecture(lecture_id: str, request: Request):
+async def delete_lecture(lecture_id: str, user_id: str = Depends(get_current_user)):
     """Delete a lecture and all associated data."""
-    user_id = _require_user_id(request)
 
     lecture = await get_lecture(lecture_id)
     if not lecture:
@@ -441,12 +352,10 @@ async def delete_lecture(lecture_id: str, request: Request):
 
 
 @router.patch("/lectures/{lecture_id}")
-async def update_lecture_details(lecture_id: str, request: Request):
+async def update_lecture_details(lecture_id: str, request: Request, user_id: str = Depends(get_current_user)):
     """Update lecture details (title, subject)."""
     from datetime import datetime
     from app.database import save_notes
-
-    user_id = _require_user_id(request)
 
     lecture = await get_lecture(lecture_id)
     if not lecture:
@@ -485,12 +394,8 @@ async def update_lecture_details(lecture_id: str, request: Request):
 # ──────────────────────────────────────────────
 
 @router.post("/progress", response_model=ProgressResponse)
-async def save_progress(request_body: ProgressSaveRequest, request: Request):
+async def save_progress(request_body: ProgressSaveRequest, user_id: str = Depends(get_current_user)):
     """Save study progress for a lecture section."""
-    user_id = _get_user_id_from_header(request)
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Authentication required")
-
     result = db_save_progress(
         user_id=user_id,
         lecture_id=request_body.lecture_id,
@@ -506,24 +411,16 @@ async def save_progress(request_body: ProgressSaveRequest, request: Request):
 
 
 @router.get("/progress")
-async def get_all_progress(request: Request):
+async def get_all_progress(user_id: str = Depends(get_current_user)):
     """Get all progress for the current user."""
-    user_id = _get_user_id_from_header(request)
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Authentication required")
-
     progress = db_get_all_progress(user_id)
     last_studied = db_get_last_studied(user_id)
     return {"progress": progress, "last_studied": last_studied}
 
 
 @router.get("/progress/{lecture_id}")
-async def get_lecture_progress(lecture_id: str, request: Request):
+async def get_lecture_progress(lecture_id: str, user_id: str = Depends(get_current_user)):
     """Get progress for a specific lecture."""
-    user_id = _get_user_id_from_header(request)
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Authentication required")
-
     progress = db_get_lecture_progress(user_id, lecture_id)
     return {"progress": progress}
 
@@ -533,9 +430,8 @@ async def get_lecture_progress(lecture_id: str, request: Request):
 # ──────────────────────────────────────────────
 
 @router.get("/user/limits")
-async def get_user_limits(request: Request):
+async def get_user_limits(user_id: str = Depends(get_current_user)):
     """Get current usage limits for the authenticated user."""
-    user_id = _require_user_id(request)
 
     # TODO: Check subscription tier once payment is integrated
     FREE_TIER_LIMIT = 3
