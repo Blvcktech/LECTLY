@@ -478,3 +478,50 @@ export async function getLectureProgress(
 
   return res.json();
 }
+
+
+// ── Payments ──────────────────────────────────
+
+export async function initializePayment(plan: string, email: string): Promise<{
+  authorization_url: string;
+  reference: string;
+  access_code: string;
+}> {
+  const res = await fetch(`${API_URL}/api/payments/initialize`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ plan, email }),
+  });
+
+  await checkResponse(res, "Failed to initialize payment");
+  return res.json();
+}
+
+export async function verifyPayment(reference: string): Promise<{
+  verified: boolean;
+  plan?: string;
+  message: string;
+}> {
+  const res = await fetch(`${API_URL}/api/payments/verify`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ reference }),
+  });
+
+  await checkResponse(res, "Failed to verify payment");
+  return res.json();
+}
+
+export async function getSubscriptionStatus(): Promise<{
+  tier: string;
+  lectures_limit: number;
+  status: string;
+  current_period_end?: string;
+}> {
+  const res = await fetch(`${API_URL}/api/payments/subscription`, {
+    headers: { ...authHeaders() },
+  });
+
+  await checkResponse(res, "Failed to fetch subscription");
+  return res.json();
+}

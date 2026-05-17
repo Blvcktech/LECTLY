@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import {
   ArrowLeft,
   Check,
@@ -12,10 +14,44 @@ import {
   Home,
   FileText,
   Upload,
+  Loader2,
 } from "lucide-react";
+import { initializePayment, getSubscriptionStatus } from "@/lib/api";
 
 export default function SubscriptionPage() {
   const router = useRouter();
+  const { user } = useUser();
+  const [loading, setLoading] = useState<string | null>(null); // which plan is loading
+  const [subscription, setSubscription] = useState<{
+    tier: string;
+    lectures_limit: number;
+    status: string;
+  } | null>(null);
+
+  useEffect(() => {
+    getSubscriptionStatus()
+      .then(setSubscription)
+      .catch(() => setSubscription({ tier: "free", lectures_limit: 3, status: "active" }));
+  }, []);
+
+  const handleUpgrade = async (plan: "basic" | "pro") => {
+    if (!user?.primaryEmailAddress?.emailAddress) return;
+
+    setLoading(plan);
+    try {
+      const { authorization_url } = await initializePayment(
+        plan,
+        user.primaryEmailAddress.emailAddress
+      );
+      // Redirect to Paystack checkout
+      window.location.href = authorization_url;
+    } catch (err) {
+      console.error("Payment initialization failed:", err);
+      setLoading(null);
+    }
+  };
+
+  const currentTier = subscription?.tier || "free";
 
   return (
     <div className="min-h-screen bg-[#F7F4EE]">
@@ -37,124 +73,158 @@ export default function SubscriptionPage() {
         <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl p-5 mb-5">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-xl bg-[#1a5c65]/8 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-[#0F3D43]" />
+              {currentTier === "free" ? (
+                <Sparkles className="w-5 h-5 text-[#0F3D43]" />
+              ) : currentTier === "basic" ? (
+                <Zap className="w-5 h-5 text-amber-500" />
+              ) : (
+                <Crown className="w-5 h-5 text-amber-600" />
+              )}
             </div>
             <div>
               <p
                 className="text-base font-bold text-[#1a1815]"
                 style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
-                Free Plan
+                {currentTier === "free" ? "Free Plan" : `${currentTier.charAt(0).toUpperCase() + currentTier.slice(1)} Plan`}
               </p>
               <p className="text-[11px] text-[#b5ad9e]">Your current plan</p>
             </div>
           </div>
           <div className="mt-3 flex items-center gap-4 text-[12px] text-[#8a7f6f]">
-            <span>3 lectures total</span>
+            <span>{subscription?.lectures_limit || 3} lectures {currentTier === "free" ? "total" : "per month"}</span>
             <span className="text-[#d4cec3]">·</span>
-            <span>No PDF export</span>
+            <span>{currentTier === "free" ? "No PDF export" : "PDF export"}</span>
             <span className="text-[#d4cec3]">·</span>
-            <span>No storage</span>
+            <span>{currentTier === "free" ? "No storage" : "Notes saved"}</span>
           </div>
         </div>
 
-        {/* Upgrade heading */}
-        <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest mb-3">
-          Upgrade your plan
-        </p>
+        {currentTier !== "pro" && (
+          <>
+            {/* Upgrade heading */}
+            <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest mb-3">
+              Upgrade your plan
+            </p>
 
-        {/* Basic Plan */}
-        <div className="bg-[#1a1815] rounded-2xl p-5 mb-3 relative">
-          <div className="absolute -top-2 right-4 bg-[#0F3D43] text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-            Popular
-          </div>
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center">
-              <Zap className="w-4 h-4 text-amber-400" />
-            </div>
-            <div>
-              <p
-                className="text-sm font-bold text-white"
-                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
-              >
-                Basic
-              </p>
-              <p className="text-[10px] text-white/40">For regular use</p>
-            </div>
-            <div className="ml-auto text-right">
-              <p
-                className="text-xl font-bold text-white"
-                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
-              >
-                &#8358;3,500
-              </p>
-              <p className="text-[10px] text-white/40">/month · ~$2.33</p>
-            </div>
-          </div>
-          <ul className="space-y-1.5 mb-4">
-            {[
-              "8 lectures per month",
-              "Full AI-generated notes",
-              "Learn Mode & Explain This",
-              "PDF export",
-              "WhatsApp sharing",
-              "Notes saved for 6 months",
-            ].map((f) => (
-              <li key={f} className="flex items-center gap-2 text-[12px] text-white/70">
-                <Check className="w-3 h-3 text-emerald-400 flex-shrink-0" />
-                {f}
-              </li>
-            ))}
-          </ul>
-          <button className="w-full py-2.5 bg-white text-[#1a1815] rounded-lg text-sm font-semibold hover:bg-white/90 transition-colors">
-            Upgrade to Basic
-          </button>
-        </div>
+            {/* Basic Plan */}
+            {currentTier === "free" && (
+              <div className="bg-[#1a1815] rounded-2xl p-5 mb-3 relative">
+                <div className="absolute -top-2 right-4 bg-[#0F3D43] text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  Popular
+                </div>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center">
+                    <Zap className="w-4 h-4 text-amber-400" />
+                  </div>
+                  <div>
+                    <p
+                      className="text-sm font-bold text-white"
+                      style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
+                    >
+                      Basic
+                    </p>
+                    <p className="text-[10px] text-white/40">For regular use</p>
+                  </div>
+                  <div className="ml-auto text-right">
+                    <p
+                      className="text-xl font-bold text-white"
+                      style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
+                    >
+                      &#8358;3,500
+                    </p>
+                    <p className="text-[10px] text-white/40">/month · ~$2.33</p>
+                  </div>
+                </div>
+                <ul className="space-y-1.5 mb-4">
+                  {[
+                    "8 lectures per month",
+                    "Full AI-generated notes",
+                    "Learn Mode & Explain This",
+                    "PDF export",
+                    "WhatsApp sharing",
+                    "Notes saved for 6 months",
+                  ].map((f) => (
+                    <li key={f} className="flex items-center gap-2 text-[12px] text-white/70">
+                      <Check className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => handleUpgrade("basic")}
+                  disabled={loading !== null}
+                  className="w-full py-2.5 bg-white text-[#1a1815] rounded-lg text-sm font-semibold hover:bg-white/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {loading === "basic" ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Redirecting to payment...
+                    </>
+                  ) : (
+                    "Upgrade to Basic"
+                  )}
+                </button>
+              </div>
+            )}
 
-        {/* Pro Plan */}
-        <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl p-5 mb-3">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-lg bg-amber-500/8 flex items-center justify-center">
-              <Crown className="w-4 h-4 text-amber-600" />
-            </div>
-            <div>
-              <p
-                className="text-sm font-bold text-[#1a1815]"
-                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
+            {/* Pro Plan */}
+            <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl p-5 mb-3">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-9 h-9 rounded-lg bg-amber-500/8 flex items-center justify-center">
+                  <Crown className="w-4 h-4 text-amber-600" />
+                </div>
+                <div>
+                  <p
+                    className="text-sm font-bold text-[#1a1815]"
+                    style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
+                  >
+                    Pro
+                  </p>
+                  <p className="text-[10px] text-[#b5ad9e]">For serious students</p>
+                </div>
+                <div className="ml-auto text-right">
+                  <p
+                    className="text-xl font-bold text-[#1a1815]"
+                    style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
+                  >
+                    &#8358;8,500
+                  </p>
+                  <p className="text-[10px] text-[#b5ad9e]">/month · ~$5.67</p>
+                </div>
+              </div>
+              <ul className="space-y-1.5 mb-4">
+                {[
+                  "20 lectures per month",
+                  "Everything in Basic",
+                  "No watermark on shares",
+                  "Priority processing (2x faster)",
+                  "Share with up to 3 students",
+                  "Notes saved permanently",
+                ].map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-[12px] text-[#8a7f6f]">
+                    <Check className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={() => handleUpgrade("pro")}
+                disabled={loading !== null}
+                className="w-full py-2.5 border border-[rgba(217,185,130,0.35)] text-[#1a1815] rounded-lg text-sm font-medium hover:bg-[#F7F4EE] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                Pro
-              </p>
-              <p className="text-[10px] text-[#b5ad9e]">For serious students</p>
+                {loading === "pro" ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Redirecting to payment...
+                  </>
+                ) : (
+                  "Upgrade to Pro"
+                )}
+              </button>
             </div>
-            <div className="ml-auto text-right">
-              <p
-                className="text-xl font-bold text-[#1a1815]"
-                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
-              >
-                &#8358;8,500
-              </p>
-              <p className="text-[10px] text-[#b5ad9e]">/month · ~$5.67</p>
-            </div>
-          </div>
-          <ul className="space-y-1.5 mb-4">
-            {[
-              "20 lectures per month",
-              "Everything in Basic",
-              "No watermark on shares",
-              "Priority processing (2x faster)",
-              "Share with up to 3 students",
-              "Notes saved permanently",
-            ].map((f) => (
-              <li key={f} className="flex items-center gap-2 text-[12px] text-[#8a7f6f]">
-                <Check className="w-3 h-3 text-emerald-500 flex-shrink-0" />
-                {f}
-              </li>
-            ))}
-          </ul>
-          <button className="w-full py-2.5 border border-[rgba(217,185,130,0.35)] text-[#1a1815] rounded-lg text-sm font-medium hover:bg-[#F7F4EE] transition-colors">
-            Upgrade to Pro
-          </button>
-        </div>
+          </>
+        )}
 
         {/* Group Plan */}
         <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl p-5 mb-4">
@@ -180,7 +250,7 @@ export default function SubscriptionPage() {
         </div>
 
         <p className="text-[11px] text-[#b5ad9e] text-center px-4">
-          Payments are processed securely. Cancel anytime — no questions asked.
+          Payments are processed securely via Paystack. Cancel anytime — no questions asked.
         </p>
       </main>
 
