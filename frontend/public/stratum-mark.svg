@@ -1,0 +1,17 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- App icon: Ink tile with Stratum mark -->
+  <rect width="512" height="512" rx="108" fill="#0F3D43"/>
+
+  <!-- The L foundation -->
+  <path d="M 128,96 L 128,416 L 384,416 L 384,352 L 192,352 L 192,96 Z" fill="#FCFAF6"/>
+
+  <!-- Strata layers (short-to-long, resolving into the base) -->
+  <!-- Top stratum - shortest, most transparent -->
+  <rect x="208" y="160" width="80" height="20" rx="4" fill="#FCFAF6" opacity="0.35"/>
+  <!-- Second stratum -->
+  <rect x="208" y="196" width="112" height="20" rx="4" fill="#FCFAF6" opacity="0.45"/>
+  <!-- Third stratum -->
+  <rect x="208" y="232" width="144" height="20" rx="4" fill="#FCFAF6" opacity="0.55"/>
+  <!-- Fourth stratum - amber accent (the key layer) -->
+  <rect x="208" y="268" width="160" height="20" rx="4" fill="#F2A930"/>
+</svg>
