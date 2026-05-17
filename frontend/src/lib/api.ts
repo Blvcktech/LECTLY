@@ -75,6 +75,7 @@ export interface Lecture {
   status: string;
   quality_score?: number;
   duration_seconds?: number;
+  error?: string;
   transcript_text?: string;
   notes?: {
     title: string;
@@ -205,31 +206,50 @@ export async function uploadLecture(
 }
 
 export async function processLecture(
-  lectureId: string
+  lectureId: string,
+  onStatusChange?: (status: string) => void
 ): Promise<ProcessResult> {
-  // Long timeout — transcribing + generating notes can take several minutes
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 600_000); // 10 minutes
+  // Step 1: Fire off the background processing request
+  const res = await fetch(`${API_URL}/api/lectures/${lectureId}/process`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+  });
 
-  try {
-    const res = await fetch(`${API_URL}/api/lectures/${lectureId}/process`, {
-      method: "POST",
-      headers: { ...authHeaders() },
-      signal: controller.signal,
-    });
+  await checkResponse(res, "Processing failed");
 
-    clearTimeout(timeoutId);
+  // Step 2: Poll GET /lectures/{id} until status is "ready" or "failed"
+  const maxWait = 900_000; // 15 minutes
+  const pollInterval = 3_000; // check every 3 seconds
+  let waited = 0;
 
-    await checkResponse(res, "Processing failed");
+  while (waited < maxWait) {
+    await new Promise((r) => setTimeout(r, pollInterval));
+    waited += pollInterval;
 
-    return res.json();
-  } catch (err) {
-    clearTimeout(timeoutId);
-    if (err instanceof DOMException && err.name === "AbortError") {
-      throw new Error("Processing timed out. Try a shorter audio file or try again.");
+    const lecture = await getLecture(lectureId);
+    const status = lecture.status;
+
+    // Notify caller of status changes (for UI updates)
+    if (onStatusChange) onStatusChange(status);
+
+    if (status === "ready") {
+      return {
+        lecture_id: lectureId,
+        status: "ready",
+        message: "Lecture processed successfully",
+        notes_title: lecture.notes?.title || "",
+        sections_count: lecture.notes?.sections?.length || 0,
+      };
     }
-    throw err;
+
+    if (status === "failed") {
+      throw new Error(lecture.error || "Processing failed. Please try again.");
+    }
+
+    // Otherwise status is processing/transcribing/cleaning/generating_notes — keep polling
   }
+
+  throw new Error("Processing timed out. Try a shorter audio file or try again.");
 }
 
 export async function getLecture(lectureId: string): Promise<Lecture> {

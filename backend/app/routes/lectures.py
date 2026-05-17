@@ -2,7 +2,7 @@
 Lecture routes — upload, process, retrieve, explain, learn, tutor, solve.
 """
 
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Request
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Request, BackgroundTasks
 from fastapi.responses import Response
 from typing import Optional
 
@@ -183,10 +183,42 @@ async def upload_lecture(
     return result
 
 
+async def _process_lecture_pipeline(lecture_id: str):
+    """
+    Background processing pipeline: transcribe → generate notes.
+
+    Runs outside the request/response cycle so the student gets an
+    immediate response and can poll /lectures/{id} for status updates.
+    Errors are written to the lecture record so the frontend can display them.
+    """
+    try:
+        print(f"[Lectly] Background processing started for {lecture_id}")
+        update_lecture_db(lecture_id, {"status": "processing"})
+
+        # Step 1: Transcribe
+        await transcribe_audio(lecture_id)
+
+        # Step 2: Generate structured notes
+        await generate_notes(lecture_id)
+
+        print(f"[Lectly] Background processing complete for {lecture_id}")
+    except Exception as e:
+        print(f"[Lectly] Background processing FAILED for {lecture_id}: {e}")
+        update_lecture_db(lecture_id, {"status": "failed", "error": str(e)})
+
+
 @router.post("/lectures/{lecture_id}/process")
 @limiter.limit("10/hour")
-async def process_lecture(lecture_id: str, request: Request):
-    """Trigger full processing pipeline: transcribe → generate notes."""
+async def process_lecture(lecture_id: str, request: Request, background_tasks: BackgroundTasks):
+    """
+    Trigger full processing pipeline: transcribe → generate notes.
+
+    Returns immediately with status 202 (accepted). The processing
+    runs in the background — poll GET /lectures/{lecture_id} to
+    track progress. The lecture status field will transition through:
+    uploaded → processing → transcribing → generating_notes → ready
+    (or → failed if something goes wrong).
+    """
     user_id = _require_user_id(request)
 
     lecture = await get_lecture(lecture_id)
@@ -197,18 +229,21 @@ async def process_lecture(lecture_id: str, request: Request):
     if lecture.get("user_id") and lecture["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="Not authorized to process this lecture")
 
-    # Step 1: Transcribe
-    await transcribe_audio(lecture_id)
+    # Don't allow re-processing if already in progress
+    if lecture.get("status") in ("processing", "transcribing", "cleaning", "generating_notes"):
+        return {
+            "lecture_id": lecture_id,
+            "status": lecture["status"],
+            "message": "Lecture is already being processed. Poll GET /lectures/{lecture_id} for updates.",
+        }
 
-    # Step 2: Generate structured notes
-    notes = await generate_notes(lecture_id)
+    # Kick off the pipeline in the background
+    background_tasks.add_task(_process_lecture_pipeline, lecture_id)
 
     return {
         "lecture_id": lecture_id,
-        "status": "ready",
-        "message": "Lecture processed successfully",
-        "notes_title": notes.title,
-        "sections_count": len(notes.sections),
+        "status": "processing",
+        "message": "Processing started. Poll GET /lectures/{lecture_id} for status updates.",
     }
 
 

@@ -11,8 +11,10 @@ from starlette.responses import JSONResponse
 
 from slowapi.errors import RateLimitExceeded
 
+from contextlib import asynccontextmanager
+
 from app.config import get_settings
-from app.database import init_db
+from app.database import init_db, close_pool
 from app.routes.lectures import router as lectures_router
 from app.rate_limit import limiter, rate_limit_exceeded_handler
 
@@ -22,6 +24,14 @@ settings = get_settings()
 # Initialize database on startup
 init_db()
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup — pool already initialized by database.py import
+    yield
+    # Shutdown — close all pooled connections gracefully
+    close_pool()
+
 # Ensure upload/processed directories exist
 os.makedirs(settings.upload_dir, exist_ok=True)
 os.makedirs(settings.processed_dir, exist_ok=True)
@@ -30,6 +40,7 @@ app = FastAPI(
     title="Lectly API",
     description="AI-powered lecture processing: audio cleanup, transcription, structured notes, and Learn Mode.",
     version="0.3.0",
+    lifespan=lifespan,
 )
 
 # Rate limiting

@@ -170,13 +170,24 @@ export default function UploadPage() {
         updateStep(0, true, false);
       }
 
-      // Step 1-2: Process (transcribe + generate notes)
+      // Step 1-2: Process (transcribe + generate notes) — runs in background, polls for status
       if (startStep <= 1) {
         if (!currentLectureId) {
           throw new Error("No lecture ID available. Please try uploading again.");
         }
         updateStep(1, false, true);
-        await processLecture(currentLectureId);
+        await processLecture(currentLectureId, (status) => {
+          // Update UI steps based on backend status changes
+          if (status === "transcribing" || status === "cleaning") {
+            updateStep(1, false, true);
+          } else if (status === "generating_notes") {
+            updateStep(1, true, false);
+            updateStep(2, false, true);
+          } else if (status === "ready") {
+            updateStep(1, true, false);
+            updateStep(2, true, false);
+          }
+        });
         updateStep(1, true, false);
         updateStep(2, true, false);
       }
