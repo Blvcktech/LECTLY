@@ -164,7 +164,7 @@ export default function ProfilePage() {
                 {initials}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-base font-semibold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>
+                <p className="text-base font-semibold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {user?.fullName || "Student"}
                 </p>
                 <p className="text-xs text-[#8a7f6f]">Free Plan</p>
@@ -180,7 +180,7 @@ export default function ProfilePage() {
             {/* Streak card (dark) */}
             <div className="bg-[#1a1815] rounded-2xl p-5 mb-3 shadow-lg">
               <div className="text-center">
-                <p className="text-4xl font-bold text-white" style={{ fontFamily: "'Georgia', serif" }}>
+                <p className="text-4xl font-bold text-white" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {stats.streak}
                 </p>
                 <p className="text-[11px] text-white/40 mt-1 uppercase tracking-wider font-medium">
@@ -211,7 +211,7 @@ export default function ProfilePage() {
                 <div className="w-8 h-8 rounded-lg bg-[#1a5c65]/8 flex items-center justify-center mx-auto mb-2">
                   <Target className="w-4 h-4 text-[#0F3D43]" />
                 </div>
-                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>
+                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {stats.avgMastery}%
                 </p>
                 <p className="text-[11px] text-[#8a7f6f] mt-0.5">Avg mastery</p>
@@ -220,7 +220,7 @@ export default function ProfilePage() {
                 <div className="w-8 h-8 rounded-lg bg-amber-500/8 flex items-center justify-center mx-auto mb-2">
                   <Zap className="w-4 h-4 text-amber-600" />
                 </div>
-                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>
+                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {stats.totalCards}
                 </p>
                 <p className="text-[11px] text-[#8a7f6f] mt-0.5">Cards learned</p>
@@ -229,7 +229,7 @@ export default function ProfilePage() {
                 <div className="w-8 h-8 rounded-lg bg-[#1a5c65]/8 flex items-center justify-center mx-auto mb-2">
                   <BookOpen className="w-4 h-4 text-[#0F3D43]" />
                 </div>
-                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>
+                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {stats.totalLectures}
                 </p>
                 <p className="text-[11px] text-[#8a7f6f] mt-0.5">Lectures</p>
@@ -238,7 +238,7 @@ export default function ProfilePage() {
                 <div className="w-8 h-8 rounded-lg bg-green-500/8 flex items-center justify-center mx-auto mb-2">
                   <Clock className="w-4 h-4 text-green-600" />
                 </div>
-                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>
+                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {stats.studyTimeLabel}
                 </p>
                 <p className="text-[11px] text-[#8a7f6f] mt-0.5">Study time</p>

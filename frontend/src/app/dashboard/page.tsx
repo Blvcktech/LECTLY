@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  BookOpen,
   Upload,
   Search,
   FileText,
@@ -21,6 +20,7 @@ import {
   X,
   AlertCircle,
 } from "lucide-react";
+import StratumLogo from "@/components/StratumLogo";
 import { getLectures, deleteLecture, renameLecture, getAllProgress, Lecture, type StudyProgress } from "@/lib/api";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { setAuthToken } from "@/lib/auth";
@@ -216,10 +216,8 @@ export default function DashboardPage() {
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-60 border-r border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]">
         <div className="px-5 py-4 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-[10px] bg-[#0F3D43] flex items-center justify-center shadow-md shadow-[#0F3D43]/15">
-            <BookOpen className="w-4 h-4 text-white" />
-          </div>
-          <span className="text-lg font-bold text-[#1a1815] tracking-tight" style={{ fontFamily: "'Georgia', serif" }}>Lectly</span>
+          <StratumLogo size={32} />
+          <span className="text-lg font-bold text-[#1a1815] tracking-tight" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>Lectly</span>
         </div>
         <nav className="flex-1 mt-2 px-3">
           <Link
@@ -277,10 +275,8 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between h-14 px-4 sm:px-6 lg:px-8">
             {/* Mobile logo */}
             <div className="flex items-center gap-2 lg:hidden">
-              <div className="w-7 h-7 rounded-lg bg-[#0F3D43] flex items-center justify-center">
-                <BookOpen className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-lg font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>Lectly</span>
+              <StratumLogo size={28} />
+              <span className="text-lg font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>Lectly</span>
             </div>
 
             {/* Search */}
@@ -331,7 +327,7 @@ export default function DashboardPage() {
 
           {/* Header with greeting */}
           <div className="mb-5">
-            <h1 className="text-xl font-bold text-[#1a1815] leading-snug" style={{ fontFamily: "'Georgia', serif" }}>
+            <h1 className="text-xl font-bold text-[#1a1815] leading-snug" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
               {!loading && user?.firstName ? `Good ${new Date().getHours() < 12 ? "morning" : new Date().getHours() < 17 ? "afternoon" : "evening"}, ${user.firstName}` : "Your dashboard"}
             </h1>
             {!loading && lectures.length > 0 && (
@@ -345,13 +341,13 @@ export default function DashboardPage() {
           {!loading && lectures.length > 0 && (
             <div className="grid grid-cols-3 gap-2 mb-5">
               <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-3 text-center">
-                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>
+                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {lectures.length}
                 </p>
                 <p className="text-[11px] text-[#8a7f6f] mt-0.5">Lectures</p>
               </div>
               <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-3 text-center">
-                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>
+                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {allProgress.length > 0
                     ? `${Math.round(allProgress.filter(p => p.mastery_pct > 0).reduce((s, p) => s + p.mastery_pct, 0) / Math.max(1, allProgress.filter(p => p.mastery_pct > 0).length))}%`
                     : "—"}
@@ -359,7 +355,7 @@ export default function DashboardPage() {
                 <p className="text-[11px] text-[#8a7f6f] mt-0.5">Avg mastery</p>
               </div>
               <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-3 text-center">
-                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>
+                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {(() => {
                     const studyDates = new Set<string>();
                     allProgress.forEach(p => {
@@ -402,7 +398,7 @@ export default function DashboardPage() {
                     <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
                       {lecture.subject ? `${lecture.subject} · ` : ""}In Progress
                     </span>
-                    <h2 className="text-lg font-bold mt-1 leading-snug" style={{ fontFamily: "'Georgia', serif" }}>
+                    <h2 className="text-lg font-bold mt-1 leading-snug" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                       {title}
                     </h2>
                     {sectionName && (
@@ -495,7 +491,7 @@ export default function DashboardPage() {
               <div className="w-14 h-14 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center mx-auto mb-4">
                 <AlertCircle className="w-7 h-7 text-red-500" />
               </div>
-              <p className="text-[#1a1815] font-semibold mb-1" style={{ fontFamily: "'Georgia', serif" }}>
+              <p className="text-[#1a1815] font-semibold mb-1" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                 Something went wrong
               </p>
               <p className="text-sm text-[#8a7f6f] mb-5">
@@ -685,7 +681,7 @@ export default function DashboardPage() {
                 <div className="w-20 h-20 rounded-3xl bg-[#0F3D43]/10 border border-[#0F3D43]/15 flex items-center justify-center mx-auto mb-5">
                   <GraduationCap className="w-10 h-10 text-[#0F3D43]" />
                 </div>
-                <h2 className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "'Georgia', serif" }}>
+                <h2 className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   Welcome to Lectly{user?.firstName ? `, ${user.firstName}` : ""}
                 </h2>
                 <p className="text-sm text-[#8a7f6f] max-w-sm mx-auto leading-relaxed">

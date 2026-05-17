@@ -7,7 +7,6 @@ import { useAuth } from "@clerk/nextjs";
 import { setAuthToken } from "@/lib/auth";
 import {
   Upload,
-  BookOpen,
   Mic,
   FileAudio,
   X,
@@ -21,6 +20,7 @@ import {
   WifiOff,
 } from "lucide-react";
 import { uploadLecture, processLecture, getUserLimits, type UserLimits } from "@/lib/api";
+import StratumLogo from "@/components/StratumLogo";
 
 const ACCEPTED_EXTENSIONS = /\.(mp3|wav|m4a|aac|ogg|mp4|wma|flac|webm|opus|caf)$/i;
 const MAX_SIZE_MB = 500;
@@ -222,10 +222,8 @@ export default function UploadPage() {
       <nav className="border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/80 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#0F3D43] flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>Lectly</span>
+            <StratumLogo size={32} />
+            <span className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>Lectly</span>
           </Link>
           <Link
             href="/dashboard"
@@ -240,7 +238,7 @@ export default function UploadPage() {
       <main className="flex-1 px-4 py-10 sm:py-12 pb-24">
         <div className="w-full max-w-4xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-[#1a1815] mb-1.5" style={{ fontFamily: "'Georgia', serif" }}>
+            <h1 className="text-2xl font-bold text-[#1a1815] mb-1.5" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
               Upload Lecture
             </h1>
             <p className="text-sm text-[#8a7f6f]">
@@ -264,7 +262,7 @@ export default function UploadPage() {
               </div>
               <h2
                 className="text-lg font-bold text-[#1a1815] mb-2"
-                style={{ fontFamily: "'Georgia', serif" }}
+                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 Free tier limit reached
               </h2>
@@ -488,7 +486,7 @@ export default function UploadPage() {
                 <div className="absolute inset-0 rounded-full border-[3px] border-[#EDE8DF] border-t-[#0F3D43] animate-spin" />
                 <div className="absolute inset-[8px] rounded-full border-[3px] border-transparent border-t-[#1a5c64] animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
               </div>
-              <h3 className="text-lg font-bold text-[#1a1815] mb-1" style={{ fontFamily: "'Georgia', serif" }}>
+              <h3 className="text-lg font-bold text-[#1a1815] mb-1" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                 Processing your lecture
               </h3>
               <p className="text-sm text-[#8a7f6f] mb-7">
@@ -549,7 +547,7 @@ export default function UploadPage() {
           {state === "done" && (
             <div className="max-w-lg mx-auto bg-[#FDFCF9] border border-green-300/50 rounded-2xl p-8 text-center">
               <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto mb-4" />
-              <p className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "'Georgia', serif" }}>
+              <p className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                 Your notes are ready!
               </p>
               <p className="text-sm text-[#8a7f6f] mb-7">

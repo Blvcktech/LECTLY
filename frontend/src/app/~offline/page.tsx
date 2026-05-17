@@ -11,7 +11,7 @@ export default function OfflinePage() {
         </div>
         <h1
           className="text-2xl font-extrabold text-[#1a1815] mb-3"
-          style={{ fontFamily: "'Georgia', serif" }}
+          style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
         >
           You&apos;re offline
         </h1>

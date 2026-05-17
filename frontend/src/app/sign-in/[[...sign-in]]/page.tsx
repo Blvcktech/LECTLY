@@ -1,6 +1,6 @@
 import { SignIn } from "@clerk/nextjs";
 import Link from "next/link";
-import { BookOpen } from "lucide-react";
+import StratumLogo from "@/components/StratumLogo";
 
 export default function SignInPage() {
   return (
@@ -9,12 +9,10 @@ export default function SignInPage() {
       <div className="absolute top-[-120px] left-1/2 -translate-x-1/2 w-[400px] h-[400px] rounded-full bg-[radial-gradient(ellipse,rgba(15,61,67,0.06)_0%,transparent_70%)] pointer-events-none" />
 
       <Link href="/" className="flex items-center gap-2.5 mb-7 relative">
-        <div className="w-9 h-9 rounded-lg bg-[#0F3D43] flex items-center justify-center shadow-sm shadow-[#0F3D43]/15">
-          <BookOpen className="w-5 h-5 text-white" />
-        </div>
+        <StratumLogo size={36} />
         <span
           className="text-xl font-bold text-[#1a1815] tracking-tight"
-          style={{ fontFamily: "'Georgia', serif" }}
+          style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
         >
           Lectly
         </span>

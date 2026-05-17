@@ -103,7 +103,7 @@ export default function AccountPage() {
           </div>
           <h1
             className="text-lg font-bold text-[#1a1815]"
-            style={{ fontFamily: "'Georgia', serif" }}
+            style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
           >
             {user?.fullName || "Student"}
           </h1>

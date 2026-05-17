@@ -42,7 +42,7 @@ export default function SubscriptionPage() {
             <div>
               <p
                 className="text-base font-bold text-[#1a1815]"
-                style={{ fontFamily: "'Georgia', serif" }}
+                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 Free Plan
               </p>
@@ -75,7 +75,7 @@ export default function SubscriptionPage() {
             <div>
               <p
                 className="text-sm font-bold text-white"
-                style={{ fontFamily: "'Georgia', serif" }}
+                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 Basic
               </p>
@@ -84,7 +84,7 @@ export default function SubscriptionPage() {
             <div className="ml-auto text-right">
               <p
                 className="text-xl font-bold text-white"
-                style={{ fontFamily: "'Georgia', serif" }}
+                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 &#8358;3,500
               </p>
@@ -120,7 +120,7 @@ export default function SubscriptionPage() {
             <div>
               <p
                 className="text-sm font-bold text-[#1a1815]"
-                style={{ fontFamily: "'Georgia', serif" }}
+                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 Pro
               </p>
@@ -129,7 +129,7 @@ export default function SubscriptionPage() {
             <div className="ml-auto text-right">
               <p
                 className="text-xl font-bold text-[#1a1815]"
-                style={{ fontFamily: "'Georgia', serif" }}
+                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 &#8358;8,500
               </p>
@@ -165,7 +165,7 @@ export default function SubscriptionPage() {
             <div className="flex-1">
               <p
                 className="text-sm font-bold text-[#1a1815]"
-                style={{ fontFamily: "'Georgia', serif" }}
+                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 Group Plan
               </p>

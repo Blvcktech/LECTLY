@@ -22,21 +22,21 @@ export default function TermsOfService() {
           <FileText className="w-6 h-6 text-[#8a7f6f]" />
           <span className="text-[11px] font-bold uppercase tracking-widest text-[#b5ad9e]">Legal</span>
         </div>
-        <h1 className="text-[32px] sm:text-[40px] font-extrabold text-[#1a1815] tracking-tight leading-tight mb-3" style={{ fontFamily: "'Georgia', serif" }}>
+        <h1 className="text-[32px] sm:text-[40px] font-extrabold text-[#1a1815] tracking-tight leading-tight mb-3" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
           Terms of Service
         </h1>
         <p className="text-sm text-[#8a7f6f] mb-10">Last updated: May 2025</p>
 
         <div className="space-y-8 text-[15px] text-[#4a4540] leading-relaxed">
           <section>
-            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "'Georgia', serif" }}>1. Acceptance of Terms</h2>
+            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>1. Acceptance of Terms</h2>
             <p>
               By accessing or using Lectly (&quot;the Service&quot;), you agree to be bound by these Terms of Service. If you do not agree to these terms, you may not use the Service. Lectly is operated by its founding team (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;).
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "'Georgia', serif" }}>2. Description of Service</h2>
+            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>2. Description of Service</h2>
             <p>
               Lectly is an AI-powered lecture companion platform that helps university students learn more effectively. The Service includes audio transcription, AI-generated study notes, interactive Learn Mode lessons, an AI Tutor, and study progress tracking.
             </p>
@@ -46,7 +46,7 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "'Georgia', serif" }}>3. Account Registration</h2>
+            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>3. Account Registration</h2>
             <p>
               To use Lectly, you must create an account. You agree to provide accurate information during registration and to keep your account credentials secure. You are responsible for all activity that occurs under your account.
             </p>
@@ -56,7 +56,7 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "'Georgia', serif" }}>4. Acceptable Use</h2>
+            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>4. Acceptable Use</h2>
             <p>You agree to use Lectly only for lawful educational purposes. You may not:</p>
             <ul className="mt-3 space-y-2 ml-5">
               <li className="list-disc">Upload content that you do not have the right to share</li>
@@ -70,7 +70,7 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "'Georgia', serif" }}>5. Content Ownership</h2>
+            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>5. Content Ownership</h2>
             <p className="font-semibold text-[#1a1815] mt-4 mb-2">Your Content</p>
             <p>
               You retain ownership of any lecture recordings, audio files, or other content you upload to Lectly. By uploading content, you grant us a limited license to process, transcribe, and analyze that content solely for the purpose of providing you with the Service.
@@ -82,7 +82,7 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "'Georgia', serif" }}>6. Free Tier and Usage Limits</h2>
+            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>6. Free Tier and Usage Limits</h2>
             <p>
               Lectly offers a free tier with limited usage. Free tier users may upload a limited number of lectures. We reserve the right to modify free tier limits, introduce paid plans, or change pricing at any time with reasonable notice.
             </p>
@@ -92,7 +92,7 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "'Georgia', serif" }}>7. AI Disclaimer</h2>
+            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>7. AI Disclaimer</h2>
             <p>
               Lectly&apos;s AI features are designed to assist your learning, not replace it. Important disclaimers:
             </p>
@@ -109,14 +109,14 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "'Georgia', serif" }}>8. Service Availability</h2>
+            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>8. Service Availability</h2>
             <p>
               We strive to keep Lectly available at all times but do not guarantee uninterrupted service. The Service may be temporarily unavailable due to maintenance, updates, server issues, or circumstances beyond our control. We are not liable for any loss or inconvenience caused by service downtime.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "'Georgia', serif" }}>9. Termination</h2>
+            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>9. Termination</h2>
             <p>
               We reserve the right to suspend or terminate your account if you violate these Terms of Service, engage in abusive behavior, or use the Service in ways that negatively impact other users or our infrastructure.
             </p>
@@ -126,21 +126,21 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "'Georgia', serif" }}>10. Limitation of Liability</h2>
+            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>10. Limitation of Liability</h2>
             <p>
               Lectly is provided &quot;as is&quot; without warranties of any kind, express or implied. To the fullest extent permitted by law, we shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the Service, including but not limited to loss of data, academic outcomes, or service interruptions.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "'Georgia', serif" }}>11. Changes to Terms</h2>
+            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>11. Changes to Terms</h2>
             <p>
               We may update these Terms of Service from time to time. We will notify you of significant changes by posting the updated terms on this page and updating the &quot;Last updated&quot; date. Continued use of Lectly after changes constitutes acceptance of the updated terms.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "'Georgia', serif" }}>12. Contact Us</h2>
+            <h2 className="text-lg font-bold text-[#1a1815] mb-3" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>12. Contact Us</h2>
             <p>
               If you have any questions about these Terms of Service, please contact us at:
             </p>

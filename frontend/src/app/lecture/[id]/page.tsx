@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, use, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  BookOpen,
   ArrowLeft,
   GraduationCap,
   Sparkles,
@@ -41,6 +40,7 @@ import {
 import { useAuth } from "@clerk/nextjs";
 import { setAuthToken } from "@/lib/auth";
 import { useToast } from "@/components/Toast";
+import StratumLogo from "@/components/StratumLogo";
 
 // ── Tutor message renderer (markdown-aware) ──
 function TutorBubble({ content }: { content: string }) {
@@ -106,7 +106,7 @@ function FlashCard({ front, back, type }: { front: string; back: string; type: "
           {flipped ? "showing answer" : "tap to reveal"}
         </span>
       </div>
-      <p className="text-sm font-semibold text-[#1a1815] mb-2" style={{ fontFamily: "'Georgia', serif" }}>
+      <p className="text-sm font-semibold text-[#1a1815] mb-2" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
         {front}
       </p>
       {flipped && (
@@ -480,7 +480,7 @@ export default function LecturePage({
           <div className="w-14 h-14 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-7 h-7 text-red-500" />
           </div>
-          <p className="text-[#1a1815] font-semibold mb-1" style={{ fontFamily: "'Georgia', serif" }}>
+          <p className="text-[#1a1815] font-semibold mb-1" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
             Something went wrong
           </p>
           <p className="text-[#8a7f6f] text-sm mb-5">
@@ -515,10 +515,8 @@ export default function LecturePage({
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-[10px] bg-[#0F3D43] flex items-center justify-center shadow-md shadow-[#0F3D43]/15">
-                <BookOpen className="w-4 h-4 text-white" />
-              </div>
-              <span className="hidden sm:inline text-lg font-bold text-[#1a1815] tracking-tight" style={{ fontFamily: "'Georgia', serif" }}>Lectly</span>
+              <StratumLogo size={32} />
+              <span className="hidden sm:inline text-lg font-bold text-[#1a1815] tracking-tight" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>Lectly</span>
             </Link>
           </div>
           <div className="flex items-center gap-2">
@@ -577,7 +575,7 @@ export default function LecturePage({
                   onChange={(e) => setRenameValue(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") handleRename(); if (e.key === "Escape") setIsRenaming(false); }}
                   className="text-xl font-bold text-[#1a1815] bg-[#FDFCF9] border border-[#3a9aa5] rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#0F3D43]/20 flex-1"
-                  style={{ fontFamily: "'Georgia', serif" }}
+                  style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
                   disabled={renameLoading}
                 />
                 <button onClick={handleRename} disabled={renameLoading} className="p-1.5 rounded-lg bg-[#0F3D43] text-white hover:bg-[#1a5c65] transition-colors disabled:opacity-40" aria-label="Confirm rename">
@@ -589,7 +587,7 @@ export default function LecturePage({
               </div>
             ) : (
               <>
-                <h1 className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>
+                <h1 className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {notes?.title || lecture?.filename || "Lecture Notes"}
                 </h1>
                 <button
@@ -658,7 +656,7 @@ export default function LecturePage({
                   >
                     {/* Section Header */}
                     <div className="flex items-start justify-between mb-3">
-                      <h2 className="text-base font-semibold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>
+                      <h2 className="text-base font-semibold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                         {section.heading}
                       </h2>
                       <span

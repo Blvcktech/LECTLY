@@ -266,7 +266,7 @@ export default function SolveModePage({
             <div>
               <h1
                 className="text-2xl font-extrabold text-[#1a1815] mb-2"
-                style={{ fontFamily: "'Georgia', serif" }}
+                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 What problem do you want to solve?
               </h1>
@@ -356,7 +356,7 @@ export default function SolveModePage({
             <div className="flex items-center justify-between">
               <h2
                 className="text-xl font-extrabold text-[#1a1815]"
-                style={{ fontFamily: "'Georgia', serif" }}
+                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 Solution
               </h2>

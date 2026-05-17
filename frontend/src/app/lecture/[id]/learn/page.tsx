@@ -880,7 +880,7 @@ export default function LearnModePage({
           <div className="w-14 h-14 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-7 h-7 text-red-500" />
           </div>
-          <p className="text-[#1a1815] font-semibold mb-1" style={{ fontFamily: "'Georgia', serif" }}>
+          <p className="text-[#1a1815] font-semibold mb-1" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
             Something went wrong
           </p>
           <p className="text-[#8a7f6f] text-sm mb-5">
@@ -920,7 +920,7 @@ export default function LearnModePage({
             )}
           </div>
           <div className="flex items-center gap-2">
-            <h1 className="text-base font-bold text-[#1a1815] truncate max-w-[200px] sm:max-w-none" style={{ fontFamily: "'Georgia', serif" }}>
+            <h1 className="text-base font-bold text-[#1a1815] truncate max-w-[200px] sm:max-w-none" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
               {learnResult?.topic || lecture?.notes?.title || "Learn Mode"}
             </h1>
           </div>
@@ -1071,7 +1071,7 @@ export default function LearnModePage({
                 <div className="w-20 h-20 rounded-2xl bg-[#EDE8DF] flex items-center justify-center mb-6">
                   <GraduationCap className="w-10 h-10 text-[#8a7f6f]" />
                 </div>
-                <h2 className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "'Georgia', serif" }}>
+                <h2 className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   Ready to Learn?
                 </h2>
                 <p className="text-sm text-[#8a7f6f] max-w-md">
@@ -1089,7 +1089,7 @@ export default function LearnModePage({
                   </div>
                   <Loader2 className="w-6 h-6 text-[#8a7f6f] animate-spin absolute -bottom-1 -right-1" />
                 </div>
-                <h3 className="text-lg font-semibold text-[#1a1815] mb-1" style={{ fontFamily: "'Georgia', serif" }}>
+                <h3 className="text-lg font-semibold text-[#1a1815] mb-1" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   Preparing your lesson...
                 </h3>
                 <p className="text-sm text-[#8a7f6f]">
@@ -1210,7 +1210,7 @@ export default function LearnModePage({
                           <div className="p-6 sm:p-8 pt-4">
                             {/* Card title */}
                             {currentFlowCard.subtitle && (
-                              <h2 className="text-xl font-bold text-[#1a1815] leading-snug mb-4" style={{ fontFamily: "'Georgia', serif" }}>
+                              <h2 className="text-xl font-bold text-[#1a1815] leading-snug mb-4" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                                 {currentFlowCard.subtitle}
                               </h2>
                             )}
@@ -1277,7 +1277,7 @@ export default function LearnModePage({
                             </div>
 
                             <div className="p-6 sm:p-8 pt-4">
-                              <div className="text-lg font-bold text-[#1a1815] leading-snug mb-5" style={{ fontFamily: "'Georgia', serif" }}>
+                              <div className="text-lg font-bold text-[#1a1815] leading-snug mb-5" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                                 <RenderBody text={q.question} />
                               </div>
 
@@ -1479,7 +1479,7 @@ export default function LearnModePage({
                     <div className="w-16 h-16 rounded-2xl bg-[#EDE8DF] flex items-center justify-center mb-5">
                       <PenTool className="w-8 h-8 text-[#8a7f6f]" />
                     </div>
-                    <h2 className="text-lg font-bold text-[#1a1815] mb-2" style={{ fontFamily: "'Georgia', serif" }}>
+                    <h2 className="text-lg font-bold text-[#1a1815] mb-2" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                       Practice — Coming Soon
                     </h2>
                     <p className="text-sm text-[#8a7f6f] max-w-sm">
@@ -1507,7 +1507,7 @@ export default function LearnModePage({
                       <div>
                         <div className="flex items-center gap-2 mb-4">
                           <Beaker className="w-4 h-4 text-[#0F3D43]" />
-                          <h2 className="text-base font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>Worked Examples</h2>
+                          <h2 className="text-base font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>Worked Examples</h2>
                         </div>
                         <div className="space-y-4">
                           {learnResult.examples.map((example, i) => {
@@ -1571,7 +1571,7 @@ export default function LearnModePage({
                       <div>
                         <div className="flex items-center gap-2 mb-4">
                           <ExternalLink className="w-4 h-4 text-[#0F3D43]" />
-                          <h2 className="text-base font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>Further Reading</h2>
+                          <h2 className="text-base font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>Further Reading</h2>
                         </div>
                         <div className="space-y-2.5">
                           {learnResult.resources.map((resource, i) => (

@@ -10,7 +10,8 @@
 
 import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
-import { BookOpen, ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
+import StratumLogo from "@/components/StratumLogo";
 
 export default function OnboardingModal() {
   const { user, isLoaded } = useUser();
@@ -61,12 +62,10 @@ export default function OnboardingModal() {
       <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl shadow-xl max-w-sm w-full p-6 animate-in fade-in zoom-in-95 duration-200">
         {/* Logo */}
         <div className="flex items-center justify-center gap-2.5 mb-5">
-          <div className="w-10 h-10 rounded-lg bg-[#0F3D43] flex items-center justify-center shadow-sm shadow-black/10">
-            <BookOpen className="w-5 h-5 text-white" />
-          </div>
+          <StratumLogo size={40} />
           <span
             className="text-xl font-bold text-[#1a1815] tracking-tight"
-            style={{ fontFamily: "'Georgia', serif" }}
+            style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
           >
             Lectly
           </span>
@@ -74,7 +73,7 @@ export default function OnboardingModal() {
 
         <h2
           className="text-lg font-bold text-[#1a1815] text-center mb-1"
-          style={{ fontFamily: "'Georgia', serif" }}
+          style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
         >
           Welcome to Lectly!
         </h2>

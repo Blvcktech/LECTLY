@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  BookOpen,
   Upload,
   Search,
   FileText,
@@ -25,6 +24,7 @@ import {
   LayoutList,
   AlertCircle,
 } from "lucide-react";
+import StratumLogo from "@/components/StratumLogo";
 import { getLectures, deleteLecture, renameLecture, getAllProgress, Lecture, type StudyProgress } from "@/lib/api";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { setAuthToken } from "@/lib/auth";
@@ -201,10 +201,8 @@ export default function LecturesPage() {
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-60 border-r border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]">
         <div className="px-5 py-4 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-[10px] bg-[#0F3D43] flex items-center justify-center shadow-md shadow-black/10">
-            <BookOpen className="w-4 h-4 text-white" />
-          </div>
-          <span className="text-lg font-bold text-[#1a1815] tracking-tight" style={{ fontFamily: "'Georgia', serif" }}>Lectly</span>
+          <StratumLogo size={32} />
+          <span className="text-lg font-bold text-[#1a1815] tracking-tight" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>Lectly</span>
         </div>
         <nav className="flex-1 mt-2 px-3">
           <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2.5 text-sm text-[#8a7f6f] hover:text-[#1a1815] rounded-lg transition-colors mb-0.5">
@@ -232,10 +230,8 @@ export default function LecturesPage() {
         <header className="sticky top-0 z-40 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
           <div className="flex items-center justify-between h-14 px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-2 lg:hidden">
-              <div className="w-7 h-7 rounded-lg bg-[#0F3D43] flex items-center justify-center">
-                <BookOpen className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-lg font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>Lectly</span>
+              <StratumLogo size={28} />
+              <span className="text-lg font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>Lectly</span>
             </div>
             <div className="hidden lg:block" />
             <div className="flex items-center gap-3">
@@ -260,7 +256,7 @@ export default function LecturesPage() {
         <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 pb-20 lg:pb-6">
           {/* Page header */}
           <div className="mb-5">
-            <h1 className="text-2xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>
+            <h1 className="text-2xl font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
               Your Lectures
             </h1>
             <p className="text-sm text-[#8a7f6f] mt-1">
@@ -365,7 +361,7 @@ export default function LecturesPage() {
               <div className="w-14 h-14 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center mx-auto mb-4">
                 <AlertCircle className="w-7 h-7 text-red-500" />
               </div>
-              <p className="text-[#1a1815] font-semibold mb-1" style={{ fontFamily: "'Georgia', serif" }}>Something went wrong</p>
+              <p className="text-[#1a1815] font-semibold mb-1" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>Something went wrong</p>
               <p className="text-sm text-[#8a7f6f] mb-5">
                 {error.includes("fetch") || error.includes("NetworkError")
                   ? "Can't reach the server. Check your internet connection."
@@ -523,7 +519,7 @@ export default function LecturesPage() {
                     </div>
 
                     <Link href={isReady ? `/lecture/${lecture.id}` : "#"} className="block mb-2">
-                      <p className="text-sm font-semibold text-[#1a1815] line-clamp-2 hover:text-[#0F3D43] transition-colors" style={{ fontFamily: "'Georgia', serif" }}>
+                      <p className="text-sm font-semibold text-[#1a1815] line-clamp-2 hover:text-[#0F3D43] transition-colors" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                         {title}
                       </p>
                     </Link>

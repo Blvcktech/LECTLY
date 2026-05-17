@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  BookOpen,
   ArrowRight,
   Upload,
   FileText,
@@ -16,6 +15,7 @@ import {
   X,
   Mic,
 } from "lucide-react";
+import StratumLogo from "@/components/StratumLogo";
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,12 +27,10 @@ export default function Home() {
         <div className="max-w-[1100px] mx-auto px-5 sm:px-8">
           <div className="flex justify-between items-center h-14">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-[#0F3D43] flex items-center justify-center shadow-sm shadow-[#0F3D43]/15">
-                <BookOpen className="w-4 h-4 text-white" />
-              </div>
+              <StratumLogo size={32} />
               <span
                 className="text-[17px] font-bold text-[#1a1815] tracking-tight"
-                style={{ fontFamily: "'Georgia', serif" }}
+                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 Lectly
               </span>
@@ -106,7 +104,7 @@ export default function Home() {
             </div>
             <h1
               className="text-[32px] sm:text-[42px] lg:text-[50px] font-extrabold text-[#1a1815] leading-[1.08] tracking-tight mb-4"
-              style={{ fontFamily: "'Georgia', serif" }}
+              style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
             >
               Your lectures deserve
               <br className="hidden sm:block" />
@@ -147,7 +145,7 @@ export default function Home() {
                   <div className="w-5 h-5 rounded bg-[#1a5c65]/10 flex items-center justify-center">
                     <FileText className="w-3 h-3 text-[#0F3D43]" />
                   </div>
-                  <span className="text-xs font-semibold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>
+                  <span className="text-xs font-semibold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                     Units and Measurements in Physics
                   </span>
                 </div>
@@ -160,7 +158,7 @@ export default function Home() {
               <div className="bg-[#F7F4EE] rounded-xl p-3.5 mb-3">
                 <h4
                   className="text-[11px] font-semibold text-[#1a1815] mb-1.5"
-                  style={{ fontFamily: "'Georgia', serif" }}
+                  style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
                 >
                   Fundamental Quantities and Units
                 </h4>
@@ -213,7 +211,7 @@ export default function Home() {
               </span>
               <h2
                 className="text-lg sm:text-xl font-bold text-[#1a1815] mb-4"
-                style={{ fontFamily: "'Georgia', serif" }}
+                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 We&apos;ve all been there
               </h2>
@@ -240,7 +238,7 @@ export default function Home() {
               </span>
               <h2
                 className="text-lg sm:text-xl font-bold text-[#1a1815] mb-4"
-                style={{ fontFamily: "'Georgia', serif" }}
+                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 Lectly turns recordings into understanding
               </h2>
@@ -263,7 +261,7 @@ export default function Home() {
           </span>
           <h2
             className="text-lg sm:text-xl font-bold text-[#1a1815] text-center mb-10"
-            style={{ fontFamily: "'Georgia', serif" }}
+            style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
           >
             Three steps. That&apos;s it.
           </h2>
@@ -302,7 +300,7 @@ export default function Home() {
                   </span>
                   <h3
                     className="text-sm font-semibold text-[#1a1815] mb-1.5"
-                    style={{ fontFamily: "'Georgia', serif" }}
+                    style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
                   >
                     {item.title}
                   </h3>
@@ -322,7 +320,7 @@ export default function Home() {
           </span>
           <h2
             className="text-lg sm:text-xl font-bold text-[#1a1815] text-center mb-12"
-            style={{ fontFamily: "'Georgia', serif" }}
+            style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
           >
             What you get
           </h2>
@@ -336,7 +334,7 @@ export default function Home() {
                 </div>
                 <h3
                   className="text-[15px] font-semibold text-[#1a1815]"
-                  style={{ fontFamily: "'Georgia', serif" }}
+                  style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
                 >
                   Smart Notes
                 </h3>
@@ -352,7 +350,7 @@ export default function Home() {
                 </div>
                 <h3
                   className="text-[15px] font-semibold text-[#1a1815]"
-                  style={{ fontFamily: "'Georgia', serif" }}
+                  style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
                 >
                   Explain This
                 </h3>
@@ -396,7 +394,7 @@ export default function Home() {
                 <GraduationCap className="w-4 h-4 text-[#0F3D43]" />
                 <span
                   className="text-[11px] font-semibold text-[#1a1815]"
-                  style={{ fontFamily: "'Georgia', serif" }}
+                  style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
                 >
                   Learn Mode — Quiz
                 </span>
@@ -431,7 +429,7 @@ export default function Home() {
                 </div>
                 <h3
                   className="text-[15px] font-semibold text-[#1a1815]"
-                  style={{ fontFamily: "'Georgia', serif" }}
+                  style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
                 >
                   Learn Mode
                 </h3>
@@ -447,7 +445,7 @@ export default function Home() {
                 </div>
                 <h3
                   className="text-[15px] font-semibold text-[#1a1815]"
-                  style={{ fontFamily: "'Georgia', serif" }}
+                  style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
                 >
                   Download & Share
                 </h3>
@@ -472,7 +470,7 @@ export default function Home() {
           <div>
             <h2
               className="text-base sm:text-lg font-bold text-[#1a1815] mb-2"
-              style={{ fontFamily: "'Georgia', serif" }}
+              style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
             >
               Built for Nigerian students
             </h2>
@@ -493,7 +491,7 @@ export default function Home() {
           </span>
           <h2
             className="text-lg sm:text-xl font-bold text-[#1a1815] text-center mb-2"
-            style={{ fontFamily: "'Georgia', serif" }}
+            style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
           >
             Simple pricing for students
           </h2>
@@ -506,14 +504,14 @@ export default function Home() {
             <div className="rounded-2xl border border-[rgba(217,185,130,0.25)] bg-[#F7F4EE] p-5">
               <h3
                 className="text-sm font-semibold text-[#1a1815] mb-0.5"
-                style={{ fontFamily: "'Georgia', serif" }}
+                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 Free Trial
               </h3>
               <p className="text-[11px] text-[#b5ad9e] mb-3">Try Lectly out</p>
               <div
                 className="text-2xl font-bold text-[#1a1815] mb-4"
-                style={{ fontFamily: "'Georgia', serif" }}
+                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 &#8358;0
               </div>
@@ -551,14 +549,14 @@ export default function Home() {
               </div>
               <h3
                 className="text-sm font-semibold text-white mb-0.5"
-                style={{ fontFamily: "'Georgia', serif" }}
+                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 Basic
               </h3>
               <p className="text-[11px] text-white/50 mb-3">For regular use</p>
               <div
                 className="text-2xl font-bold text-white mb-1"
-                style={{ fontFamily: "'Georgia', serif" }}
+                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 &#8358;3,500<span className="text-xs font-normal text-white/40">/mo</span>
               </div>
@@ -590,14 +588,14 @@ export default function Home() {
             <div className="rounded-2xl border border-[rgba(217,185,130,0.25)] bg-[#F7F4EE] p-5">
               <h3
                 className="text-sm font-semibold text-[#1a1815] mb-0.5"
-                style={{ fontFamily: "'Georgia', serif" }}
+                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 Pro
               </h3>
               <p className="text-[11px] text-[#b5ad9e] mb-3">For serious students</p>
               <div
                 className="text-2xl font-bold text-[#1a1815] mb-1"
-                style={{ fontFamily: "'Georgia', serif" }}
+                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 &#8358;8,500<span className="text-xs font-normal text-[#b5ad9e]">/mo</span>
               </div>
@@ -642,7 +640,7 @@ export default function Home() {
         <div className="max-w-[500px] mx-auto text-center">
           <h2
             className="text-lg sm:text-xl font-bold text-[#1a1815] mb-3"
-            style={{ fontFamily: "'Georgia', serif" }}
+            style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
           >
             Stop letting good lectures go to waste
           </h2>
@@ -666,12 +664,10 @@ export default function Home() {
       <footer className="border-t border-[rgba(217,185,130,0.25)] py-6 px-5 sm:px-8 bg-[#FDFCF9]">
         <div className="max-w-[900px] mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded bg-[#0F3D43] flex items-center justify-center">
-              <BookOpen className="w-2.5 h-2.5 text-white" />
-            </div>
+            <StratumLogo size={20} />
             <span
               className="text-[13px] font-semibold text-[#1a1815]"
-              style={{ fontFamily: "'Georgia', serif" }}
+              style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
             >
               Lectly
             </span>
