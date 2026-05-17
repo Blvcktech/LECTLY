@@ -20,16 +20,17 @@ import { authHeaders } from "@/lib/auth";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
 
-// Convert VAPID key from base64 to Uint8Array (required by PushManager)
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
+// Convert VAPID key from base64url to ArrayBuffer (required by PushManager.subscribe)
+function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
   const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
+  const buffer = new ArrayBuffer(rawData.length);
+  const view = new Uint8Array(buffer);
   for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
+    view[i] = rawData.charCodeAt(i);
   }
-  return outputArray;
+  return buffer;
 }
 
 export default function PushNotifications() {
@@ -75,7 +76,7 @@ export default function PushNotifications() {
     try {
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY).buffer as ArrayBuffer,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       });
       await sendSubscriptionToServer(subscription);
       setShowPrompt(false);
