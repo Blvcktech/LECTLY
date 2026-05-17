@@ -353,13 +353,21 @@ def create_lecture(lecture: dict) -> dict:
     return lecture
 
 
+ALLOWED_LECTURE_UPDATE_COLUMNS = frozenset({
+    "status", "subject", "quality_score", "duration_seconds",
+    "error", "updated_at",
+})
+
+
 def update_lecture(lecture_id: str, updates: dict):
-    """Update specific fields on a lecture."""
+    """Update specific fields on a lecture. Only whitelisted columns are accepted."""
     updates["updated_at"] = datetime.utcnow().isoformat()
 
     set_parts = []
     values = []
     for key, val in updates.items():
+        if key not in ALLOWED_LECTURE_UPDATE_COLUMNS:
+            raise ValueError(f"Cannot update disallowed column: {key}")
         set_parts.append(f"{key} = {P}")
         if isinstance(val, datetime):
             values.append(val.isoformat())

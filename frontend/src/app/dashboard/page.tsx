@@ -216,7 +216,7 @@ export default function DashboardPage() {
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-60 border-r border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]">
         <div className="px-5 py-4 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-md shadow-purple-500/15">
+          <div className="w-8 h-8 rounded-[10px] bg-[#0F3D43] flex items-center justify-center shadow-md shadow-[#0F3D43]/15">
             <BookOpen className="w-4 h-4 text-white" />
           </div>
           <span className="text-lg font-bold text-[#1a1815] tracking-tight" style={{ fontFamily: "'Georgia', serif" }}>Lectly</span>
@@ -224,9 +224,9 @@ export default function DashboardPage() {
         <nav className="flex-1 mt-2 px-3">
           <Link
             href="/dashboard"
-            className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-purple-700 bg-purple-500/8 border-r-2 border-purple-500 rounded-l-lg mb-0.5"
+            className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-[#0a2e33] bg-[#1a5c65]/8 border-r-2 border-[#0F3D43] rounded-l-lg mb-0.5"
           >
-            <Home className="w-4 h-4 text-purple-600" />
+            <Home className="w-4 h-4 text-[#0F3D43]" />
             Dashboard
           </Link>
           <Link
@@ -257,11 +257,11 @@ export default function DashboardPage() {
           <div className="bg-[#F7F4EE] border border-[rgba(217,185,130,0.25)] rounded-xl p-3.5">
             <div className="flex justify-between items-center mb-2">
               <span className="text-xs text-[#8a7f6f] font-medium">Free Plan</span>
-              <span className="text-xs text-purple-600 font-semibold">{lectures.length}/3</span>
+              <span className="text-xs text-[#0F3D43] font-semibold">{lectures.length}/3</span>
             </div>
             <div className="w-full h-2 bg-[#EDE8DF] rounded-full overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500"
+                className="h-full rounded-full bg-[#0F3D43] transition-all duration-500"
                 style={{ width: `${usagePercent}%` }}
               />
             </div>
@@ -277,7 +277,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between h-14 px-4 sm:px-6 lg:px-8">
             {/* Mobile logo */}
             <div className="flex items-center gap-2 lg:hidden">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+              <div className="w-7 h-7 rounded-lg bg-[#0F3D43] flex items-center justify-center">
                 <BookOpen className="w-4 h-4 text-white" />
               </div>
               <span className="text-lg font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>Lectly</span>
@@ -298,7 +298,7 @@ export default function DashboardPage() {
             <div className="flex items-center gap-3">
               <Link
                 href="/upload"
-                className="flex items-center gap-2 text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-[10px] font-medium shadow-md shadow-purple-500/15 transition-all hover:shadow-lg"
+                className="flex items-center gap-2 text-sm bg-[#0F3D43] hover:bg-[#1a5c65] text-white px-4 py-2 rounded-[10px] font-medium shadow-md shadow-[#0F3D43]/15 transition-all hover:shadow-lg"
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">New Lecture</span>
@@ -306,7 +306,7 @@ export default function DashboardPage() {
               <Link
                 href="/profile"
                 title="Profile & settings"
-                className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-xs text-white font-bold hover:opacity-80 transition-opacity cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#0F3D43] flex items-center justify-center text-xs text-white font-bold hover:opacity-80 transition-opacity cursor-pointer"
               >
                 {user?.firstName?.charAt(0).toUpperCase() || "U"}
               </Link>
@@ -438,7 +438,7 @@ export default function DashboardPage() {
               Recent Lectures
             </h2>
             {lectures.length > 0 && (
-              <Link href="/lectures" className="text-[11px] font-semibold text-purple-600 hover:text-purple-700 transition-colors">
+              <Link href="/lectures" className="text-[11px] font-semibold text-[#0F3D43] hover:text-[#0a2e33] transition-colors">
                 View all
               </Link>
             )}
@@ -523,11 +523,11 @@ export default function DashboardPage() {
 
                 // Color-coded subject dot
                 const subjectColors: Record<string, string> = {
-                  "Computer Science & Media": "bg-blue-500",
+                  "Computer Science & Media": "bg-[#0F3D43]",
                   "Engineering": "bg-orange-500",
                   "Sciences": "bg-green-500",
                   "Medicine & Pharmacy": "bg-red-500",
-                  "Law": "bg-purple-500",
+                  "Law": "bg-[#1a5c65]",
                   "Business & Economics": "bg-amber-500",
                   "Arts & Humanities": "bg-pink-500",
                 };
@@ -552,8 +552,8 @@ export default function DashboardPage() {
                             <div className={`absolute -top-0.5 -left-0.5 w-3 h-3 rounded-full ${dotColor} border-2 border-[#FDFCF9]`} />
                           </div>
                         ) : (
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isReady ? "bg-purple-500/8" : "bg-amber-500/10"}`}>
-                            {isReady ? <FileText className="w-5 h-5 text-purple-600" /> : <Clock className="w-5 h-5 text-amber-600 animate-pulse" />}
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isReady ? "bg-[#0F3D43]/8" : "bg-amber-500/10"}`}>
+                            {isReady ? <FileText className="w-5 h-5 text-[#0F3D43]" /> : <Clock className="w-5 h-5 text-amber-600 animate-pulse" />}
                           </div>
                         )}
                       </div>
@@ -567,14 +567,14 @@ export default function DashboardPage() {
                               value={renameValue}
                               onChange={(e) => setRenameValue(e.target.value)}
                               onKeyDown={(e) => { if (e.key === "Enter") handleRename(lecture.id); if (e.key === "Escape") setRenamingId(null); }}
-                              className="text-sm font-semibold text-[#1a1815] bg-white border border-purple-300 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-purple-400 flex-1 min-w-0"
+                              className="text-sm font-semibold text-[#1a1815] bg-white border border-[#0F3D43]/30 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-[#0F3D43]/20 flex-1 min-w-0"
                               autoFocus
                               disabled={renameLoading}
                             />
-                            <button onClick={() => handleRename(lecture.id)} disabled={renameLoading} className="p-1 rounded-md bg-purple-600 text-white hover:bg-purple-500 transition-colors disabled:opacity-40">
+                            <button onClick={() => handleRename(lecture.id)} disabled={renameLoading} className="p-1 rounded-md bg-[#0F3D43] text-white hover:bg-[#1a5c64] transition-colors disabled:opacity-40" aria-label="Confirm rename">
                               {renameLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                             </button>
-                            <button onClick={() => setRenamingId(null)} className="p-1 rounded-md text-[#8a7f6f] hover:text-[#1a1815] transition-colors">
+                            <button onClick={() => setRenamingId(null)} className="p-1 rounded-md text-[#8a7f6f] hover:text-[#1a1815] transition-colors" aria-label="Cancel rename">
                               <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
@@ -605,7 +605,7 @@ export default function DashboardPage() {
                             <span className="text-[9px] font-bold text-[#1a1815] z-10">{stats.avgMastery}%</span>
                           </div>
                         )}
-                        <ChevronRight className="w-4 h-4 text-[#8a7f6f] opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <ChevronRight className="w-4 h-4 text-[#8a7f6f] sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" />
                       </div>
                     </div>
 
@@ -614,7 +614,7 @@ export default function DashboardPage() {
                       {isReady && (
                         <button
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/lecture/${lecture.id}/learn`); }}
-                          className="flex items-center gap-1.5 text-[11px] font-semibold text-purple-700 bg-purple-500/8 hover:bg-purple-500/15 px-3 py-1.5 rounded-lg transition-colors"
+                          className="flex items-center gap-1.5 text-[11px] font-semibold text-[#0F3D43] bg-[#0F3D43]/8 hover:bg-[#0F3D43]/15 px-3 py-1.5 rounded-lg transition-colors"
                         >
                           <GraduationCap className="w-3.5 h-3.5" />
                           {stats?.isComplete ? "Review" : stats ? "Continue learning" : "Start learning"}
@@ -627,8 +627,9 @@ export default function DashboardPage() {
                       )}
                       <button
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); startRename(lecture.id, title); }}
-                        className="flex items-center text-[#8a7f6f] hover:text-purple-600 p-1.5 rounded-lg transition-colors ml-auto"
+                        className="flex items-center text-[#8a7f6f] hover:text-[#0F3D43] p-1.5 rounded-lg transition-colors ml-auto"
                         title="Rename lecture"
+                        aria-label="Rename lecture"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
@@ -637,6 +638,7 @@ export default function DashboardPage() {
                         disabled={deletingId === lecture.id}
                         className="flex items-center text-[#8a7f6f] hover:text-red-500 p-1.5 rounded-lg transition-colors disabled:opacity-40"
                         title="Delete lecture"
+                        aria-label="Delete lecture"
                       >
                         {deletingId === lecture.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                       </button>
@@ -649,7 +651,7 @@ export default function DashboardPage() {
               {filtered.length > 4 && (
                 <Link
                   href="/lectures"
-                  className="block text-center py-3 text-sm font-semibold text-purple-600 hover:text-purple-700 bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl hover:border-[rgba(217,185,130,0.5)] transition-all"
+                  className="block text-center py-3 text-sm font-semibold text-[#0F3D43] hover:text-[#1a5c64] bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl hover:border-[rgba(217,185,130,0.5)] transition-all"
                 >
                   View all {filtered.length} lectures →
                 </Link>
@@ -669,7 +671,7 @@ export default function DashboardPage() {
               </p>
               <button
                 onClick={() => setSearch("")}
-                className="text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                className="text-sm text-[#0F3D43] hover:text-[#1a5c64] font-medium transition-colors"
               >
                 Clear search
               </button>
@@ -680,8 +682,8 @@ export default function DashboardPage() {
           {!loading && !error && lectures.length === 0 && !search && (
             <div className="py-10">
               <div className="text-center mb-8">
-                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-100 to-blue-50 border border-purple-200/30 flex items-center justify-center mx-auto mb-5">
-                  <GraduationCap className="w-10 h-10 text-purple-600" />
+                <div className="w-20 h-20 rounded-3xl bg-[#0F3D43]/10 border border-[#0F3D43]/15 flex items-center justify-center mx-auto mb-5">
+                  <GraduationCap className="w-10 h-10 text-[#0F3D43]" />
                 </div>
                 <h2 className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "'Georgia', serif" }}>
                   Welcome to Lectly{user?.firstName ? `, ${user.firstName}` : ""}
@@ -694,8 +696,8 @@ export default function DashboardPage() {
               {/* How it works */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8 max-w-lg mx-auto">
                 <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
-                  <div className="w-9 h-9 rounded-xl bg-purple-500/8 flex items-center justify-center mx-auto mb-2">
-                    <Upload className="w-4.5 h-4.5 text-purple-600" />
+                  <div className="w-9 h-9 rounded-xl bg-[#0F3D43]/8 flex items-center justify-center mx-auto mb-2">
+                    <Upload className="w-4.5 h-4.5 text-[#0F3D43]" />
                   </div>
                   <p className="text-xs font-semibold text-[#1a1815] mb-0.5">Upload</p>
                   <p className="text-[11px] text-[#8a7f6f] leading-relaxed">Drop an audio or video lecture file</p>
@@ -720,7 +722,7 @@ export default function DashboardPage() {
               <div className="text-center">
                 <Link
                   href="/upload"
-                  className="inline-flex items-center gap-2 text-sm bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-purple-500/20 transition-all hover:shadow-xl hover:shadow-purple-500/25"
+                  className="inline-flex items-center gap-2 text-sm bg-[#0F3D43] hover:bg-[#1a5c64] text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-black/10 transition-all hover:shadow-xl hover:shadow-black/15"
                 >
                   <Upload className="w-4.5 h-4.5" />
                   Upload Your First Lecture
@@ -741,7 +743,7 @@ export default function DashboardPage() {
       {/* Mobile Bottom Nav */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#FDFCF9] border-t border-[rgba(217,185,130,0.25)] backdrop-blur-xl">
         <div className="flex items-center justify-around h-14">
-          <Link href="/dashboard" className="flex flex-col items-center gap-0.5 text-purple-600">
+          <Link href="/dashboard" className="flex flex-col items-center gap-0.5 text-[#0F3D43]">
             <Home className="w-5 h-5" />
             <span className="text-[10px] font-medium">Home</span>
           </Link>

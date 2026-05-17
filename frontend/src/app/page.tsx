@@ -27,7 +27,7 @@ export default function Home() {
         <div className="max-w-[1100px] mx-auto px-5 sm:px-8">
           <div className="flex justify-between items-center h-14">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center shadow-sm shadow-purple-500/15">
+              <div className="w-8 h-8 rounded-lg bg-[#0F3D43] flex items-center justify-center shadow-sm shadow-[#0F3D43]/15">
                 <BookOpen className="w-4 h-4 text-white" />
               </div>
               <span
@@ -100,7 +100,7 @@ export default function Home() {
         <div className="max-w-[1100px] mx-auto flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
           {/* Left — Copy */}
           <div className="flex-1 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 bg-purple-500/8 text-purple-700 text-[11px] font-semibold px-3 py-1.5 rounded-full mb-5 tracking-wide uppercase">
+            <div className="inline-flex items-center gap-2 bg-[#1a5c65]/8 text-[#0a2e33] text-[11px] font-semibold px-3 py-1.5 rounded-full mb-5 tracking-wide uppercase">
               <Sparkles className="w-3 h-3" />
               Built for Nigerian students
             </div>
@@ -144,8 +144,8 @@ export default function Home() {
               {/* Mock header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded bg-purple-500/10 flex items-center justify-center">
-                    <FileText className="w-3 h-3 text-purple-600" />
+                  <div className="w-5 h-5 rounded bg-[#1a5c65]/10 flex items-center justify-center">
+                    <FileText className="w-3 h-3 text-[#0F3D43]" />
                   </div>
                   <span className="text-xs font-semibold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>
                     Units and Measurements in Physics
@@ -168,9 +168,9 @@ export default function Home() {
                   Physical quantities that cannot be derived from other quantities. These form the basis of all measurements in physics...
                 </p>
                 {/* Key point */}
-                <div className="flex items-start gap-2 bg-purple-500/[0.05] border-l-2 border-purple-500 rounded-r px-2.5 py-2 mb-2">
+                <div className="flex items-start gap-2 bg-[#1a5c65]/[0.05] border-l-2 border-[#0F3D43] rounded-r px-2.5 py-2 mb-2">
                   <div>
-                    <span className="text-[9px] font-semibold text-purple-600 block">Key Point</span>
+                    <span className="text-[9px] font-semibold text-[#0F3D43] block">Key Point</span>
                     <span className="text-[10px] text-[#4a4540]">
                       There are 7 SI base units: metre, kilogram, second, ampere, kelvin, mole, candela
                     </span>
@@ -235,7 +235,7 @@ export default function Home() {
 
             {/* Solution — Right */}
             <div className="flex-1">
-              <span className="text-[11px] font-bold text-purple-600 uppercase tracking-widest mb-3 block">
+              <span className="text-[11px] font-bold text-[#0F3D43] uppercase tracking-widest mb-3 block">
                 The fix
               </span>
               <h2
@@ -297,7 +297,7 @@ export default function Home() {
                   <div className="w-12 h-12 rounded-full bg-[#FDFCF9] border border-[rgba(217,185,130,0.3)] flex items-center justify-center mx-auto mb-4 relative z-10 shadow-sm">
                     <item.icon className="w-5 h-5 text-[#1a1815]" />
                   </div>
-                  <span className="text-[10px] font-bold text-purple-600 tracking-widest block mb-1">
+                  <span className="text-[10px] font-bold text-[#0F3D43] tracking-widest block mb-1">
                     STEP {item.num}
                   </span>
                   <h3
@@ -331,8 +331,8 @@ export default function Home() {
           <div className="flex flex-col md:flex-row items-start gap-8 mb-12">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-9 h-9 rounded-lg bg-purple-500/8 flex items-center justify-center">
-                  <FileText className="w-4 h-4 text-purple-600" />
+                <div className="w-9 h-9 rounded-lg bg-[#1a5c65]/8 flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-[#0F3D43]" />
                 </div>
                 <h3
                   className="text-[15px] font-semibold text-[#1a1815]"
@@ -366,8 +366,8 @@ export default function Home() {
             {/* Visual — Mock notes card */}
             <div className="flex-shrink-0 w-full md:w-[340px] bg-[#F7F4EE] border border-[rgba(217,185,130,0.25)] rounded-2xl p-4">
               <div className="space-y-2.5">
-                <div className="bg-purple-500/[0.05] border-l-2 border-purple-500 rounded-r px-3 py-2">
-                  <span className="text-[9px] font-semibold text-purple-600 block mb-0.5">Key Point</span>
+                <div className="bg-[#1a5c65]/[0.05] border-l-2 border-[#0F3D43] rounded-r px-3 py-2">
+                  <span className="text-[9px] font-semibold text-[#0F3D43] block mb-0.5">Key Point</span>
                   <span className="text-[11px] text-[#4a4540]">
                     Newton&apos;s Second Law: F = ma. Force equals mass times acceleration.
                   </span>
@@ -393,7 +393,7 @@ export default function Home() {
             {/* Visual — Mock quiz card */}
             <div className="flex-shrink-0 w-full md:w-[340px] bg-[#F7F4EE] border border-[rgba(217,185,130,0.25)] rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-3">
-                <GraduationCap className="w-4 h-4 text-purple-600" />
+                <GraduationCap className="w-4 h-4 text-[#0F3D43]" />
                 <span
                   className="text-[11px] font-semibold text-[#1a1815]"
                   style={{ fontFamily: "'Georgia', serif" }}
@@ -442,8 +442,8 @@ export default function Home() {
                 and analogies to make concepts stick.
               </p>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-9 h-9 rounded-lg bg-blue-500/8 flex items-center justify-center">
-                  <Download className="w-4 h-4 text-blue-600" />
+                <div className="w-9 h-9 rounded-lg bg-[#1a5c65]/8 flex items-center justify-center">
+                  <Download className="w-4 h-4 text-[#0F3D43]" />
                 </div>
                 <h3
                   className="text-[15px] font-semibold text-[#1a1815]"
@@ -546,7 +546,7 @@ export default function Home() {
 
             {/* Basic — Featured */}
             <div className="rounded-2xl border-2 border-[#1a1815] bg-[#1a1815] p-5 relative text-white">
-              <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+              <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#0F3D43] text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                 Popular
               </div>
               <h3
@@ -629,7 +629,7 @@ export default function Home() {
           {/* Group/Campus note */}
           <p className="text-center text-[11px] text-[#b5ad9e] mt-6">
             Need group or campus-wide access?{" "}
-            <a href="#" className="text-purple-600 hover:underline">
+            <a href="#" className="text-[#0F3D43] hover:underline">
               Contact us
             </a>
             {" "}for Group (₦15,000/mo for 5 students) and Campus plans.
@@ -666,7 +666,7 @@ export default function Home() {
       <footer className="border-t border-[rgba(217,185,130,0.25)] py-6 px-5 sm:px-8 bg-[#FDFCF9]">
         <div className="max-w-[900px] mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center">
+            <div className="w-5 h-5 rounded bg-[#0F3D43] flex items-center justify-center">
               <BookOpen className="w-2.5 h-2.5 text-white" />
             </div>
             <span

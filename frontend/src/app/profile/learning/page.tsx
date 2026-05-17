@@ -108,7 +108,7 @@ export default function LearningPreferencesPage() {
         {/* Difficulty Level */}
         <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl overflow-hidden mb-4">
           <div className="px-4 pt-4 pb-2 flex items-center gap-2">
-            <GraduationCap className="w-4 h-4 text-purple-600" />
+            <GraduationCap className="w-4 h-4 text-[#0F3D43]" />
             <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest">
               Difficulty Level
             </p>
@@ -123,18 +123,18 @@ export default function LearningPreferencesPage() {
                 onClick={() => setDifficulty(opt.value)}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border transition-all text-left ${
                   difficulty === opt.value
-                    ? "border-purple-500/40 bg-purple-500/[0.05]"
+                    ? "border-[#0F3D43]/40 bg-[#1a5c65]/[0.05]"
                     : "border-[rgba(217,185,130,0.2)] hover:border-[rgba(217,185,130,0.4)]"
                 }`}
               >
                 <div>
-                  <p className={`text-sm font-medium ${difficulty === opt.value ? "text-purple-700" : "text-[#1a1815]"}`}>
+                  <p className={`text-sm font-medium ${difficulty === opt.value ? "text-[#0a2e33]" : "text-[#1a1815]"}`}>
                     {opt.label}
                   </p>
                   <p className="text-[10px] text-[#b5ad9e]">{opt.desc}</p>
                 </div>
                 {difficulty === opt.value && (
-                  <div className="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0">
+                  <div className="w-5 h-5 rounded-full bg-[#0F3D43] flex items-center justify-center flex-shrink-0">
                     <Check className="w-3 h-3 text-white" />
                   </div>
                 )}
@@ -174,7 +174,7 @@ export default function LearningPreferencesPage() {
         {/* Card Style */}
         <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl overflow-hidden mb-4">
           <div className="px-4 pt-4 pb-2 flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-blue-600" />
+            <BookOpen className="w-4 h-4 text-[#0F3D43]" />
             <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest">
               Learn Mode Style
             </p>
@@ -189,18 +189,18 @@ export default function LearningPreferencesPage() {
                 onClick={() => setCardStyle(opt.value)}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border transition-all text-left ${
                   cardStyle === opt.value
-                    ? "border-blue-500/40 bg-blue-500/[0.05]"
+                    ? "border-[#0F3D43]/40 bg-[#1a5c65]/[0.05]"
                     : "border-[rgba(217,185,130,0.2)] hover:border-[rgba(217,185,130,0.4)]"
                 }`}
               >
                 <div>
-                  <p className={`text-sm font-medium ${cardStyle === opt.value ? "text-blue-700" : "text-[#1a1815]"}`}>
+                  <p className={`text-sm font-medium ${cardStyle === opt.value ? "text-[#0a2e33]" : "text-[#1a1815]"}`}>
                     {opt.label}
                   </p>
                   <p className="text-[10px] text-[#b5ad9e]">{opt.desc}</p>
                 </div>
                 {cardStyle === opt.value && (
-                  <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                  <div className="w-5 h-5 rounded-full bg-[#0F3D43] flex items-center justify-center flex-shrink-0">
                     <Check className="w-3 h-3 text-white" />
                   </div>
                 )}
@@ -256,7 +256,7 @@ export default function LearningPreferencesPage() {
             <Upload className="w-5 h-5" />
             <span className="text-[10px] font-medium">Upload</span>
           </Link>
-          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-purple-600">
+          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-[#0F3D43]">
             <User className="w-5 h-5" />
             <span className="text-[10px] font-medium">You</span>
           </Link>

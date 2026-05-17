@@ -201,7 +201,7 @@ export default function LecturesPage() {
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-60 border-r border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]">
         <div className="px-5 py-4 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-md shadow-purple-500/15">
+          <div className="w-8 h-8 rounded-[10px] bg-[#0F3D43] flex items-center justify-center shadow-md shadow-black/10">
             <BookOpen className="w-4 h-4 text-white" />
           </div>
           <span className="text-lg font-bold text-[#1a1815] tracking-tight" style={{ fontFamily: "'Georgia', serif" }}>Lectly</span>
@@ -215,8 +215,8 @@ export default function LecturesPage() {
             <Upload className="w-4 h-4" />
             Upload
           </Link>
-          <Link href="/lectures" className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-purple-700 bg-purple-500/8 border-r-2 border-purple-500 rounded-l-lg mb-0.5">
-            <FileText className="w-4 h-4 text-purple-600" />
+          <Link href="/lectures" className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-[#0F3D43] bg-[#0F3D43]/8 border-r-2 border-[#0F3D43] rounded-l-lg mb-0.5">
+            <FileText className="w-4 h-4 text-[#0F3D43]" />
             Lectures
           </Link>
           <Link href="/profile" className="flex items-center gap-3 px-3 py-2.5 text-sm text-[#8a7f6f] hover:text-[#1a1815] rounded-lg transition-colors">
@@ -232,7 +232,7 @@ export default function LecturesPage() {
         <header className="sticky top-0 z-40 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
           <div className="flex items-center justify-between h-14 px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-2 lg:hidden">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+              <div className="w-7 h-7 rounded-lg bg-[#0F3D43] flex items-center justify-center">
                 <BookOpen className="w-4 h-4 text-white" />
               </div>
               <span className="text-lg font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>Lectly</span>
@@ -241,7 +241,7 @@ export default function LecturesPage() {
             <div className="flex items-center gap-3">
               <Link
                 href="/upload"
-                className="flex items-center gap-2 text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-[10px] font-medium shadow-md shadow-purple-500/15 transition-all hover:shadow-lg"
+                className="flex items-center gap-2 text-sm bg-[#0F3D43] hover:bg-[#1a5c64] text-white px-4 py-2 rounded-[10px] font-medium shadow-md shadow-black/10 transition-all hover:shadow-lg"
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">New Lecture</span>
@@ -249,7 +249,7 @@ export default function LecturesPage() {
               <Link
                 href="/profile"
                 title="Profile & settings"
-                className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-xs text-white font-bold hover:opacity-80 transition-opacity cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#0F3D43] flex items-center justify-center text-xs text-white font-bold hover:opacity-80 transition-opacity cursor-pointer"
               >
                 {user?.firstName?.charAt(0).toUpperCase() || "U"}
               </Link>
@@ -280,7 +280,7 @@ export default function LecturesPage() {
                 className="bg-transparent text-sm text-[#1a1815] placeholder:text-[#8a7f6f] focus:outline-none w-full"
               />
               {search && (
-                <button onClick={() => setSearch("")} className="text-[#8a7f6f] hover:text-[#1a1815]">
+                <button onClick={() => setSearch("")} className="text-[#8a7f6f] hover:text-[#1a1815]" aria-label="Clear search">
                   <X className="w-3.5 h-3.5" />
                 </button>
               )}
@@ -290,7 +290,7 @@ export default function LecturesPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortKey)}
-                className="text-xs bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-lg px-3 py-2 text-[#1a1815] focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer"
+                className="text-xs bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-lg px-3 py-2 text-[#1a1815] focus:outline-none focus:ring-2 focus:ring-[#0F3D43]/20 cursor-pointer"
               >
                 <option value="date">Newest first</option>
                 <option value="name">A → Z</option>
@@ -301,13 +301,15 @@ export default function LecturesPage() {
               <div className="hidden sm:flex items-center bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-lg overflow-hidden">
                 <button
                   onClick={() => setViewMode("list")}
-                  className={`p-2 transition-colors ${viewMode === "list" ? "bg-purple-500/10 text-purple-600" : "text-[#8a7f6f] hover:text-[#1a1815]"}`}
+                  className={`p-2 transition-colors ${viewMode === "list" ? "bg-[#0F3D43]/10 text-[#0F3D43]" : "text-[#8a7f6f] hover:text-[#1a1815]"}`}
+                  aria-label="List view"
                 >
                   <LayoutList className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode("grid")}
-                  className={`p-2 transition-colors ${viewMode === "grid" ? "bg-purple-500/10 text-purple-600" : "text-[#8a7f6f] hover:text-[#1a1815]"}`}
+                  className={`p-2 transition-colors ${viewMode === "grid" ? "bg-[#0F3D43]/10 text-[#0F3D43]" : "text-[#8a7f6f] hover:text-[#1a1815]"}`}
+                  aria-label="Grid view"
                 >
                   <LayoutGrid className="w-4 h-4" />
                 </button>
@@ -328,8 +330,8 @@ export default function LecturesPage() {
                 onClick={() => setFilterBy(f.key)}
                 className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
                   filterBy === f.key
-                    ? "bg-purple-600 text-white"
-                    : "bg-[#FDFCF9] text-[#8a7f6f] border border-[rgba(217,185,130,0.25)] hover:border-purple-300 hover:text-purple-600"
+                    ? "bg-[#0F3D43] text-white"
+                    : "bg-[#FDFCF9] text-[#8a7f6f] border border-[rgba(217,185,130,0.25)] hover:border-[#0F3D43]/30 hover:text-[#0F3D43]"
                 }`}
               >
                 {f.label}
@@ -390,7 +392,7 @@ export default function LecturesPage() {
                 const statusLabels: Record<string, { text: string; color: string; bg: string }> = {
                   "processing": { text: "Processing", color: "text-amber-700", bg: "bg-amber-500/8" },
                   "not-started": { text: "Not started", color: "text-[#8a7f6f]", bg: "bg-[#EDE8DF]" },
-                  "in-progress": { text: "In progress", color: "text-blue-700", bg: "bg-blue-500/8" },
+                  "in-progress": { text: "In progress", color: "text-[#0F3D43]", bg: "bg-[#0F3D43]/8" },
                   "completed": { text: "Completed", color: "text-green-700", bg: "bg-green-500/8" },
                 };
                 const sl = statusLabels[status];
@@ -402,8 +404,8 @@ export default function LecturesPage() {
                   >
                     <div className="flex items-center gap-3">
                       {/* Icon */}
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isReady ? "bg-purple-500/8" : "bg-amber-500/10"}`}>
-                        {isReady ? <FileText className="w-5 h-5 text-purple-600" /> : <Clock className="w-5 h-5 text-amber-600 animate-pulse" />}
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isReady ? "bg-[#0F3D43]/8" : "bg-amber-500/10"}`}>
+                        {isReady ? <FileText className="w-5 h-5 text-[#0F3D43]" /> : <Clock className="w-5 h-5 text-amber-600 animate-pulse" />}
                       </div>
 
                       {/* Title + meta */}
@@ -415,20 +417,20 @@ export default function LecturesPage() {
                               value={renameValue}
                               onChange={(e) => setRenameValue(e.target.value)}
                               onKeyDown={(e) => { if (e.key === "Enter") handleRename(lecture.id); if (e.key === "Escape") setRenamingId(null); }}
-                              className="text-sm font-semibold text-[#1a1815] bg-white border border-purple-300 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-purple-400 flex-1 min-w-0"
+                              className="text-sm font-semibold text-[#1a1815] bg-white border border-[#0F3D43]/30 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-[#0F3D43]/20 flex-1 min-w-0"
                               autoFocus
                               disabled={renameLoading}
                             />
-                            <button onClick={() => handleRename(lecture.id)} disabled={renameLoading} className="p-1 rounded-md bg-purple-600 text-white hover:bg-purple-500 disabled:opacity-40">
+                            <button onClick={() => handleRename(lecture.id)} disabled={renameLoading} className="p-1 rounded-md bg-[#0F3D43] text-white hover:bg-[#1a5c64] disabled:opacity-40" aria-label="Confirm rename">
                               {renameLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                             </button>
-                            <button onClick={() => setRenamingId(null)} className="p-1 rounded-md text-[#8a7f6f] hover:text-[#1a1815]">
+                            <button onClick={() => setRenamingId(null)} className="p-1 rounded-md text-[#8a7f6f] hover:text-[#1a1815]" aria-label="Cancel rename">
                               <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         ) : (
                           <Link href={isReady ? `/lecture/${lecture.id}` : "#"} className="block">
-                            <p className="text-sm font-semibold text-[#1a1815] truncate hover:text-purple-700 transition-colors">
+                            <p className="text-sm font-semibold text-[#1a1815] truncate hover:text-[#0F3D43] transition-colors">
                               {title}
                             </p>
                           </Link>
@@ -467,14 +469,14 @@ export default function LecturesPage() {
                         </div>
                       )}
 
-                      {/* Actions */}
-                      <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {/* Actions — always visible on mobile, hover-reveal on desktop */}
+                      <div className="flex items-center gap-1 flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                         {isReady && (
-                          <Link href={`/lecture/${lecture.id}/learn`} className="p-1.5 text-purple-600 hover:bg-purple-500/8 rounded-lg transition-colors" title="Learn">
+                          <Link href={`/lecture/${lecture.id}/learn`} className="p-1.5 text-[#0F3D43] hover:bg-[#0F3D43]/8 rounded-lg transition-colors" title="Learn" aria-label="Learn this lecture">
                             <GraduationCap className="w-4 h-4" />
                           </Link>
                         )}
-                        <button onClick={() => startRename(lecture.id, title)} className="p-1.5 text-[#8a7f6f] hover:text-purple-600 rounded-lg transition-colors" title="Rename">
+                        <button onClick={() => startRename(lecture.id, title)} className="p-1.5 text-[#8a7f6f] hover:text-[#0F3D43] rounded-lg transition-colors" title="Rename" aria-label="Rename lecture">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button
@@ -482,6 +484,7 @@ export default function LecturesPage() {
                           disabled={deletingId === lecture.id}
                           className="p-1.5 text-[#8a7f6f] hover:text-red-500 rounded-lg transition-colors disabled:opacity-40"
                           title="Delete"
+                          aria-label="Delete lecture"
                         >
                           {deletingId === lecture.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                         </button>
@@ -505,7 +508,7 @@ export default function LecturesPage() {
                 const statusLabels: Record<string, { text: string; color: string; bg: string }> = {
                   "processing": { text: "Processing", color: "text-amber-700", bg: "bg-amber-500/8" },
                   "not-started": { text: "Not started", color: "text-[#8a7f6f]", bg: "bg-[#EDE8DF]" },
-                  "in-progress": { text: "In progress", color: "text-blue-700", bg: "bg-blue-500/8" },
+                  "in-progress": { text: "In progress", color: "text-[#0F3D43]", bg: "bg-[#0F3D43]/8" },
                   "completed": { text: "Completed", color: "text-green-700", bg: "bg-green-500/8" },
                 };
                 const sl = statusLabels[status];
@@ -513,14 +516,14 @@ export default function LecturesPage() {
                 return (
                   <div key={lecture.id} className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 hover:border-[rgba(217,185,130,0.5)] hover:shadow-sm transition-all group">
                     <div className="flex items-center justify-between mb-3">
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${isReady ? "bg-purple-500/8" : "bg-amber-500/10"}`}>
-                        {isReady ? <FileText className="w-4.5 h-4.5 text-purple-600" /> : <Clock className="w-4.5 h-4.5 text-amber-600 animate-pulse" />}
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${isReady ? "bg-[#0F3D43]/8" : "bg-amber-500/10"}`}>
+                        {isReady ? <FileText className="w-4.5 h-4.5 text-[#0F3D43]" /> : <Clock className="w-4.5 h-4.5 text-amber-600 animate-pulse" />}
                       </div>
                       <span className={`text-[10px] font-medium px-2 py-0.5 rounded ${sl.bg} ${sl.color}`}>{sl.text}</span>
                     </div>
 
                     <Link href={isReady ? `/lecture/${lecture.id}` : "#"} className="block mb-2">
-                      <p className="text-sm font-semibold text-[#1a1815] line-clamp-2 hover:text-purple-700 transition-colors" style={{ fontFamily: "'Georgia', serif" }}>
+                      <p className="text-sm font-semibold text-[#1a1815] line-clamp-2 hover:text-[#0F3D43] transition-colors" style={{ fontFamily: "'Georgia', serif" }}>
                         {title}
                       </p>
                     </Link>
@@ -556,16 +559,16 @@ export default function LecturesPage() {
                     {/* Actions */}
                     <div className="flex items-center gap-1 pt-2 border-t border-[rgba(217,185,130,0.15)]">
                       {isReady && (
-                        <Link href={`/lecture/${lecture.id}/learn`} className="flex items-center gap-1 text-[11px] font-medium text-purple-600 hover:text-purple-700 transition-colors">
+                        <Link href={`/lecture/${lecture.id}/learn`} className="flex items-center gap-1 text-[11px] font-medium text-[#0F3D43] hover:text-[#1a5c64] transition-colors">
                           <GraduationCap className="w-3.5 h-3.5" />
                           Learn
                         </Link>
                       )}
-                      <div className="flex items-center gap-0.5 ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => startRename(lecture.id, title)} className="p-1 text-[#8a7f6f] hover:text-purple-600 rounded transition-colors" title="Rename">
+                      <div className="flex items-center gap-0.5 ml-auto sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => startRename(lecture.id, title)} className="p-1 text-[#8a7f6f] hover:text-[#0F3D43] rounded transition-colors" title="Rename" aria-label="Rename lecture">
                           <Pencil className="w-3 h-3" />
                         </button>
-                        <button onClick={() => handleDelete(lecture.id, title)} disabled={deletingId === lecture.id} className="p-1 text-[#8a7f6f] hover:text-red-500 rounded transition-colors disabled:opacity-40" title="Delete">
+                        <button onClick={() => handleDelete(lecture.id, title)} disabled={deletingId === lecture.id} className="p-1 text-[#8a7f6f] hover:text-red-500 rounded transition-colors disabled:opacity-40" title="Delete" aria-label="Delete lecture">
                           {deletingId === lecture.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
                         </button>
                       </div>
@@ -583,25 +586,25 @@ export default function LecturesPage() {
                 <Search className="w-7 h-7 text-[#8a7f6f]" />
               </div>
               <p className="text-[#1a1815] font-medium mb-1.5 text-sm">No results for &ldquo;{search}&rdquo;</p>
-              <button onClick={() => setSearch("")} className="text-sm text-purple-600 hover:text-purple-700 font-medium">Clear search</button>
+              <button onClick={() => setSearch("")} className="text-sm text-[#0F3D43] hover:text-[#1a5c64] font-medium">Clear search</button>
             </div>
           )}
 
           {!loading && !error && processedLectures.length === 0 && !search && filterBy !== "all" && (
             <div className="text-center py-14">
               <p className="text-[#8a7f6f] text-sm">No lectures match this filter.</p>
-              <button onClick={() => setFilterBy("all")} className="text-sm text-purple-600 hover:text-purple-700 font-medium mt-2">Show all</button>
+              <button onClick={() => setFilterBy("all")} className="text-sm text-[#0F3D43] hover:text-[#1a5c64] font-medium mt-2">Show all</button>
             </div>
           )}
 
           {!loading && !error && lectures.length === 0 && (
             <div className="text-center py-14">
-              <div className="w-16 h-16 rounded-2xl bg-purple-500/8 flex items-center justify-center mx-auto mb-4">
-                <Upload className="w-8 h-8 text-purple-600" />
+              <div className="w-16 h-16 rounded-2xl bg-[#0F3D43]/8 flex items-center justify-center mx-auto mb-4">
+                <Upload className="w-8 h-8 text-[#0F3D43]" />
               </div>
               <p className="text-[#1a1815] font-medium mb-1.5">No lectures yet</p>
               <p className="text-xs text-[#8a7f6f] mb-4">Upload your first lecture to get started.</p>
-              <Link href="/upload" className="inline-flex items-center gap-2 text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white px-5 py-2.5 rounded-xl font-medium shadow-md">
+              <Link href="/upload" className="inline-flex items-center gap-2 text-sm bg-[#0F3D43] hover:bg-[#1a5c64] text-white px-5 py-2.5 rounded-xl font-medium shadow-md">
                 <Upload className="w-4 h-4" />
                 Upload Lecture
               </Link>
@@ -617,7 +620,7 @@ export default function LecturesPage() {
             <Home className="w-5 h-5" />
             <span className="text-[10px] font-medium">Home</span>
           </Link>
-          <Link href="/lectures" className="flex flex-col items-center gap-0.5 text-purple-600">
+          <Link href="/lectures" className="flex flex-col items-center gap-0.5 text-[#0F3D43]">
             <FileText className="w-5 h-5" />
             <span className="text-[10px] font-medium">Lectures</span>
           </Link>

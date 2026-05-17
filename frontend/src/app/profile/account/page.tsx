@@ -98,7 +98,7 @@ export default function AccountPage() {
       <main className="max-w-lg mx-auto px-4 py-6 pb-24">
         {/* Avatar + Name */}
         <div className="flex flex-col items-center mb-6">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white font-bold text-2xl shadow-md shadow-purple-500/15 mb-3">
+          <div className="w-20 h-20 rounded-full bg-[#0F3D43] flex items-center justify-center text-white font-bold text-2xl shadow-md shadow-[#0F3D43]/15 mb-3">
             {initials}
           </div>
           <h1
@@ -127,7 +127,7 @@ export default function AccountPage() {
             {!editing ? (
               <button
                 onClick={handleStartEdit}
-                className="flex items-center gap-1 text-[11px] text-purple-600 hover:text-purple-700 font-medium"
+                className="flex items-center gap-1 text-[11px] text-[#0F3D43] hover:text-[#0a2e33] font-medium"
               >
                 <Pencil className="w-3 h-3" />
                 Edit
@@ -162,7 +162,7 @@ export default function AccountPage() {
                   value={editFirst}
                   onChange={(e) => setEditFirst(e.target.value)}
                   autoFocus
-                  className="w-full px-3 py-2 bg-[#F7F4EE] border border-[rgba(217,185,130,0.3)] rounded-lg text-sm text-[#1a1815] placeholder:text-[#b5ad9e] focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400/20"
+                  className="w-full px-3 py-2 bg-[#F7F4EE] border border-[rgba(217,185,130,0.3)] rounded-lg text-sm text-[#1a1815] placeholder:text-[#b5ad9e] focus:outline-none focus:border-[#0F3D43] focus:ring-1 focus:ring-[#0F3D43]/20"
                   onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
                 />
               </div>
@@ -172,7 +172,7 @@ export default function AccountPage() {
                   type="text"
                   value={editLast}
                   onChange={(e) => setEditLast(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#F7F4EE] border border-[rgba(217,185,130,0.3)] rounded-lg text-sm text-[#1a1815] placeholder:text-[#b5ad9e] focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400/20"
+                  className="w-full px-3 py-2 bg-[#F7F4EE] border border-[rgba(217,185,130,0.3)] rounded-lg text-sm text-[#1a1815] placeholder:text-[#b5ad9e] focus:outline-none focus:border-[#0F3D43] focus:ring-1 focus:ring-[#0F3D43]/20"
                   onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
                 />
               </div>
@@ -221,7 +221,7 @@ export default function AccountPage() {
                   </p>
                   <button
                     onClick={copyUserId}
-                    className="text-[10px] text-purple-600 hover:text-purple-700 font-medium flex-shrink-0"
+                    className="text-[10px] text-[#0F3D43] hover:text-[#0a2e33] font-medium flex-shrink-0"
                   >
                     {copied ? "Copied!" : "Copy"}
                   </button>
@@ -273,7 +273,7 @@ export default function AccountPage() {
             <Upload className="w-5 h-5" />
             <span className="text-[10px] font-medium">Upload</span>
           </Link>
-          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-purple-600">
+          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-[#0F3D43]">
             <User className="w-5 h-5" />
             <span className="text-[10px] font-medium">You</span>
           </Link>

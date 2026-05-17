@@ -30,18 +30,20 @@ type ProcessStep = { label: string; done: boolean; active: boolean };
 
 export default function UploadPage() {
   const router = useRouter();
-  const { getToken } = useAuth();
+  const { getToken, isLoaded: authLoaded } = useAuth();
 
   const [limits, setLimits] = useState<UserLimits | null>(null);
 
   useEffect(() => {
+    if (!authLoaded) return;
+
     getToken().then((token) => {
       setAuthToken(token);
       // Fetch limits after token is set
       getUserLimits().then(setLimits).catch(() => {});
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [authLoaded]);
   const [state, setState] = useState<UploadState>("idle");
   const [file, setFile] = useState<File | null>(null);
   const [courseCode, setCourseCode] = useState("");
@@ -162,7 +164,7 @@ export default function UploadPage() {
       // Step 0: Upload (skip if retrying from a later step)
       if (startStep <= 0) {
         updateStep(0, false, true);
-        const uploadResult = await uploadLecture(file, undefined);
+        const uploadResult = await uploadLecture(file, courseCode.trim() || undefined);
         currentLectureId = uploadResult.id;
         setLectureId(uploadResult.id);
         updateStep(0, true, false);
@@ -220,7 +222,7 @@ export default function UploadPage() {
       <nav className="border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/80 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-[#0F3D43] flex items-center justify-center">
               <BookOpen className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>Lectly</span>
@@ -303,7 +305,7 @@ export default function UploadPage() {
                   }`}
                 >
                   <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-[#EDE8DF] flex items-center justify-center">
-                    <Upload className="w-7 h-7 text-purple-600" />
+                    <Upload className="w-7 h-7 text-[#0F3D43]" />
                   </div>
                   <p className="text-base text-[#1a1815] font-semibold mb-1">
                     Tap below to upload your lecture
@@ -313,7 +315,7 @@ export default function UploadPage() {
                   </p>
                   <label
                     htmlFor="audio-upload"
-                    className="inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-[10px] text-base font-medium shadow-md shadow-purple-500/15 cursor-pointer active:scale-95 transition-transform"
+                    className="inline-block bg-[#0F3D43] hover:bg-[#1a5c64] text-white px-6 py-3 rounded-[10px] text-base font-medium shadow-md shadow-black/10 cursor-pointer active:scale-95 transition-transform"
                   >
                     Choose File
                   </label>
@@ -333,7 +335,7 @@ export default function UploadPage() {
                 {/* Auto-detect info */}
                 <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-1.5">
-                    <div className="w-2 h-2 rounded-full bg-purple-500" />
+                    <div className="w-2 h-2 rounded-full bg-[#0F3D43]" />
                     <p className="text-xs font-semibold text-[#1a1815] uppercase tracking-wider">Subject</p>
                   </div>
                   <p className="text-sm text-[#8a7f6f]">
@@ -350,13 +352,13 @@ export default function UploadPage() {
                     value={courseCode}
                     onChange={(e) => setCourseCode(e.target.value)}
                     placeholder="e.g. CSC 301"
-                    className="w-full bg-[#FDFCF9] border border-[rgba(217,185,130,0.3)] rounded-[10px] px-3.5 py-2.5 text-sm text-[#1a1815] placeholder:text-[#8a7f6f] focus:border-purple-400 focus:outline-none"
+                    className="w-full bg-[#FDFCF9] border border-[rgba(217,185,130,0.3)] rounded-[10px] px-3.5 py-2.5 text-sm text-[#1a1815] placeholder:text-[#8a7f6f] focus:border-[#0F3D43] focus:outline-none"
                   />
                 </div>
 
                 {/* Record Live card */}
                 <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
-                  <Mic className="w-7 h-7 text-purple-500 mx-auto mb-2" />
+                  <Mic className="w-7 h-7 text-[#0F3D43] mx-auto mb-2" />
                   <p className="text-sm font-semibold text-[#1a1815]">Record Live</p>
                   <p className="text-xs text-[#8a7f6f]">Start recording a lecture</p>
                   <p className="text-[10px] text-[#8a7f6f] mt-1">Coming soon</p>
@@ -432,8 +434,8 @@ export default function UploadPage() {
           {state === "selected" && file && (
             <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.3)] rounded-2xl p-6 max-w-2xl">
               <div className="flex items-center gap-4 mb-5">
-                <div className="w-11 h-11 rounded-xl bg-purple-500/8 flex items-center justify-center">
-                  <FileAudio className="w-5 h-5 text-purple-600" />
+                <div className="w-11 h-11 rounded-xl bg-[#0F3D43]/8 flex items-center justify-center">
+                  <FileAudio className="w-5 h-5 text-[#0F3D43]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[#1a1815] font-medium truncate text-sm">{file.name}</p>
@@ -442,6 +444,7 @@ export default function UploadPage() {
                 <button
                   onClick={removeFile}
                   className="p-2 text-[#8a7f6f] hover:text-[#1a1815] transition-colors"
+                  aria-label="Remove file"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -458,18 +461,18 @@ export default function UploadPage() {
                     value={courseCode}
                     onChange={(e) => setCourseCode(e.target.value)}
                     placeholder="e.g. CSC 301"
-                    className="w-full bg-[#F7F4EE] border border-[rgba(217,185,130,0.3)] rounded-[10px] px-3.5 py-2.5 text-sm text-[#1a1815] placeholder:text-[#8a7f6f] focus:border-purple-400 focus:outline-none"
+                    className="w-full bg-[#F7F4EE] border border-[rgba(217,185,130,0.3)] rounded-[10px] px-3.5 py-2.5 text-sm text-[#1a1815] placeholder:text-[#8a7f6f] focus:border-[#0F3D43] focus:outline-none"
                   />
                 </div>
                 <div className="flex items-center gap-1.5 pt-5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#0F3D43]" />
                   <span className="text-xs text-[#8a7f6f]">Subject auto-detected</span>
                 </div>
               </div>
 
               <button
                 onClick={() => processFile()}
-                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white py-3 rounded-xl font-semibold transition-all shadow-md shadow-purple-500/15"
+                className="w-full flex items-center justify-center gap-2 bg-[#0F3D43] hover:bg-[#1a5c64] text-white py-3 rounded-xl font-semibold transition-all shadow-md shadow-black/10"
               >
                 <Upload className="w-5 h-5" />
                 Process Lecture
@@ -482,8 +485,8 @@ export default function UploadPage() {
             <div className="max-w-lg mx-auto text-center py-8">
               {/* Spinner */}
               <div className="relative w-20 h-20 mx-auto mb-6">
-                <div className="absolute inset-0 rounded-full border-[3px] border-[#EDE8DF] border-t-purple-500 animate-spin" />
-                <div className="absolute inset-[8px] rounded-full border-[3px] border-transparent border-t-blue-500 animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
+                <div className="absolute inset-0 rounded-full border-[3px] border-[#EDE8DF] border-t-[#0F3D43] animate-spin" />
+                <div className="absolute inset-[8px] rounded-full border-[3px] border-transparent border-t-[#1a5c64] animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
               </div>
               <h3 className="text-lg font-bold text-[#1a1815] mb-1" style={{ fontFamily: "'Georgia', serif" }}>
                 Processing your lecture
@@ -499,7 +502,7 @@ export default function UploadPage() {
                       {step.done ? (
                         <CheckCircle2 className="w-[18px] h-[18px] text-green-600 flex-shrink-0" />
                       ) : step.active ? (
-                        <Loader2 className="w-[18px] h-[18px] text-purple-500 animate-spin flex-shrink-0" />
+                        <Loader2 className="w-[18px] h-[18px] text-[#0F3D43] animate-spin flex-shrink-0" />
                       ) : (
                         <div className="w-[18px] h-[18px] rounded-full border-2 border-[rgba(217,185,130,0.4)] flex-shrink-0" />
                       )}
@@ -510,7 +513,7 @@ export default function UploadPage() {
                         <span className="text-[11px] text-green-600 font-medium">Done</span>
                       )}
                       {step.active && (
-                        <span className="text-[11px] text-purple-600 font-medium">{timeEstimates[i]}</span>
+                        <span className="text-[11px] text-[#0F3D43] font-medium">{timeEstimates[i]}</span>
                       )}
                     </div>
                   );
@@ -520,7 +523,7 @@ export default function UploadPage() {
               <div className="max-w-sm mx-auto">
                 <div className="flex justify-between mb-1.5">
                   <span className="text-xs text-[#8a7f6f]">Progress</span>
-                  <span className="text-xs text-purple-600 font-semibold">
+                  <span className="text-xs text-[#0F3D43] font-semibold">
                     {steps.filter(s => s.done).length === 0 && steps.some(s => s.active) ? "15%" :
                      steps.filter(s => s.done).length === 1 ? "40%" :
                      steps.filter(s => s.done).length === 2 ? "80%" :
@@ -529,7 +532,7 @@ export default function UploadPage() {
                 </div>
                 <div className="w-full h-1.5 bg-[#EDE8DF] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-500"
+                    className="h-full bg-[#0F3D43] rounded-full transition-all duration-500"
                     style={{
                       width: steps.filter(s => s.done).length === 0 && steps.some(s => s.active) ? "15%" :
                              steps.filter(s => s.done).length === 1 ? "40%" :
@@ -555,7 +558,7 @@ export default function UploadPage() {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Link
                   href={`/lecture/${lectureId}`}
-                  className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold transition-all shadow-md shadow-purple-500/15"
+                  className="flex items-center gap-2 bg-[#0F3D43] hover:bg-[#1a5c64] text-white px-6 py-2.5 rounded-xl font-semibold transition-all shadow-md shadow-black/10"
                 >
                   View Notes
                 </Link>
@@ -582,7 +585,7 @@ export default function UploadPage() {
             <FileText className="w-5 h-5" />
             <span className="text-[10px] font-medium">Lectures</span>
           </Link>
-          <Link href="/upload" className="flex flex-col items-center gap-0.5 text-purple-600">
+          <Link href="/upload" className="flex flex-col items-center gap-0.5 text-[#0F3D43]">
             <Upload className="w-5 h-5" />
             <span className="text-[10px] font-medium">Upload</span>
           </Link>

@@ -101,18 +101,25 @@ def _get_user_id_from_header(request: Request) -> Optional[str]:
             return None
         except Exception as e:
             # JWKS fetch failed, key not found, network error, etc.
-            # Fall through to dev fallback so the app doesn't crash
-            print(f"[Lectly] JWKS verification error (falling back to decode): {e}")
+            # Do NOT fall through to unverified decode — that would be a security hole.
+            print(f"[Lectly] JWKS verification error: {e}")
+            return None
 
-    # ── Local dev fallback: decode without verification (CLERK_ISSUER not set) ──
-    try:
-        import json, base64
-        payload_b64 = token.split(".")[1]
-        payload_b64 += "=" * (4 - len(payload_b64) % 4)
-        payload = json.loads(base64.urlsafe_b64decode(payload_b64))
-        return payload.get("sub")
-    except Exception:
-        return None
+    # ── Local dev fallback: decode without verification ──
+    # ONLY when CLERK_ISSUER is not configured (i.e. local development).
+    # This block is unreachable when clerk_issuer is set because the
+    # production branch above always returns.
+    if not settings.clerk_issuer:
+        try:
+            import json, base64
+            payload_b64 = token.split(".")[1]
+            payload_b64 += "=" * (4 - len(payload_b64) % 4)
+            payload = json.loads(base64.urlsafe_b64decode(payload_b64))
+            return payload.get("sub")
+        except Exception:
+            return None
+
+    return None
 
 
 def _require_user_id(request: Request) -> str:
@@ -303,7 +310,7 @@ async def tutor_ask(body: TutorAskRequest, request: Request):
 
         return TutorAskResponse(
             answer=answer,
-            lecture_id=request.lecture_id,
+            lecture_id=body.lecture_id,
             section_referenced=section_referenced,
         )
     except ValueError as e:

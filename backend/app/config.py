@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
 
     # Auth
-    jwt_secret_key: str = "lectly-dev-secret-change-in-production"
+    jwt_secret_key: str = ""  # REQUIRED: set JWT_SECRET_KEY in .env
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 10080  # 7 days
 

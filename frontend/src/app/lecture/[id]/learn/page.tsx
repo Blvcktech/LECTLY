@@ -39,6 +39,8 @@ import {
   type StudyProgress,
   type CardContext,
 } from "@/lib/api";
+import { useAuth } from "@clerk/nextjs";
+import { setAuthToken } from "@/lib/auth";
 
 // ── Helper: render inline formatting (bold, inline code) ──
 function RenderInline({ text }: { text: string }) {
@@ -82,7 +84,7 @@ function RenderParagraph({ text, index }: { text: string; index: string }) {
   if (isStep) {
     return (
       <div key={index} className="flex items-start gap-3 my-2">
-        <div className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-2 flex-shrink-0" />
+        <div className="w-1.5 h-1.5 rounded-full bg-[#0F3D43] mt-2 flex-shrink-0" />
         <p className="text-sm font-semibold text-[#1a1815] leading-relaxed">
           <RenderInline text={trimmed} />
         </p>
@@ -260,7 +262,7 @@ function TutorMessageContent({ content }: { content: string }) {
     if (/^\d+[.)]\s+/.test(trimmed)) {
       const match = trimmed.match(/^(\d+[.)])\s+(.*)/);
       if (match) {
-        return <p key={key} className="text-sm leading-relaxed mb-0.5 flex gap-2 pl-1"><span className="text-purple-600 font-semibold flex-shrink-0 min-w-[1.2rem]">{match[1]}</span><span>{renderInline(match[2])}</span></p>;
+        return <p key={key} className="text-sm leading-relaxed mb-0.5 flex gap-2 pl-1"><span className="text-[#0F3D43] font-semibold flex-shrink-0 min-w-[1.2rem]">{match[1]}</span><span>{renderInline(match[2])}</span></p>;
       }
     }
     // Equations / formulas (X = something)
@@ -339,6 +341,7 @@ export default function LearnModePage({
 }) {
   const { id } = use(params);
   const searchParams = useSearchParams();
+  const { getToken, isLoaded: authLoaded } = useAuth();
   const [lecture, setLecture] = useState<Lecture | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -464,8 +467,12 @@ export default function LearnModePage({
   const totalFlowCards = cardFlow.length;
 
   useEffect(() => {
+    if (!authLoaded) return;
+
     async function fetchLecture() {
       try {
+        const token = await getToken();
+        setAuthToken(token);
         const data = await getLecture(id);
         setLecture(data);
       } catch {
@@ -475,7 +482,7 @@ export default function LearnModePage({
       }
     }
     fetchLecture();
-  }, [id]);
+  }, [id, authLoaded]);
 
   // Auto-start if ?section= is in the URL
   useEffect(() => {
@@ -677,8 +684,12 @@ export default function LearnModePage({
 
   // Load existing progress on mount
   useEffect(() => {
+    if (!authLoaded) return;
+
     async function loadProgress() {
       try {
+        const token = await getToken();
+        setAuthToken(token);
         const { progress } = await getLectureProgress(id);
         setExistingProgress(progress);
       } catch {
@@ -686,7 +697,7 @@ export default function LearnModePage({
       }
     }
     loadProgress();
-  }, [id]);
+  }, [id, authLoaded]);
 
   // Save progress when card index changes
   useEffect(() => {
@@ -899,7 +910,7 @@ export default function LearnModePage({
       <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href={`/lecture/${id}`} className="text-[#8a7f6f] hover:text-[#1a1815] transition-colors">
+            <Link href={`/lecture/${id}`} className="text-[#8a7f6f] hover:text-[#1a1815] transition-colors" aria-label="Back to lecture notes">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             {lecture?.subject && (
@@ -972,7 +983,7 @@ export default function LearnModePage({
                             <Loader2 className="w-4 h-4 text-[#8a7f6f] animate-spin flex-shrink-0" />
                           ) : (
                             <ChevronRight className={`w-3.5 h-3.5 flex-shrink-0 ${
-                              selectedSection === i ? "text-[#1a1815]" : "text-[#8a7f6f] opacity-0 group-hover:opacity-100"
+                              selectedSection === i ? "text-[#1a1815]" : "text-[#8a7f6f] sm:opacity-0 sm:group-hover:opacity-100"
                             } transition-opacity`} />
                           )}
                         </div>
@@ -1095,7 +1106,7 @@ export default function LearnModePage({
                 <p className="text-sm text-[#8a7f6f] mb-4">{error}</p>
                 <button
                   onClick={() => handleStartLearn(selectedSection)}
-                  className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+                  className="text-sm text-[#0F3D43] hover:text-[#1a5c64] font-medium"
                 >
                   Try again
                 </button>
@@ -1422,7 +1433,7 @@ export default function LearnModePage({
                                     setTutorExpanded(true);
                                     handleSendMessage("Can you explain this topic in more depth with additional examples?");
                                   }}
-                                  className="text-xs text-purple-600 hover:text-purple-700 transition-colors"
+                                  className="text-xs text-[#0F3D43] hover:text-[#1a5c64] transition-colors"
                                 >
                                   Need more detail? Ask the tutor
                                 </button>
@@ -1495,7 +1506,7 @@ export default function LearnModePage({
                     {learnResult.examples.length > 0 && (
                       <div>
                         <div className="flex items-center gap-2 mb-4">
-                          <Beaker className="w-4 h-4 text-blue-600" />
+                          <Beaker className="w-4 h-4 text-[#0F3D43]" />
                           <h2 className="text-base font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>Worked Examples</h2>
                         </div>
                         <div className="space-y-4">
@@ -1506,13 +1517,13 @@ export default function LearnModePage({
                             return (
                               <div key={i} className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl overflow-hidden">
                                 <div className="px-5 pt-5 pb-3 flex items-start gap-3">
-                                  <span className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-sm font-bold text-blue-600 flex-shrink-0">{i + 1}</span>
+                                  <span className="w-7 h-7 rounded-lg bg-[#0F3D43]/10 flex items-center justify-center text-sm font-bold text-[#0F3D43] flex-shrink-0">{i + 1}</span>
                                   <h3 className="text-sm font-semibold text-[#1a1815] pt-0.5">{example.title}</h3>
                                 </div>
 
                                 {problemText && (
                                   <div className="mx-5 mb-3 p-4 bg-[rgba(26,24,21,0.04)] border border-[rgba(217,185,130,0.2)] rounded-xl">
-                                    <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">Problem</p>
+                                    <p className="text-[10px] font-bold text-[#0F3D43] uppercase tracking-widest mb-2">Problem</p>
                                     <p className="text-sm text-[#2C2A25] leading-relaxed">{problemText}</p>
                                   </div>
                                 )}
@@ -1559,7 +1570,7 @@ export default function LearnModePage({
                     {learnResult.resources && learnResult.resources.length > 0 && (
                       <div>
                         <div className="flex items-center gap-2 mb-4">
-                          <ExternalLink className="w-4 h-4 text-purple-600" />
+                          <ExternalLink className="w-4 h-4 text-[#0F3D43]" />
                           <h2 className="text-base font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>Further Reading</h2>
                         </div>
                         <div className="space-y-2.5">
@@ -1574,7 +1585,7 @@ export default function LearnModePage({
                                   href={resource.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 text-xs text-purple-600 hover:text-purple-700 transition-colors"
+                                  className="inline-flex items-center gap-1 text-xs text-[#0F3D43] hover:text-[#1a5c64] transition-colors"
                                 >
                                   <ExternalLink className="w-3 h-3" />
                                   {resource.url.length > 60 ? resource.url.substring(0, 60) + "..." : resource.url}
@@ -1603,7 +1614,7 @@ export default function LearnModePage({
                               setTutorExpanded(true);
                               handleSendMessage(chip);
                             }}
-                            className="text-xs text-purple-700 bg-purple-500/8 hover:bg-purple-500/15 border border-purple-400/20 px-3 py-1.5 rounded-full transition-colors"
+                            className="text-xs text-[#0a2e33] bg-[#0F3D43]/8 hover:bg-[#0F3D43]/15 border border-[#0F3D43]/20 px-3 py-1.5 rounded-full transition-colors"
                           >
                             {chip}
                           </button>
@@ -1621,7 +1632,7 @@ export default function LearnModePage({
                       </button>
                       <Link
                         href={`/lecture/${id}`}
-                        className="flex items-center gap-1.5 text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors"
+                        className="flex items-center gap-1.5 text-sm font-medium text-[#0F3D43] hover:text-[#1a5c64] transition-colors"
                       >
                         Full Notes <ChevronRight className="w-4 h-4" />
                       </Link>
@@ -1646,6 +1657,7 @@ export default function LearnModePage({
                 <button
                   onClick={() => setTutorExpanded(false)}
                   className="flex items-center gap-1 text-[11px] font-medium text-[#8a7f6f] hover:text-[#1a1815] px-2 py-1 rounded-lg hover:bg-[#EDE8DF] transition-colors"
+                  aria-label="Minimize tutor chat"
                 >
                   <ChevronDown className="w-3.5 h-3.5" />
                   Minimize
@@ -1752,6 +1764,7 @@ export default function LearnModePage({
                 type="submit"
                 disabled={!chatInput.trim() || chatLoading}
                 className="w-10 h-10 rounded-xl bg-[#1a1815] hover:bg-[#2C2A25] disabled:bg-[#EDE8DF] disabled:text-[#8a7f6f] text-white flex items-center justify-center transition-colors flex-shrink-0"
+                aria-label="Send message"
               >
                 <Send className="w-4 h-4" />
               </button>

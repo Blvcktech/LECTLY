@@ -38,6 +38,8 @@ import {
   type TutorMessage,
   type StudyProgress,
 } from "@/lib/api";
+import { useAuth } from "@clerk/nextjs";
+import { setAuthToken } from "@/lib/auth";
 import { useToast } from "@/components/Toast";
 
 // ── Tutor message renderer (markdown-aware) ──
@@ -55,7 +57,7 @@ function TutorBubble({ content }: { content: string }) {
     if (!t) return null;
     if (/^(Step \d|Given:|Formula:|Answer:|Solution:)/i.test(t)) return <p key={key} className="text-xs leading-relaxed font-semibold text-[#1a1815] mt-1.5 first:mt-0">{renderInline(t)}</p>;
     if (/^[-•*]\s+/.test(t)) return <p key={key} className="text-xs leading-relaxed mb-0.5 flex gap-1.5 pl-0.5"><span className="text-amber-600">•</span><span>{renderInline(t.replace(/^[-•*]\s+/, ""))}</span></p>;
-    if (/^\d+[.)]\s+/.test(t)) { const m = t.match(/^(\d+[.)])\s+(.*)/); return m ? <p key={key} className="text-xs leading-relaxed mb-0.5 flex gap-1.5 pl-0.5"><span className="text-purple-600 font-semibold">{m[1]}</span><span>{renderInline(m[2])}</span></p> : null; }
+    if (/^\d+[.)]\s+/.test(t)) { const m = t.match(/^(\d+[.)])\s+(.*)/); return m ? <p key={key} className="text-xs leading-relaxed mb-0.5 flex gap-1.5 pl-0.5"><span className="text-[#0F3D43] font-semibold">{m[1]}</span><span>{renderInline(m[2])}</span></p> : null; }
     if (/^---+$/.test(t)) return <hr key={key} className="border-[rgba(217,185,130,0.3)] my-1" />;
     return <p key={key} className="text-xs leading-relaxed text-[#2C2A25]">{renderInline(t)}</p>;
   };
@@ -96,7 +98,7 @@ function FlashCard({ front, back, type }: { front: string; back: string; type: "
     >
       <div className="flex items-center justify-between mb-2">
         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-          type === "definition" ? "bg-green-500/10 text-green-700" : "bg-purple-500/10 text-purple-700"
+          type === "definition" ? "bg-green-500/10 text-green-700" : "bg-[#0F3D43]/10 text-[#0a2e33]"
         }`}>
           {type === "definition" ? "Definition" : "Key Concept"}
         </span>
@@ -123,6 +125,7 @@ export default function LecturePage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const { getToken, isLoaded: authLoaded } = useAuth();
   const [lecture, setLecture] = useState<Lecture | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -221,8 +224,12 @@ export default function LecturePage({
   }, [sections.length]);
 
   useEffect(() => {
+    if (!authLoaded) return;
+
     async function fetchLecture() {
       try {
+        const token = await getToken();
+        setAuthToken(token);
         const data = await getLecture(id);
         setLecture(data);
       } catch {
@@ -232,12 +239,16 @@ export default function LecturePage({
       }
     }
     fetchLecture();
-  }, [id]);
+  }, [id, authLoaded]);
 
   // Fetch study progress
   useEffect(() => {
+    if (!authLoaded) return;
+
     async function fetchProgress() {
       try {
+        const token = await getToken();
+        setAuthToken(token);
         const data = await getLectureProgress(id);
         setStudyProgress(data.progress || []);
       } catch {
@@ -245,7 +256,7 @@ export default function LecturePage({
       }
     }
     fetchProgress();
-  }, [id]);
+  }, [id, authLoaded]);
 
   const handleExplain = async (index: number, content: string) => {
     if (explainSection === index && explainResult) {
@@ -409,7 +420,7 @@ export default function LecturePage({
             </div>
             <div className="flex items-center gap-2">
               <div className="w-16 h-9 bg-[#EDE8DF] rounded-[10px]" />
-              <div className="w-24 h-9 bg-purple-200/40 rounded-[10px]" />
+              <div className="w-24 h-9 bg-[#0F3D43]/20 rounded-[10px]" />
             </div>
           </div>
         </nav>
@@ -437,7 +448,7 @@ export default function LecturePage({
               <div key={i} className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 sm:p-5">
                 <div className="flex items-start justify-between mb-3">
                   <div className="h-5 w-48 bg-[#EDE8DF] rounded" />
-                  <div className="h-4 w-16 bg-purple-200/30 rounded-full" />
+                  <div className="h-4 w-16 bg-[#0F3D43]/15 rounded-full" />
                 </div>
                 <div className="space-y-2 mb-4">
                   <div className="h-3 w-full bg-[#EDE8DF]/50 rounded" />
@@ -446,12 +457,12 @@ export default function LecturePage({
                   <div className="h-3 w-3/4 bg-[#EDE8DF]/50 rounded" />
                 </div>
                 <div className="space-y-2 mb-4">
-                  <div className="flex items-start gap-2.5 px-3 py-2.5 bg-purple-500/[0.03] border-l-[3px] border-purple-200 rounded-r-lg">
+                  <div className="flex items-start gap-2.5 px-3 py-2.5 bg-[#0F3D43]/[0.03] border-l-[3px] border-[#0F3D43]/20 rounded-r-lg">
                     <div className="h-3 w-3/4 bg-[#EDE8DF]/40 rounded" />
                   </div>
                 </div>
                 <div className="flex gap-2 pt-3 border-t border-[rgba(217,185,130,0.2)]">
-                  <div className="h-7 w-24 bg-purple-200/30 rounded-lg" />
+                  <div className="h-7 w-24 bg-[#0F3D43]/15 rounded-lg" />
                   <div className="h-7 w-24 bg-[#EDE8DF] rounded-lg" />
                 </div>
               </div>
@@ -500,11 +511,11 @@ export default function LecturePage({
       <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3 sm:gap-4">
-            <Link href="/dashboard" className="text-[#8a7f6f] hover:text-[#1a1815] transition-colors">
+            <Link href="/dashboard" className="text-[#8a7f6f] hover:text-[#1a1815] transition-colors" aria-label="Back to dashboard">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-md shadow-purple-500/15">
+              <div className="w-8 h-8 rounded-[10px] bg-[#0F3D43] flex items-center justify-center shadow-md shadow-[#0F3D43]/15">
                 <BookOpen className="w-4 h-4 text-white" />
               </div>
               <span className="hidden sm:inline text-lg font-bold text-[#1a1815] tracking-tight" style={{ fontFamily: "'Georgia', serif" }}>Lectly</span>
@@ -516,6 +527,7 @@ export default function LecturePage({
               disabled={deleteLoading}
               className="flex items-center gap-1.5 text-xs sm:text-sm text-[#8a7f6f] hover:text-red-500 border border-[rgba(217,185,130,0.35)] hover:border-red-300 px-2.5 sm:px-3 py-2 rounded-[10px] font-medium transition-all disabled:opacity-40"
               title="Delete lecture"
+              aria-label="Delete lecture"
             >
               {deleteLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
             </button>
@@ -523,6 +535,7 @@ export default function LecturePage({
               onClick={handleDownloadPdf}
               disabled={pdfLoading || !lecture?.notes}
               className="flex items-center gap-1.5 text-xs sm:text-sm text-[#2C2A25] hover:text-[#1a1815] border border-[rgba(217,185,130,0.35)] hover:border-[rgba(217,185,130,0.6)] px-2.5 sm:px-3 py-2 rounded-[10px] font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label={pdfLoading ? "Generating PDF" : "Download PDF"}
             >
               {pdfLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -533,7 +546,7 @@ export default function LecturePage({
             </button>
             <Link
               href={`/lecture/${id}/solve`}
-              className="flex items-center gap-1.5 text-xs sm:text-sm bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white px-3 sm:px-4 py-2 rounded-[10px] font-medium transition-all shadow-md shadow-blue-500/15"
+              className="flex items-center gap-1.5 text-xs sm:text-sm bg-[#0F3D43] hover:bg-[#1a5c65] text-white px-3 sm:px-4 py-2 rounded-[10px] font-medium transition-all shadow-md shadow-[#0F3D43]/15"
             >
               <Zap className="w-4 h-4" />
               <span className="hidden sm:inline">Solve Mode</span>
@@ -541,7 +554,7 @@ export default function LecturePage({
             </Link>
             <Link
               href={`/lecture/${id}/learn`}
-              className="flex items-center gap-1.5 text-xs sm:text-sm bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-3 sm:px-4 py-2 rounded-[10px] font-medium transition-all shadow-md shadow-purple-500/15"
+              className="flex items-center gap-1.5 text-xs sm:text-sm bg-[#0F3D43] hover:bg-[#1a5c65] text-white px-3 sm:px-4 py-2 rounded-[10px] font-medium transition-all shadow-md shadow-[#0F3D43]/15"
             >
               <GraduationCap className="w-4 h-4" />
               <span className="hidden sm:inline">Learn Mode</span>
@@ -563,14 +576,14 @@ export default function LecturePage({
                   value={renameValue}
                   onChange={(e) => setRenameValue(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") handleRename(); if (e.key === "Escape") setIsRenaming(false); }}
-                  className="text-xl font-bold text-[#1a1815] bg-[#FDFCF9] border border-purple-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-purple-400 flex-1"
+                  className="text-xl font-bold text-[#1a1815] bg-[#FDFCF9] border border-[#3a9aa5] rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#0F3D43]/20 flex-1"
                   style={{ fontFamily: "'Georgia', serif" }}
                   disabled={renameLoading}
                 />
-                <button onClick={handleRename} disabled={renameLoading} className="p-1.5 rounded-lg bg-purple-600 text-white hover:bg-purple-500 transition-colors disabled:opacity-40">
+                <button onClick={handleRename} disabled={renameLoading} className="p-1.5 rounded-lg bg-[#0F3D43] text-white hover:bg-[#1a5c65] transition-colors disabled:opacity-40" aria-label="Confirm rename">
                   {renameLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                 </button>
-                <button onClick={() => setIsRenaming(false)} className="p-1.5 rounded-lg text-[#8a7f6f] hover:text-[#1a1815] transition-colors">
+                <button onClick={() => setIsRenaming(false)} className="p-1.5 rounded-lg text-[#8a7f6f] hover:text-[#1a1815] transition-colors" aria-label="Cancel rename">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -581,8 +594,9 @@ export default function LecturePage({
                 </h1>
                 <button
                   onClick={startRename}
-                  className="p-1 rounded-lg text-[#8a7f6f] hover:text-purple-600 opacity-0 group-hover:opacity-100 transition-all"
+                  className="p-1 rounded-lg text-[#8a7f6f] hover:text-[#0F3D43] sm:opacity-0 sm:group-hover:opacity-100 transition-all"
                   title="Rename lecture"
+                  aria-label="Rename lecture"
                 >
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
@@ -622,7 +636,7 @@ export default function LecturePage({
               onClick={() => setActiveTab(tab)}
               className={`flex-1 sm:flex-none text-center sm:text-left px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors capitalize ${
                 activeTab === tab
-                  ? "text-purple-600 border-purple-500"
+                  ? "text-[#0F3D43] border-[#0F3D43]"
                   : "text-[#8a7f6f] border-transparent hover:text-[#2C2A25]"
               }`}
             >
@@ -650,7 +664,7 @@ export default function LecturePage({
                       <span
                         className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ml-3 ${
                           section.source_type === "original"
-                            ? "bg-purple-500/10 text-purple-700"
+                            ? "bg-[#0F3D43]/10 text-[#0a2e33]"
                             : "bg-amber-500/10 text-amber-700"
                         }`}
                       >
@@ -669,11 +683,11 @@ export default function LecturePage({
                         {section.key_points.map((point, j) => (
                           <div
                             key={j}
-                            className="flex items-start gap-2.5 px-3 py-2.5 bg-purple-500/[0.05] border-l-[3px] border-purple-500 rounded-r-lg"
+                            className="flex items-start gap-2.5 px-3 py-2.5 bg-[#0F3D43]/[0.05] border-l-[3px] border-[#0F3D43] rounded-r-lg"
                           >
                             <span className="text-sm mt-0.5">&#128273;</span>
                             <div>
-                              <span className="text-[11px] font-semibold text-purple-700 block mb-0.5">Key Point</span>
+                              <span className="text-[11px] font-semibold text-[#0a2e33] block mb-0.5">Key Point</span>
                               <span className="text-xs text-[#2C2A25] leading-relaxed">{point}</span>
                             </div>
                           </div>
@@ -704,7 +718,7 @@ export default function LecturePage({
                     <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-[rgba(217,185,130,0.2)]">
                       <button
                         onClick={() => handleExplain(i, section.content)}
-                        className="flex items-center gap-1.5 text-xs font-medium text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 px-3 py-1.5 rounded-lg transition-all shadow-sm"
+                        className="flex items-center gap-1.5 text-xs font-medium text-white bg-[#0F3D43] hover:bg-[#1a5c64] px-3 py-1.5 rounded-lg transition-all shadow-sm"
                       >
                         <Sparkles className="w-3.5 h-3.5" />
                         {explainSection === i ? "Hide" : "Explain This"}
@@ -718,7 +732,7 @@ export default function LecturePage({
                       </Link>
                       <Link
                         href={`/lecture/${id}/solve?section=${i}`}
-                        className="flex items-center gap-1.5 text-xs font-medium text-blue-700 bg-blue-100/60 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
+                        className="flex items-center gap-1.5 text-xs font-medium text-[#0a2e33] bg-[#0F3D43]/10 hover:bg-[#0F3D43]/15 px-3 py-1.5 rounded-lg transition-colors"
                       >
                         <Zap className="w-3.5 h-3.5" />
                         Solve
@@ -739,6 +753,7 @@ export default function LecturePage({
                               setExplainResult(null);
                             }}
                             className="text-[#8a7f6f] hover:text-[#1a1815] text-xs"
+                            aria-label="Close explanation"
                           >
                             <X className="w-3.5 h-3.5" />
                           </button>
@@ -753,7 +768,7 @@ export default function LecturePage({
                               }}
                               className={`text-[11px] font-semibold px-3 py-1 rounded-lg border transition-colors capitalize ${
                                 explainLevel === level
-                                  ? "bg-purple-500/10 border-purple-400 text-purple-700"
+                                  ? "bg-[#0F3D43]/10 border-[#0F3D43] text-[#0a2e33]"
                                   : "bg-transparent border-[rgba(217,185,130,0.3)] text-[#8a7f6f]"
                               }`}
                             >
@@ -763,7 +778,7 @@ export default function LecturePage({
                         </div>
                         {explainLoading ? (
                           <div className="flex items-center gap-2 text-sm text-[#2C2A25] py-2">
-                            <Loader2 className="w-4 h-4 animate-spin text-purple-500" />
+                            <Loader2 className="w-4 h-4 animate-spin text-[#0F3D43]" />
                             Generating explanation...
                           </div>
                         ) : explainResult ? (
@@ -846,7 +861,7 @@ export default function LecturePage({
                     {/* Progress bar */}
                     <div className="h-1.5 bg-[#EDE8DF] rounded-full overflow-hidden mb-2">
                       <div
-                        className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all"
+                        className="h-full bg-[#0F3D43] rounded-full transition-all"
                         style={{ width: `${studyStats.avgMastery}%` }}
                       />
                     </div>
@@ -855,7 +870,7 @@ export default function LecturePage({
                     </p>
                     <Link
                       href={`/lecture/${id}/learn`}
-                      className="flex items-center justify-center gap-1.5 w-full text-xs font-semibold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 py-2 rounded-lg transition-all shadow-sm"
+                      className="flex items-center justify-center gap-1.5 w-full text-xs font-semibold text-white bg-[#0F3D43] hover:bg-[#1a5c64] py-2 rounded-lg transition-all shadow-sm"
                     >
                       <GraduationCap className="w-3.5 h-3.5" />
                       Continue Learning
@@ -866,7 +881,7 @@ export default function LecturePage({
                     <p className="text-xs text-[#8a7f6f] mb-3">You haven&apos;t started studying this lecture yet.</p>
                     <Link
                       href={`/lecture/${id}/learn`}
-                      className="flex items-center justify-center gap-1.5 w-full text-xs font-semibold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 py-2 rounded-lg transition-all shadow-sm"
+                      className="flex items-center justify-center gap-1.5 w-full text-xs font-semibold text-white bg-[#0F3D43] hover:bg-[#1a5c64] py-2 rounded-lg transition-all shadow-sm"
                     >
                       <GraduationCap className="w-3.5 h-3.5" />
                       Start Learning
@@ -888,14 +903,14 @@ export default function LecturePage({
                           key={i}
                           onClick={() => scrollToSection(i)}
                           className={`flex items-start gap-2 w-full text-left py-1.5 px-2 rounded-lg transition-all ${
-                            isActive ? "bg-purple-500/8" : "hover:bg-[#EDE8DF]/50"
+                            isActive ? "bg-[#0F3D43]/8" : "hover:bg-[#EDE8DF]/50"
                           }`}
                         >
                           <div className={`w-2 h-2 rounded-full mt-1 flex-shrink-0 ${
-                            isDone ? "bg-purple-500" : isActive ? "bg-purple-500 ring-2 ring-purple-200" : "bg-[rgba(217,185,130,0.35)]"
+                            isDone ? "bg-[#0F3D43]" : isActive ? "bg-[#0F3D43] ring-2 ring-[#0F3D43]/20" : "bg-[rgba(217,185,130,0.35)]"
                           }`} />
                           <span className={`text-[11px] leading-snug ${
-                            isActive ? "text-purple-700 font-semibold" : "text-[#8a7f6f]"
+                            isActive ? "text-[#0a2e33] font-semibold" : "text-[#8a7f6f]"
                           }`}>
                             {section.heading}
                           </span>
@@ -970,8 +985,9 @@ export default function LecturePage({
       {!tutorOpen && (
         <button
           onClick={() => setTutorOpen(true)}
-          className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-50 w-13 h-13 sm:w-14 sm:h-14 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-full shadow-lg shadow-purple-500/25 flex items-center justify-center transition-all hover:scale-105"
+          className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-50 w-13 h-13 sm:w-14 sm:h-14 bg-[#0F3D43] hover:bg-[#1a5c64] text-white rounded-full shadow-lg shadow-black/10 flex items-center justify-center transition-all hover:scale-105"
           title="Ask Tutor"
+          aria-label="Ask Tutor"
         >
           <MessageCircle className="w-6 h-6" />
         </button>
@@ -980,7 +996,7 @@ export default function LecturePage({
       {tutorOpen && (
         <div className="fixed bottom-0 left-0 right-0 sm:bottom-6 sm:left-auto sm:right-6 z-50 sm:w-[360px] bg-[#FDFCF9] border-t sm:border border-[rgba(217,185,130,0.35)] sm:rounded-2xl shadow-2xl shadow-black/10 flex flex-col overflow-hidden" style={{ maxHeight: "min(520px, 75vh)" }}>
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(217,185,130,0.25)] bg-gradient-to-r from-purple-600 to-blue-600">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(217,185,130,0.25)] bg-[#0F3D43]">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4 text-white/80" />
               <span className="text-sm font-semibold text-white">Ask Tutor</span>
@@ -988,6 +1004,7 @@ export default function LecturePage({
             <button
               onClick={() => setTutorOpen(false)}
               className="text-white/70 hover:text-white transition-colors"
+              aria-label="Minimize tutor chat"
             >
               <ChevronDown className="w-5 h-5" />
             </button>
@@ -1004,7 +1021,7 @@ export default function LecturePage({
                     <button
                       key={chip}
                       onClick={() => handleTutorSend(chip)}
-                      className="text-[11px] text-purple-700 bg-purple-500/8 hover:bg-purple-500/15 border border-purple-400/20 px-2.5 py-1 rounded-full transition-colors"
+                      className="text-[11px] text-[#0a2e33] bg-[#0F3D43]/8 hover:bg-[#0F3D43]/15 border border-[#0F3D43]/20 px-2.5 py-1 rounded-full transition-colors"
                     >
                       {chip}
                     </button>
@@ -1021,7 +1038,7 @@ export default function LecturePage({
                 <div
                   className={`max-w-[85%] px-3 py-2 rounded-xl text-xs leading-relaxed ${
                     msg.role === "user"
-                      ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-br-md"
+                      ? "bg-[#0F3D43] text-white rounded-br-md"
                       : "bg-[#EDE8DF] text-[#2C2A25] rounded-bl-md"
                   }`}
                 >
@@ -1033,7 +1050,7 @@ export default function LecturePage({
             {tutorLoading && (
               <div className="flex justify-start">
                 <div className="bg-[#EDE8DF] text-[#2C2A25] px-3 py-2 rounded-xl rounded-bl-md text-xs flex items-center gap-2">
-                  <Loader2 className="w-3 h-3 animate-spin text-purple-500" />
+                  <Loader2 className="w-3 h-3 animate-spin text-[#0F3D43]" />
                   Thinking...
                 </div>
               </div>
@@ -1052,13 +1069,14 @@ export default function LecturePage({
                 onChange={(e) => setTutorInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleTutorSend(); } }}
                 placeholder="Ask about this lecture..."
-                className="flex-1 text-xs bg-[#FDFCF9] border border-[rgba(217,185,130,0.35)] rounded-lg px-3 py-2 text-[#1a1815] placeholder:text-[#b5aa94] focus:outline-none focus:border-purple-400 transition-colors"
+                className="flex-1 text-xs bg-[#FDFCF9] border border-[rgba(217,185,130,0.35)] rounded-lg px-3 py-2 text-[#1a1815] placeholder:text-[#b5aa94] focus:outline-none focus:border-[#0F3D43] transition-colors"
                 disabled={tutorLoading}
               />
               <button
                 onClick={() => handleTutorSend()}
                 disabled={tutorLoading || !tutorInput.trim()}
-                className="w-8 h-8 flex items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-8 h-8 flex items-center justify-center bg-[#0F3D43] hover:bg-[#1a5c64] text-white rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Send message"
               >
                 <Send className="w-3.5 h-3.5" />
               </button>

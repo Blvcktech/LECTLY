@@ -53,13 +53,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const iconMap = {
     success: <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />,
     error: <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />,
-    info: <Info className="w-4 h-4 text-blue-500 flex-shrink-0" />,
+    info: <Info className="w-4 h-4 text-[#0F3D43] flex-shrink-0" />,
   };
 
   const borderMap = {
     success: "border-green-200",
     error: "border-red-200",
-    info: "border-blue-200",
+    info: "border-[#c0d8db]",
   };
 
   return (

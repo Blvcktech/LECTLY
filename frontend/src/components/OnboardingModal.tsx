@@ -61,7 +61,7 @@ export default function OnboardingModal() {
       <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl shadow-xl max-w-sm w-full p-6 animate-in fade-in zoom-in-95 duration-200">
         {/* Logo */}
         <div className="flex items-center justify-center gap-2.5 mb-5">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center shadow-sm shadow-purple-500/15">
+          <div className="w-10 h-10 rounded-lg bg-[#0F3D43] flex items-center justify-center shadow-sm shadow-black/10">
             <BookOpen className="w-5 h-5 text-white" />
           </div>
           <span
@@ -93,7 +93,7 @@ export default function OnboardingModal() {
               onChange={(e) => setFirstName(e.target.value)}
               placeholder="e.g. Chioma"
               autoFocus
-              className="w-full px-3 py-2.5 bg-[#F7F4EE] border border-[rgba(217,185,130,0.3)] rounded-lg text-sm text-[#1a1815] placeholder:text-[#b5ad9e] focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400/20"
+              className="w-full px-3 py-2.5 bg-[#F7F4EE] border border-[rgba(217,185,130,0.3)] rounded-lg text-sm text-[#1a1815] placeholder:text-[#b5ad9e] focus:outline-none focus:border-[#0F3D43] focus:ring-1 focus:ring-[#0F3D43]/20"
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleSave();
               }}
@@ -108,7 +108,7 @@ export default function OnboardingModal() {
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               placeholder="e.g. Okafor"
-              className="w-full px-3 py-2.5 bg-[#F7F4EE] border border-[rgba(217,185,130,0.3)] rounded-lg text-sm text-[#1a1815] placeholder:text-[#b5ad9e] focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400/20"
+              className="w-full px-3 py-2.5 bg-[#F7F4EE] border border-[rgba(217,185,130,0.3)] rounded-lg text-sm text-[#1a1815] placeholder:text-[#b5ad9e] focus:outline-none focus:border-[#0F3D43] focus:ring-1 focus:ring-[#0F3D43]/20"
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleSave();
               }}

@@ -160,7 +160,7 @@ export default function ProfilePage() {
           <>
             {/* Profile header */}
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white font-semibold text-base shadow-md shadow-purple-500/15">
+              <div className="w-12 h-12 rounded-full bg-[#0F3D43] flex items-center justify-center text-white font-semibold text-base shadow-md shadow-[#0F3D43]/15">
                 {initials}
               </div>
               <div className="flex-1 min-w-0">
@@ -208,8 +208,8 @@ export default function ProfilePage() {
             {/* Stats grid */}
             <div className="grid grid-cols-2 gap-2 mb-4">
               <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
-                <div className="w-8 h-8 rounded-lg bg-purple-500/8 flex items-center justify-center mx-auto mb-2">
-                  <Target className="w-4 h-4 text-purple-600" />
+                <div className="w-8 h-8 rounded-lg bg-[#1a5c65]/8 flex items-center justify-center mx-auto mb-2">
+                  <Target className="w-4 h-4 text-[#0F3D43]" />
                 </div>
                 <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>
                   {stats.avgMastery}%
@@ -226,8 +226,8 @@ export default function ProfilePage() {
                 <p className="text-[11px] text-[#8a7f6f] mt-0.5">Cards learned</p>
               </div>
               <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/8 flex items-center justify-center mx-auto mb-2">
-                  <BookOpen className="w-4 h-4 text-blue-600" />
+                <div className="w-8 h-8 rounded-lg bg-[#1a5c65]/8 flex items-center justify-center mx-auto mb-2">
+                  <BookOpen className="w-4 h-4 text-[#0F3D43]" />
                 </div>
                 <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "'Georgia', serif" }}>
                   {stats.totalLectures}
@@ -277,7 +277,7 @@ export default function ProfilePage() {
                   <span className="text-sm text-[#1a1815]">Subscription</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-purple-600 bg-purple-500/8 px-2 py-0.5 rounded font-medium">
+                  <span className="text-[11px] text-[#0F3D43] bg-[#1a5c65]/8 px-2 py-0.5 rounded font-medium">
                     Free
                   </span>
                   <ChevronRight className="w-4 h-4 text-[#8a7f6f]" />
@@ -312,7 +312,7 @@ export default function ProfilePage() {
             <Upload className="w-5 h-5" />
             <span className="text-[10px] font-medium">Upload</span>
           </Link>
-          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-purple-600">
+          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-[#0F3D43]">
             <User className="w-5 h-5" />
             <span className="text-[10px] font-medium">You</span>
           </Link>

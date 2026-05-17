@@ -44,7 +44,7 @@ function RenderInline({ text }: { text: string }) {
           return (
             <code
               key={i}
-              className="px-1.5 py-0.5 rounded-md bg-blue-100/60 border border-blue-200/40 text-[13px] font-mono text-blue-900"
+              className="px-1.5 py-0.5 rounded-md bg-[#0F3D43]/8 border border-[#0F3D43]/15 text-[13px] font-mono text-[#0a2e33]"
             >
               {part.slice(1, -1)}
             </code>
@@ -68,7 +68,7 @@ function RenderBody({ text }: { text: string }) {
           const code = lang ? lines.slice(1).join("\n") : lines.join("\n");
 
           return (
-            <div key={i} className="my-4 rounded-xl overflow-hidden border border-blue-200/30 shadow-sm">
+            <div key={i} className="my-4 rounded-xl overflow-hidden border border-[#0F3D43]/20/30 shadow-sm">
               <div className="bg-[rgba(26,24,21,0.06)] px-4 py-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Code className="w-3.5 h-3.5 text-[#8a7f6f]" />
@@ -78,7 +78,7 @@ function RenderBody({ text }: { text: string }) {
                 </div>
                 <button
                   onClick={() => navigator.clipboard.writeText(code.trim())}
-                  className="text-[10px] font-medium text-[#8a7f6f] hover:text-[#1a1815] px-2 py-0.5 rounded hover:bg-blue-100/50 transition-colors"
+                  className="text-[10px] font-medium text-[#8a7f6f] hover:text-[#1a1815] px-2 py-0.5 rounded hover:bg-[#0F3D43]/10 transition-colors"
                 >
                   Copy
                 </button>
@@ -101,7 +101,7 @@ function RenderBody({ text }: { text: string }) {
             const bulletText = trimmed.replace(/^[-•]\s*/, "");
             return (
               <div key={`${i}-${j}`} className="flex items-start gap-2 my-1 ml-2">
-                <span className="text-blue-600 mt-0.5 flex-shrink-0">•</span>
+                <span className="text-[#0F3D43] mt-0.5 flex-shrink-0">•</span>
                 <p className="text-sm text-[#2C2A25] leading-relaxed">
                   <RenderInline text={bulletText} />
                 </p>
@@ -201,7 +201,7 @@ export default function SolveModePage({
     return (
       <div className="min-h-screen bg-[#F7F4EE] flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-3" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#0F3D43] mx-auto mb-3" />
           <p className="text-sm text-[#8a7f6f]">Loading lecture...</p>
         </div>
       </div>
@@ -218,7 +218,7 @@ export default function SolveModePage({
           <p className="text-sm text-[#8a7f6f] mb-4">{error}</p>
           <Link
             href={`/lecture/${lectureId}`}
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-[#0F3D43] hover:underline"
           >
             Back to lecture
           </Link>
@@ -240,7 +240,7 @@ export default function SolveModePage({
             <span className="text-sm font-medium hidden sm:inline">Back to Notes</span>
           </Link>
           <div className="flex items-center gap-2">
-            <Target className="w-4 h-4 text-blue-600" />
+            <Target className="w-4 h-4 text-[#0F3D43]" />
             <span className="text-sm font-bold text-[#1a1815]">Solve Mode</span>
           </div>
           <div className="w-20" />
@@ -250,8 +250,8 @@ export default function SolveModePage({
       <main className="max-w-[900px] mx-auto px-4 sm:px-6 py-8">
         {/* Section Context */}
         {currentSection && (
-          <div className="mb-6 px-4 py-3 bg-blue-50/50 border border-blue-200/30 rounded-xl">
-            <p className="text-xs font-bold uppercase tracking-wider text-blue-500 mb-1">
+          <div className="mb-6 px-4 py-3 bg-[#0F3D43]/5 border border-[#0F3D43]/20/30 rounded-xl">
+            <p className="text-xs font-bold uppercase tracking-wider text-[#0F3D43] mb-1">
               Solving from
             </p>
             <p className="text-sm font-semibold text-[#1a1815]">
@@ -280,7 +280,7 @@ export default function SolveModePage({
               value={problem}
               onChange={(e) => setProblem(e.target.value)}
               placeholder="e.g. Calculate the moment of inertia of a solid cylinder rotating about its central axis..."
-              className="w-full h-36 px-4 py-3 rounded-xl border border-[rgba(217,185,130,0.3)] bg-white text-sm text-[#1a1815] placeholder:text-[#b5ad9e] focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent resize-none"
+              className="w-full h-36 px-4 py-3 rounded-xl border border-[rgba(217,185,130,0.3)] bg-white text-sm text-[#1a1815] placeholder:text-[#b5ad9e] focus:outline-none focus:ring-2 focus:ring-[#0F3D43]/20 focus:border-transparent resize-none"
             />
 
             {/* Optional: Student attempt */}
@@ -301,7 +301,7 @@ export default function SolveModePage({
                   value={studentAttempt}
                   onChange={(e) => setStudentAttempt(e.target.value)}
                   placeholder="Paste your attempt here and I'll identify where you went wrong..."
-                  className="mt-2 w-full h-28 px-4 py-3 rounded-xl border border-[rgba(217,185,130,0.3)] bg-white text-sm text-[#1a1815] placeholder:text-[#b5ad9e] focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent resize-none"
+                  className="mt-2 w-full h-28 px-4 py-3 rounded-xl border border-[rgba(217,185,130,0.3)] bg-white text-sm text-[#1a1815] placeholder:text-[#b5ad9e] focus:outline-none focus:ring-2 focus:ring-[#0F3D43]/20 focus:border-transparent resize-none"
                 />
               )}
             </div>
@@ -337,8 +337,8 @@ export default function SolveModePage({
         {solving && (
           <div className="mt-8 flex flex-col items-center justify-center py-16">
             <div className="relative">
-              <div className="w-16 h-16 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
-              <Target className="w-6 h-6 text-blue-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+              <div className="w-16 h-16 rounded-full border-4 border-[#0F3D43]/20 border-t-[#0F3D43] animate-spin" />
+              <Target className="w-6 h-6 text-[#0F3D43] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
             </div>
             <p className="mt-4 text-sm font-semibold text-[#1a1815]">
               Working through the problem...
@@ -367,7 +367,7 @@ export default function SolveModePage({
                   setStudentAttempt("");
                   setSolveError("");
                 }}
-                className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
+                className="text-sm font-medium text-[#0F3D43] hover:text-[#0a2e33] transition-colors"
               >
                 Solve another problem
               </button>
@@ -376,8 +376,8 @@ export default function SolveModePage({
             {/* Problem Restatement */}
             <div className="bg-white rounded-2xl border border-[rgba(217,185,130,0.2)] p-5 shadow-sm">
               <div className="flex items-center gap-2 mb-3">
-                <Target className="w-4 h-4 text-blue-600" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-blue-600">
+                <Target className="w-4 h-4 text-[#0F3D43]" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#0F3D43]">
                   Problem
                 </h3>
               </div>
@@ -415,9 +415,9 @@ export default function SolveModePage({
 
               {/* Concept */}
               {solution.concept && (
-                <div className="mt-3 flex items-start gap-2 px-3 py-2 bg-blue-50/50 rounded-lg">
-                  <Lightbulb className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-blue-800">
+                <div className="mt-3 flex items-start gap-2 px-3 py-2 bg-[#0F3D43]/5 rounded-lg">
+                  <Lightbulb className="w-4 h-4 text-[#0F3D43] mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-[#0a2e33]">
                     <RenderInline text={solution.concept} />
                   </p>
                 </div>
@@ -440,7 +440,7 @@ export default function SolveModePage({
                     onClick={() => toggleStep(idx)}
                     className="w-full flex items-center gap-3 px-5 py-4 hover:bg-[#F7F4EE]/50 transition-colors text-left"
                   >
-                    <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-[#0F3D43] text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
                       {step.step_number}
                     </div>
                     <span className="text-sm font-semibold text-[#1a1815] flex-1">
@@ -472,10 +472,10 @@ export default function SolveModePage({
             </div>
 
             {/* Answer */}
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-2xl border border-blue-200/30 p-5">
+            <div className="bg-[#0F3D43]/5 rounded-2xl border border-[#0F3D43]/15 p-5">
               <div className="flex items-center gap-2 mb-3">
-                <CheckCircle2 className="w-5 h-5 text-blue-600" />
-                <h3 className="text-sm font-bold uppercase tracking-wider text-blue-700">
+                <CheckCircle2 className="w-5 h-5 text-[#0F3D43]" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-[#0a2e33]">
                   Answer
                 </h3>
               </div>
@@ -525,8 +525,8 @@ export default function SolveModePage({
             {solution.lecture_connection && (
               <div className="bg-white rounded-2xl border border-[rgba(217,185,130,0.2)] p-5 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
-                  <BookOpen className="w-4 h-4 text-purple-600" />
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-purple-600">
+                  <BookOpen className="w-4 h-4 text-[#0F3D43]" />
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#0F3D43]">
                     Connection to Your Lecture
                   </h3>
                 </div>
@@ -540,8 +540,8 @@ export default function SolveModePage({
             {solution.follow_up && (
               <div className="bg-[#F7F4EE] rounded-2xl border border-[rgba(217,185,130,0.2)] p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <Zap className="w-4 h-4 text-blue-600" />
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-blue-600">
+                  <Zap className="w-4 h-4 text-[#0F3D43]" />
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#0F3D43]">
                     Try This Next
                   </h3>
                 </div>
@@ -556,7 +556,7 @@ export default function SolveModePage({
                     setSolveError("");
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-[#0F3D43] text-white rounded-lg text-sm font-medium hover:bg-[#1a5c64] transition-colors"
                 >
                   <Target className="w-3.5 h-3.5" />
                   Solve this one

@@ -36,8 +36,8 @@ export default function SubscriptionPage() {
         {/* Current Plan Banner */}
         <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl p-5 mb-5">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/8 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-purple-600" />
+            <div className="w-10 h-10 rounded-xl bg-[#1a5c65]/8 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-[#0F3D43]" />
             </div>
             <div>
               <p
@@ -65,7 +65,7 @@ export default function SubscriptionPage() {
 
         {/* Basic Plan */}
         <div className="bg-[#1a1815] rounded-2xl p-5 mb-3 relative">
-          <div className="absolute -top-2 right-4 bg-purple-600 text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+          <div className="absolute -top-2 right-4 bg-[#0F3D43] text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
             Popular
           </div>
           <div className="flex items-center gap-3 mb-3">
@@ -159,8 +159,8 @@ export default function SubscriptionPage() {
         {/* Group Plan */}
         <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl p-5 mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-blue-500/8 flex items-center justify-center">
-              <User className="w-4 h-4 text-blue-600" />
+            <div className="w-9 h-9 rounded-lg bg-[#1a5c65]/8 flex items-center justify-center">
+              <User className="w-4 h-4 text-[#0F3D43]" />
             </div>
             <div className="flex-1">
               <p
@@ -199,7 +199,7 @@ export default function SubscriptionPage() {
             <Upload className="w-5 h-5" />
             <span className="text-[10px] font-medium">Upload</span>
           </Link>
-          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-purple-600">
+          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-[#0F3D43]">
             <User className="w-5 h-5" />
             <span className="text-[10px] font-medium">You</span>
           </Link>

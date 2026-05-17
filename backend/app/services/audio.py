@@ -7,6 +7,7 @@ Uses AssemblyAI for transcription — handles long files (up to 5GB),
 no chunking needed, built-in speaker detection.
 """
 
+import asyncio
 import os
 import time
 import uuid
@@ -264,7 +265,7 @@ async def transcribe_audio(lecture_id: str) -> list[TranscriptSegment]:
             else:
                 # status is "queued" or "processing"
                 print(f"[Lectly] Transcription status: {status} ({waited}s elapsed)...")
-                time.sleep(poll_interval)
+                await asyncio.sleep(poll_interval)
                 waited += poll_interval
         else:
             raise Exception(f"Transcription timed out after {max_wait} seconds")
