@@ -76,7 +76,8 @@ export default function PushNotifications() {
     try {
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as any,
       });
       await sendSubscriptionToServer(subscription);
       setShowPrompt(false);
