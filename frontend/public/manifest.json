@@ -3,7 +3,7 @@
   "short_name": "Lectly",
   "description": "Upload messy lecture recordings. Get clean notes. Learn with an AI tutor that teaches it back to you.",
   "start_url": "/dashboard",
-  "display": "standalone",
+  "display": "minimal-ui",
   "background_color": "#F7F4EE",
   "theme_color": "#0F3D43",
   "orientation": "portrait-primary",

@@ -15,7 +15,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { Bell, X } from "lucide-react";
-import { authHeaders } from "@/lib/auth";
+import { freshAuthHeaders } from "@/lib/auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
@@ -89,9 +89,10 @@ export default function PushNotifications() {
 
   const sendSubscriptionToServer = async (subscription: PushSubscription) => {
     try {
+      const headers = await freshAuthHeaders();
       await fetch(`${API_URL}/api/push/subscribe`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...authHeaders() },
+        headers: { "Content-Type": "application/json", ...headers },
         body: JSON.stringify({ subscription: subscription.toJSON() }),
       });
     } catch (err) {

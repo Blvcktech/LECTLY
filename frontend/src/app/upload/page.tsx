@@ -4,7 +4,6 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
-import { setAuthToken } from "@/lib/auth";
 import {
   Upload,
   Mic,
@@ -30,19 +29,14 @@ type ProcessStep = { label: string; done: boolean; active: boolean };
 
 export default function UploadPage() {
   const router = useRouter();
-  const { getToken, isLoaded: authLoaded } = useAuth();
+  const { isLoaded: authLoaded } = useAuth();
 
   const [limits, setLimits] = useState<UserLimits | null>(null);
 
   useEffect(() => {
     if (!authLoaded) return;
-
-    getToken().then((token) => {
-      setAuthToken(token);
-      // Fetch limits after token is set
-      getUserLimits().then(setLimits).catch(() => {});
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // freshAuthHeaders() inside getUserLimits handles token refresh automatically
+    getUserLimits().then(setLimits).catch(() => {});
   }, [authLoaded]);
   const [state, setState] = useState<UploadState>("idle");
   const [file, setFile] = useState<File | null>(null);
@@ -161,12 +155,8 @@ export default function UploadPage() {
     let currentLectureId = lectureId;
 
     try {
-      // Always refresh the auth token before any API call
-      // (Clerk tokens expire after ~60s, so the one from page load may be stale)
-      const freshToken = await getToken();
-      if (freshToken) setAuthToken(freshToken);
-
       // Step 0: Upload (skip if retrying from a later step)
+      // Note: freshAuthHeaders() in api.ts handles token refresh automatically
       if (startStep <= 0) {
         updateStep(0, false, true);
         const uploadResult = await uploadLecture(file, courseCode.trim() || undefined);
@@ -180,9 +170,6 @@ export default function UploadPage() {
         if (!currentLectureId) {
           throw new Error("No lecture ID available. Please try uploading again.");
         }
-        // Refresh token again before processing (upload may have taken time)
-        const processingToken = await getToken();
-        if (processingToken) setAuthToken(processingToken);
         updateStep(1, false, true);
 
         // Notify the NotificationWatcher so it starts tracking this lecture

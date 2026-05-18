@@ -1,9 +1,12 @@
 /**
  * Lectly API client.
  * Handles all communication between the frontend and FastAPI backend.
+ *
+ * Every authenticated call uses freshAuthHeaders() which fetches a fresh
+ * Clerk JWT right before the request. This eliminates token-expiry issues.
  */
 
-import { authHeaders } from "./auth";
+import { freshAuthHeaders } from "./auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -194,9 +197,10 @@ export async function uploadLecture(
   formData.append("file", file);
   if (subject) formData.append("subject", subject);
 
+  const headers = await freshAuthHeaders();
   const res = await fetch(`${API_URL}/api/upload`, {
     method: "POST",
-    headers: { ...authHeaders() },
+    headers,
     body: formData,
   });
 
@@ -210,9 +214,10 @@ export async function processLecture(
   onStatusChange?: (status: string) => void
 ): Promise<ProcessResult> {
   // Step 1: Fire off the background processing request
+  const processHeaders = await freshAuthHeaders();
   const res = await fetch(`${API_URL}/api/lectures/${lectureId}/process`, {
     method: "POST",
-    headers: { ...authHeaders() },
+    headers: processHeaders,
   });
 
   await checkResponse(res, "Processing failed");
@@ -253,8 +258,9 @@ export async function processLecture(
 }
 
 export async function getLecture(lectureId: string): Promise<Lecture> {
+  const headers = await freshAuthHeaders();
   const res = await fetch(`${API_URL}/api/lectures/${lectureId}`, {
-    headers: { ...authHeaders() },
+    headers,
   });
 
   await checkResponse(res, "Lecture not found");
@@ -266,8 +272,9 @@ export async function getLectures(): Promise<{
   lectures: Lecture[];
   count: number;
 }> {
+  const headers = await freshAuthHeaders();
   const res = await fetch(`${API_URL}/api/lectures`, {
-    headers: { ...authHeaders() },
+    headers,
   });
 
   await checkResponse(res, "Failed to fetch lectures");
@@ -279,9 +286,10 @@ export async function explainText(
   text: string,
   level: string = "intermediate"
 ): Promise<ExplainResult> {
+  const headers = await freshAuthHeaders();
   const res = await fetch(`${API_URL}/api/explain`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
+    headers: { "Content-Type": "application/json", ...headers },
     body: JSON.stringify({ text, level }),
   });
 
@@ -296,9 +304,10 @@ export async function learnMode(
   sectionIndex?: number,
   cardStyle: string = "mixed"
 ): Promise<LearnResult> {
+  const headers = await freshAuthHeaders();
   const res = await fetch(`${API_URL}/api/learn`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
+    headers: { "Content-Type": "application/json", ...headers },
     body: JSON.stringify({
       lecture_id: lectureId,
       level,
@@ -318,9 +327,10 @@ export async function solveMode(
   sectionIndex?: number,
   studentAttempt?: string
 ): Promise<SolveResult> {
+  const headers = await freshAuthHeaders();
   const res = await fetch(`${API_URL}/api/solve`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
+    headers: { "Content-Type": "application/json", ...headers },
     body: JSON.stringify({
       lecture_id: lectureId,
       problem,
@@ -335,8 +345,9 @@ export async function solveMode(
 }
 
 export async function downloadNotesPdf(lectureId: string): Promise<void> {
+  const headers = await freshAuthHeaders();
   const res = await fetch(`${API_URL}/api/lectures/${lectureId}/pdf`, {
-    headers: { ...authHeaders() },
+    headers,
   });
 
   await checkResponse(res, "Failed to generate PDF");
@@ -362,18 +373,20 @@ export async function downloadNotesPdf(lectureId: string): Promise<void> {
 }
 
 export async function deleteLecture(lectureId: string): Promise<void> {
+  const headers = await freshAuthHeaders();
   const res = await fetch(`${API_URL}/api/lectures/${lectureId}`, {
     method: "DELETE",
-    headers: { ...authHeaders() },
+    headers,
   });
 
   await checkResponse(res, "Failed to delete lecture");
 }
 
 export async function renameLecture(lectureId: string, title: string): Promise<void> {
+  const headers = await freshAuthHeaders();
   const res = await fetch(`${API_URL}/api/lectures/${lectureId}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
+    headers: { "Content-Type": "application/json", ...headers },
     body: JSON.stringify({ title }),
   });
 
@@ -387,9 +400,10 @@ export async function askTutor(
   currentSectionIndex?: number,
   cardContext?: CardContext
 ): Promise<TutorAskResult> {
+  const headers = await freshAuthHeaders();
   const res = await fetch(`${API_URL}/api/tutor/ask`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
+    headers: { "Content-Type": "application/json", ...headers },
     body: JSON.stringify({
       lecture_id: lectureId,
       question,
@@ -413,8 +427,9 @@ export interface UserLimits {
 }
 
 export async function getUserLimits(): Promise<UserLimits> {
+  const headers = await freshAuthHeaders();
   const res = await fetch(`${API_URL}/api/user/limits`, {
-    headers: { ...authHeaders() },
+    headers,
   });
 
   await checkResponse(res, "Failed to fetch user limits");
@@ -443,9 +458,10 @@ export async function saveProgress(data: {
   last_card_index?: number;
   mastery_pct?: number;
 }): Promise<StudyProgress> {
+  const headers = await freshAuthHeaders();
   const res = await fetch(`${API_URL}/api/progress`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
+    headers: { "Content-Type": "application/json", ...headers },
     body: JSON.stringify(data),
   });
 
@@ -458,8 +474,9 @@ export async function getAllProgress(): Promise<{
   progress: StudyProgress[];
   last_studied: StudyProgress | null;
 }> {
+  const headers = await freshAuthHeaders();
   const res = await fetch(`${API_URL}/api/progress`, {
-    headers: { ...authHeaders() },
+    headers,
   });
 
   await checkResponse(res, "Failed to fetch progress");
@@ -470,8 +487,9 @@ export async function getAllProgress(): Promise<{
 export async function getLectureProgress(
   lectureId: string
 ): Promise<{ progress: StudyProgress[] }> {
+  const headers = await freshAuthHeaders();
   const res = await fetch(`${API_URL}/api/progress/${lectureId}`, {
-    headers: { ...authHeaders() },
+    headers,
   });
 
   await checkResponse(res, "Failed to fetch lecture progress");
@@ -487,9 +505,10 @@ export async function initializePayment(plan: string, email: string): Promise<{
   reference: string;
   access_code: string;
 }> {
+  const headers = await freshAuthHeaders();
   const res = await fetch(`${API_URL}/api/payments/initialize`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
+    headers: { "Content-Type": "application/json", ...headers },
     body: JSON.stringify({ plan, email }),
   });
 
@@ -502,9 +521,10 @@ export async function verifyPayment(reference: string): Promise<{
   plan?: string;
   message: string;
 }> {
+  const headers = await freshAuthHeaders();
   const res = await fetch(`${API_URL}/api/payments/verify`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
+    headers: { "Content-Type": "application/json", ...headers },
     body: JSON.stringify({ reference }),
   });
 
@@ -518,8 +538,9 @@ export async function getSubscriptionStatus(): Promise<{
   status: string;
   current_period_end?: string;
 }> {
+  const headers = await freshAuthHeaders();
   const res = await fetch(`${API_URL}/api/payments/subscription`, {
-    headers: { ...authHeaders() },
+    headers,
   });
 
   await checkResponse(res, "Failed to fetch subscription");

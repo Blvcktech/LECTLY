@@ -4,47 +4,53 @@
  * AuthSync — Keeps the API auth token in sync with the Clerk session.
  *
  * Mount this once in the app layout (inside ClerkProvider).
- * It continuously fetches the latest Clerk session token and caches it
- * via setAuthToken(), so every API call automatically gets auth headers.
  *
- * This replaces the old pattern where each page had to manually call
- * setAuthToken() — which was error-prone and caused auth failures
- * when users navigated directly to notes/learn pages.
+ * It does three things:
+ * 1. Registers Clerk's getToken() with the auth module so API calls
+ *    can always fetch a fresh token (via freshAuthHeaders()).
+ * 2. Keeps the cached token refreshed every 45 seconds as a backup.
+ * 3. Re-syncs the token when the tab becomes visible again.
+ *    This is CRITICAL for mobile Chrome, which freezes tabs instead
+ *    of reloading them (Safari reloads, which masks the issue).
  */
 
 import { useEffect, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { setAuthToken } from "@/lib/auth";
+import { setAuthToken, setTokenGetter } from "@/lib/auth";
 
 export default function AuthSync() {
   const { getToken, isSignedIn, isLoaded } = useAuth();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Keep a ref to the latest getToken so the visibility handler always
+  // uses the most current Clerk function, not a stale closure.
+  const getTokenRef = useRef(getToken);
+  getTokenRef.current = getToken;
 
+  // Register the token getter so the API layer can refresh tokens on demand.
+  // We wrap it to always use the latest getToken ref.
   useEffect(() => {
-    // Don't do anything until Clerk has finished loading.
-    // Previously, isSignedIn could be undefined during loading,
-    // which caused setAuthToken(null) and wiped out valid tokens.
-    if (!isLoaded) return;
-
-    if (!isSignedIn) {
+    if (isLoaded && isSignedIn) {
+      setTokenGetter(() => getTokenRef.current());
+    } else if (isLoaded && !isSignedIn) {
+      setTokenGetter(null);
       setAuthToken(null);
-      return;
     }
+  }, [isSignedIn, isLoaded]);
 
-    // Fetch token immediately
+  // Keep the cached token fresh as a backup
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) return;
+
     const syncToken = async () => {
       try {
         const token = await getToken();
         setAuthToken(token);
       } catch {
-        // Silently handle — will retry on next interval
+        // Will retry on next interval
       }
     };
 
     syncToken();
-
-    // Refresh token every 45 seconds (Clerk tokens expire after ~60s)
-    // Reduced from 50s to give more buffer
     intervalRef.current = setInterval(syncToken, 45_000);
 
     return () => {
@@ -54,5 +60,31 @@ export default function AuthSync() {
     };
   }, [getToken, isSignedIn, isLoaded]);
 
-  return null; // Invisible component
+  // Re-sync token when the tab becomes visible again.
+  // On mobile Chrome, tabs are frozen (not reloaded) when backgrounded.
+  // When the user returns, the old token is expired but the page is still
+  // alive with stale state. This listener fixes that.
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) return;
+
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === "visible") {
+        try {
+          const token = await getTokenRef.current();
+          if (token) {
+            setAuthToken(token);
+          }
+        } catch {
+          // Clerk session may need a moment to re-establish
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [isSignedIn, isLoaded]);
+
+  return null;
 }
