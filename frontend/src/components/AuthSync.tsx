@@ -17,10 +17,15 @@ import { useAuth } from "@clerk/nextjs";
 import { setAuthToken } from "@/lib/auth";
 
 export default function AuthSync() {
-  const { getToken, isSignedIn } = useAuth();
+  const { getToken, isSignedIn, isLoaded } = useAuth();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    // Don't do anything until Clerk has finished loading.
+    // Previously, isSignedIn could be undefined during loading,
+    // which caused setAuthToken(null) and wiped out valid tokens.
+    if (!isLoaded) return;
+
     if (!isSignedIn) {
       setAuthToken(null);
       return;
@@ -38,15 +43,16 @@ export default function AuthSync() {
 
     syncToken();
 
-    // Refresh token every 50 seconds (Clerk tokens expire after ~60s)
-    intervalRef.current = setInterval(syncToken, 50_000);
+    // Refresh token every 45 seconds (Clerk tokens expire after ~60s)
+    // Reduced from 50s to give more buffer
+    intervalRef.current = setInterval(syncToken, 45_000);
 
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     };
-  }, [getToken, isSignedIn]);
+  }, [getToken, isSignedIn, isLoaded]);
 
   return null; // Invisible component
 }
