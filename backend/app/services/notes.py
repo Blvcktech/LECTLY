@@ -749,6 +749,11 @@ def _call_gemini(system_prompt: str, user_message: str, json_mode: bool = True, 
     gen_config = {
         "temperature": temperature,
         "maxOutputTokens": 32768,
+        # Disable thinking for note generation — it's a summarization task,
+        # not a reasoning puzzle. This cuts latency and avoids timeout issues.
+        "thinkingConfig": {
+            "thinkingBudget": 0,
+        },
     }
     if json_mode:
         gen_config["responseMimeType"] = "application/json"
@@ -775,12 +780,36 @@ def _call_gemini(system_prompt: str, user_message: str, json_mode: bool = True, 
             api_url,
             headers={"Content-Type": "application/json"},
             json=payload,
-            timeout=120,
+            timeout=180,  # 3 min timeout (long transcripts can take a while)
         )
 
         if response.status_code == 200:
             result = response.json()
-            text = result["candidates"][0]["content"]["parts"][0]["text"].strip()
+
+            # Robust response parsing — handle potential thinking parts
+            candidates = result.get("candidates", [])
+            if not candidates:
+                # Check for prompt feedback (safety block, etc.)
+                block_reason = result.get("promptFeedback", {}).get("blockReason", "")
+                if block_reason:
+                    raise Exception(f"Gemini blocked the request: {block_reason}")
+                raise Exception(f"Gemini returned empty candidates: {json.dumps(result)[:300]}")
+
+            parts = candidates[0].get("content", {}).get("parts", [])
+            # Find the first non-thought text part
+            text = ""
+            for part in parts:
+                if part.get("thought"):
+                    continue  # Skip thinking summaries
+                if "text" in part:
+                    text = part["text"].strip()
+                    break
+
+            if not text:
+                # Check finish reason
+                finish_reason = candidates[0].get("finishReason", "unknown")
+                raise Exception(f"Gemini returned no text (finishReason: {finish_reason}, parts: {len(parts)})")
+
             print(f"[Lectly] Gemini response received ({len(text)} chars)")
             return text
 
@@ -792,7 +821,9 @@ def _call_gemini(system_prompt: str, user_message: str, json_mode: bool = True, 
             continue
 
         # Non-retryable error or final attempt
-        raise Exception(f"Gemini API error ({response.status_code}): {response.text[:200]}")
+        error_body = response.text[:500]
+        print(f"[Lectly] Gemini API error ({response.status_code}): {error_body}")
+        raise Exception(f"Gemini API error ({response.status_code}): {error_body}")
 
     raise Exception("Gemini API failed after all retries")
 
@@ -879,11 +910,18 @@ def _call_groq(system_prompt: str, user_message: str) -> str:
     if not key:
         raise ValueError("No Groq API key")
 
-    # Truncate input for Groq free tier (6000 TPM limit)
+    # Truncate input for Groq free tier (6000 TPM limit).
+    # System prompt + user message + max_tokens must stay under 6000 total.
+    # 400 words ≈ 500 tokens, leaving room for the system prompt + output.
     words = user_message.split()
-    if len(words) > 600:
-        user_message = " ".join(words[:600])
-        print(f"[Lectly] Truncated input to 600 words for Groq free tier")
+    if len(words) > 400:
+        user_message = " ".join(words[:400])
+        print(f"[Lectly] Truncated input to 400 words for Groq free tier")
+    # Also truncate the system prompt if it's very long
+    sys_words = system_prompt.split()
+    if len(sys_words) > 300:
+        system_prompt = " ".join(sys_words[:300])
+        print(f"[Lectly] Truncated system prompt to 300 words for Groq free tier")
 
     api_url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {
@@ -898,7 +936,7 @@ def _call_groq(system_prompt: str, user_message: str) -> str:
             {"role": "user", "content": user_message},
         ],
         "temperature": 0.3,
-        "max_tokens": 4096,
+        "max_tokens": 2048,  # Reduced from 4096 to stay within Groq free tier 6000 TPM
     }
 
     print(f"[Lectly] Calling Groq (Llama 3.1 8B)...")
@@ -934,7 +972,9 @@ def _call_llm(system_prompt: str, user_message: str) -> str:
     try:
         return _call_gemini(system_prompt, user_message)
     except Exception as e:
-        print(f"[Lectly] Gemini failed: {e}")
+        # Log the FULL error so we can diagnose Gemini failures
+        print(f"[Lectly] ⚠️ Gemini failed with error: {type(e).__name__}: {e}")
+        print(f"[Lectly] Gemini key present: {bool(get_settings().gemini_api_key)}")
         print(f"[Lectly] Falling back to Groq...")
 
     # Fallback to Groq
@@ -1012,9 +1052,10 @@ async def generate_notes(lecture_id: str) -> StructuredNotes:
         subject = lecture.get("subject") or "auto-detect"
         user_message = f"Subject: {subject}\n\nTranscript:\n{transcript_text}"
 
-        # Call LLM
-        print(f"[Lectly] Generating notes for {lecture_id} using Gemini...")
+        # Call LLM (Gemini primary, Groq fallback)
+        print(f"[Lectly] Generating notes for {lecture_id}...")
         raw_response = _call_llm(NOTES_SYSTEM_PROMPT, user_message)
+        print(f"[Lectly] LLM response received for {lecture_id} ({len(raw_response)} chars)")
         data = _parse_json_response(raw_response)
 
         # Build structured notes
