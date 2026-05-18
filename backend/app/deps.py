@@ -40,6 +40,9 @@ def _get_jwks_client():
     return _jwks_client
 
 
+_last_auth_error: Optional[str] = None
+
+
 def _extract_user_id(request: Request) -> Optional[str]:
     """
     Extract user ID from Clerk session token in the Authorization header.
@@ -47,9 +50,12 @@ def _extract_user_id(request: Request) -> Optional[str]:
     Falls back to unverified decode only if CLERK_ISSUER is not configured (local dev).
     """
     import jwt
+    global _last_auth_error
+    _last_auth_error = None
 
     auth_header = request.headers.get("authorization", "")
     if not auth_header.startswith("Bearer "):
+        _last_auth_error = "No Bearer token in Authorization header"
         return None
     token = auth_header[7:]
 
@@ -69,14 +75,32 @@ def _extract_user_id(request: Request) -> Optional[str]:
                     "verify_iss": False,
                 },
             )
-            return payload.get("sub")
+            user_id = payload.get("sub")
+            if not user_id:
+                _last_auth_error = "Token valid but no 'sub' claim found"
+            return user_id
         except jwt.ExpiredSignatureError:
-            print("[Lectly] JWT expired")
+            # Decode WITHOUT verification to see how long ago it expired
+            try:
+                import json, base64
+                payload_b64 = token.split(".")[1]
+                payload_b64 += "=" * (4 - len(payload_b64) % 4)
+                payload = json.loads(base64.urlsafe_b64decode(payload_b64))
+                exp = payload.get("exp", 0)
+                now = int(time.time())
+                expired_ago = now - exp
+                _last_auth_error = f"JWT expired {expired_ago}s ago (exp={exp}, now={now})"
+                print(f"[Lectly] JWT expired {expired_ago}s ago (exp={exp}, now={now}, sub={payload.get('sub')})")
+            except Exception:
+                _last_auth_error = "JWT expired (could not decode details)"
+                print("[Lectly] JWT expired")
             return None
         except jwt.InvalidTokenError as e:
+            _last_auth_error = f"JWT invalid: {e}"
             print(f"[Lectly] JWT verification failed: {e}")
             return None
         except Exception as e:
+            _last_auth_error = f"JWKS error: {e}"
             print(f"[Lectly] JWKS verification error: {e}")
             return None
 
@@ -89,8 +113,10 @@ def _extract_user_id(request: Request) -> Optional[str]:
             payload = json.loads(base64.urlsafe_b64decode(payload_b64))
             return payload.get("sub")
         except Exception:
+            _last_auth_error = "Local dev: could not decode token"
             return None
 
+    _last_auth_error = "No verification path matched"
     return None
 
 
@@ -112,7 +138,9 @@ async def get_current_user(request: Request) -> str:
     """
     user_id = _extract_user_id(request)
     if not user_id:
-        raise HTTPException(status_code=401, detail="Authentication required")
+        detail = f"Authentication required — {_last_auth_error}" if _last_auth_error else "Authentication required"
+        print(f"[Lectly] 401 on {request.url.path}: {detail}")
+        raise HTTPException(status_code=401, detail=detail)
     return user_id
 
 
