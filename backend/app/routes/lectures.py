@@ -11,7 +11,7 @@ from fastapi.responses import Response
 from typing import Optional
 
 from app.config import get_settings
-from app.deps import get_current_user
+from app.deps import get_current_user, get_current_user_upload
 from app.rate_limit import limiter
 from app.models.lecture import (
     LectureUploadResponse,
@@ -56,7 +56,7 @@ async def upload_lecture(
     request: Request,
     file: UploadFile = File(...),
     subject: Optional[str] = Form(None),
-    user_id: str = Depends(get_current_user),
+    user_id: str = Depends(get_current_user_upload),
 ):
     """Upload a lecture audio file for processing."""
     settings = get_settings()

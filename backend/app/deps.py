@@ -43,11 +43,16 @@ def _get_jwks_client():
 _last_auth_error: Optional[str] = None
 
 
-def _extract_user_id(request: Request) -> Optional[str]:
+def _extract_user_id(request: Request, leeway: int = 0) -> Optional[str]:
     """
     Extract user ID from Clerk session token in the Authorization header.
     Verifies the JWT signature against Clerk's JWKS public keys.
     Falls back to unverified decode only if CLERK_ISSUER is not configured (local dev).
+
+    Args:
+        leeway: Number of seconds of grace period for expired tokens.
+                Use this for upload endpoints where the file transfer
+                may take longer than the token lifetime (~60s).
     """
     import jwt
     global _last_auth_error
@@ -70,6 +75,7 @@ def _extract_user_id(request: Request) -> Optional[str]:
                 token,
                 signing_key.key,
                 algorithms=["RS256"],
+                leeway=leeway,
                 options={
                     "verify_aud": False,
                     "verify_iss": False,
@@ -137,6 +143,28 @@ async def get_current_user(request: Request) -> str:
             ...
     """
     user_id = _extract_user_id(request)
+    if not user_id:
+        detail = f"Authentication required — {_last_auth_error}" if _last_auth_error else "Authentication required"
+        print(f"[Lectly] 401 on {request.url.path}: {detail}")
+        raise HTTPException(status_code=401, detail=detail)
+    return user_id
+
+
+async def get_current_user_upload(request: Request) -> str:
+    """
+    FastAPI dependency for file upload endpoints.
+
+    Same as get_current_user but allows tokens that expired up to 5 minutes ago.
+    This is necessary because large file uploads can take longer than Clerk's
+    ~60s token lifetime — the token is valid when the browser starts uploading,
+    but expires by the time the file finishes transferring to the server.
+
+    Usage:
+        @router.post("/upload")
+        async def upload(user_id: str = Depends(get_current_user_upload)):
+            ...
+    """
+    user_id = _extract_user_id(request, leeway=300)  # 5 minute grace period
     if not user_id:
         detail = f"Authentication required — {_last_auth_error}" if _last_auth_error else "Authentication required"
         print(f"[Lectly] 401 on {request.url.path}: {detail}")
