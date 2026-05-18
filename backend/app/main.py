@@ -84,6 +84,36 @@ async def root():
     }
 
 
+@app.get("/health/auth")
+async def health_auth(request: Request):
+    """
+    Debug endpoint — test if your auth token is valid.
+    Send a request with Authorization: Bearer <token> and see what happens.
+    Also works from browser console: fetch('/health/auth', {headers: {'Authorization': 'Bearer ...'}})
+    """
+    auth_header = request.headers.get("authorization", "")
+    if not auth_header:
+        return {
+            "auth_present": False,
+            "error": "No Authorization header found",
+            "hint": "Make sure the frontend is sending the Bearer token",
+        }
+
+    from app.deps import _extract_user_id
+    user_id = _extract_user_id(request)
+    clerk_issuer = settings.clerk_issuer
+
+    return {
+        "auth_present": True,
+        "token_prefix": auth_header[:30] + "..." if len(auth_header) > 30 else auth_header,
+        "clerk_issuer_configured": bool(clerk_issuer),
+        "clerk_issuer_value": clerk_issuer[:30] + "..." if clerk_issuer else "(empty)",
+        "user_id": user_id,
+        "auth_valid": bool(user_id),
+        "error": None if user_id else "Token verification failed — check CLERK_ISSUER and token validity",
+    }
+
+
 @app.get("/health")
 async def health():
     return {
