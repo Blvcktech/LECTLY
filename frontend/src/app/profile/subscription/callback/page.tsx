@@ -5,21 +5,34 @@
  *
  * Paystack redirects here after payment with ?reference=xxx in the URL.
  * We verify the payment with our backend, then show success or failure.
+ *
+ * Important: Since Paystack does a full-page redirect back here, the
+ * Clerk auth token hasn't loaded yet when the page first mounts.
+ * We wait for the token to be available before calling verify.
  */
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { verifyPayment } from "@/lib/api";
+import { setAuthToken } from "@/lib/auth";
 
 function CallbackContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { getToken, isSignedIn } = useAuth();
   const [status, setStatus] = useState<"loading" | "success" | "failed">("loading");
   const [message, setMessage] = useState("");
   const [plan, setPlan] = useState("");
+  const verifiedRef = useRef(false);
 
   useEffect(() => {
+    // Wait until Clerk has loaded and user is signed in
+    if (!isSignedIn) return;
+    // Don't run twice
+    if (verifiedRef.current) return;
+
     const reference = searchParams.get("reference") || searchParams.get("trxref");
     if (!reference) {
       setStatus("failed");
@@ -27,7 +40,14 @@ function CallbackContent() {
       return;
     }
 
-    verifyPayment(reference)
+    verifiedRef.current = true;
+
+    // Get a fresh token first, THEN verify the payment
+    getToken()
+      .then((token) => {
+        if (token) setAuthToken(token);
+        return verifyPayment(reference);
+      })
       .then((result) => {
         if (result.verified) {
           setStatus("success");
@@ -42,7 +62,7 @@ function CallbackContent() {
         setStatus("failed");
         setMessage("Something went wrong verifying your payment. Please contact support.");
       });
-  }, [searchParams]);
+  }, [isSignedIn, searchParams, getToken]);
 
   return (
     <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl p-8 max-w-sm w-full text-center">
