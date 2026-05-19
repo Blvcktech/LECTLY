@@ -9,10 +9,8 @@ import {
   AlertCircle,
   CheckCircle2,
   Lightbulb,
-  Send,
   ChevronDown,
   ChevronUp,
-  Code,
   AlertTriangle,
   Target,
   Zap,
@@ -25,100 +23,11 @@ import {
   type SolveResult,
   type NoteSection,
 } from "@/lib/api";
+import { useAuth } from "@clerk/nextjs";
+import { setAuthToken } from "@/lib/auth";
 
-// ── Markdown helpers (same as Learn Mode) ──
-
-function RenderInline({ text }: { text: string }) {
-  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
-  return (
-    <>
-      {parts.map((part, i) => {
-        if (part.startsWith("**") && part.endsWith("**")) {
-          return (
-            <strong key={i} className="font-semibold text-[#1a1815]">
-              {part.slice(2, -2)}
-            </strong>
-          );
-        }
-        if (part.startsWith("`") && part.endsWith("`")) {
-          return (
-            <code
-              key={i}
-              className="px-1.5 py-0.5 rounded-md bg-[#0F3D43]/8 border border-[#0F3D43]/15 text-[13px] font-mono text-[#0a2e33]"
-            >
-              {part.slice(1, -1)}
-            </code>
-          );
-        }
-        return <span key={i}>{part}</span>;
-      })}
-    </>
-  );
-}
-
-function RenderBody({ text }: { text: string }) {
-  const parts = text.split(/(```[\s\S]*?```)/g);
-
-  return (
-    <>
-      {parts.map((part, i) => {
-        if (part.startsWith("```")) {
-          const lines = part.slice(3, -3).split("\n");
-          const lang = lines[0]?.trim() || "";
-          const code = lang ? lines.slice(1).join("\n") : lines.join("\n");
-
-          return (
-            <div key={i} className="my-4 rounded-xl overflow-hidden border border-[#0F3D43]/20/30 shadow-sm">
-              <div className="bg-[rgba(26,24,21,0.06)] px-4 py-2 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Code className="w-3.5 h-3.5 text-[#8a7f6f]" />
-                  <span className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-wider">
-                    {lang || "code"}
-                  </span>
-                </div>
-                <button
-                  onClick={() => navigator.clipboard.writeText(code.trim())}
-                  className="text-[10px] font-medium text-[#8a7f6f] hover:text-[#1a1815] px-2 py-0.5 rounded hover:bg-[#0F3D43]/10 transition-colors"
-                >
-                  Copy
-                </button>
-              </div>
-              <pre className="bg-[#1a1a2e] px-5 py-4 overflow-x-auto">
-                <code className="text-[13px] text-green-400 leading-[1.7] font-mono whitespace-pre">
-                  {code.trim()}
-                </code>
-              </pre>
-            </div>
-          );
-        }
-
-        return part.split(/\n\n+/).map((paragraph, j) => {
-          const trimmed = paragraph.trim();
-          if (!trimmed) return null;
-
-          const isBullet = /^[-•]\s/.test(trimmed);
-          if (isBullet) {
-            const bulletText = trimmed.replace(/^[-•]\s*/, "");
-            return (
-              <div key={`${i}-${j}`} className="flex items-start gap-2 my-1 ml-2">
-                <span className="text-[#0F3D43] mt-0.5 flex-shrink-0">•</span>
-                <p className="text-sm text-[#2C2A25] leading-relaxed">
-                  <RenderInline text={bulletText} />
-                </p>
-              </div>
-            );
-          }
-
-          return (
-            <p key={`${i}-${j}`} className="text-sm text-[#2C2A25] leading-[1.85] mb-3 last:mb-0">
-              <RenderInline text={trimmed} />
-            </p>
-          );
-        });
-      })}
-    </>
-  );
-}
+// Re-use Learn Mode's markdown components — single source of truth
+import { RenderBody, RenderInline } from "../learn/components/markdown";
 
 
 export default function SolveModePage({
@@ -128,6 +37,7 @@ export default function SolveModePage({
 }) {
   const { id: lectureId } = use(params);
   const searchParams = useSearchParams();
+  const { getToken, isLoaded: authLoaded } = useAuth();
   const sectionParam = searchParams.get("section");
   const sectionIndex = sectionParam !== null ? parseInt(sectionParam, 10) : undefined;
 
@@ -143,11 +53,17 @@ export default function SolveModePage({
   const [solution, setSolution] = useState<SolveResult | null>(null);
   const [solveError, setSolveError] = useState("");
   const [expandedSteps, setExpandedSteps] = useState<Set<number>>(new Set());
+  // Progressive reveal — tracks how many steps the student has unlocked
+  const [revealedUpTo, setRevealedUpTo] = useState(0);
 
-  // Load lecture
+  // Load lecture with fresh auth token
   useEffect(() => {
+    if (!authLoaded) return;
+
     async function load() {
       try {
+        const token = await getToken();
+        setAuthToken(token);
         const data = await getLecture(lectureId);
         setLecture(data);
       } catch (err) {
@@ -157,7 +73,7 @@ export default function SolveModePage({
       }
     }
     load();
-  }, [lectureId]);
+  }, [lectureId, authLoaded, getToken]);
 
   // Get section info
   const sections: NoteSection[] = lecture?.notes?.sections || [];
@@ -168,8 +84,13 @@ export default function SolveModePage({
     setSolving(true);
     setSolveError("");
     setSolution(null);
+    setRevealedUpTo(0);
 
     try {
+      // Fresh auth token before expensive LLM call
+      const token = await getToken();
+      setAuthToken(token);
+
       const result = await solveMode(
         lectureId,
         problem.trim(),
@@ -177,8 +98,9 @@ export default function SolveModePage({
         studentAttempt.trim() || undefined
       );
       setSolution(result);
-      // Expand all steps by default
-      setExpandedSteps(new Set(result.steps.map((_, i) => i)));
+      // Progressive reveal: start with only step 1 expanded
+      setExpandedSteps(new Set([0]));
+      setRevealedUpTo(0);
     } catch (err) {
       setSolveError(err instanceof Error ? err.message : "Failed to solve");
     } finally {
@@ -196,14 +118,26 @@ export default function SolveModePage({
     setExpandedSteps(next);
   }
 
-  // ── Loading State ──
-  if (loading) {
+  // ── Loading State (skeleton) ──
+  if (loading || !authLoaded) {
     return (
-      <div className="min-h-screen bg-[#F7F4EE] flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[#0F3D43] mx-auto mb-3" />
-          <p className="text-sm text-[#8a7f6f]">Loading lecture...</p>
-        </div>
+      <div className="min-h-screen bg-[#F7F4EE]">
+        <header className="sticky top-0 z-50 bg-[#FDFCF9]/90 backdrop-blur-md border-b border-[rgba(217,185,130,0.2)]">
+          <div className="max-w-[900px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+            <div className="w-20 h-5 bg-[#EDE8DF] rounded" />
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-[#EDE8DF] rounded" />
+              <div className="w-24 h-5 bg-[#EDE8DF] rounded" />
+            </div>
+            <div className="w-20" />
+          </div>
+        </header>
+        <main className="max-w-[900px] mx-auto px-4 sm:px-6 py-8 animate-pulse">
+          <div className="h-8 w-3/4 bg-[#EDE8DF] rounded mb-3" />
+          <div className="h-4 w-1/2 bg-[#EDE8DF]/60 rounded mb-6" />
+          <div className="h-36 w-full bg-[#EDE8DF]/40 rounded-xl mb-4" />
+          <div className="h-12 w-40 bg-[#EDE8DF] rounded-xl" />
+        </main>
       </div>
     );
   }
@@ -424,148 +358,207 @@ export default function SolveModePage({
               )}
             </div>
 
-            {/* Steps */}
+            {/* Steps — Progressive Reveal */}
             <div className="space-y-3">
-              <h3
-                className="text-sm font-bold uppercase tracking-wider text-[#8a7f6f]"
-              >
-                Step-by-Step Solution
-              </h3>
-              {solution.steps.map((step, idx) => (
-                <div
-                  key={idx}
-                  className="bg-white rounded-2xl border border-[rgba(217,185,130,0.2)] shadow-sm overflow-hidden"
-                >
-                  <button
-                    onClick={() => toggleStep(idx)}
-                    className="w-full flex items-center gap-3 px-5 py-4 hover:bg-[#F7F4EE]/50 transition-colors text-left"
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-[#8a7f6f]">
+                  Step-by-Step Solution
+                </h3>
+                {revealedUpTo < solution.steps.length - 1 && (
+                  <span className="text-[10px] font-medium text-[#8a7f6f]">
+                    Step {revealedUpTo + 1} of {solution.steps.length}
+                  </span>
+                )}
+              </div>
+              {solution.steps.map((step, idx) => {
+                // Only show steps up to what the student has revealed
+                const isRevealed = idx <= revealedUpTo;
+                const isLocked = idx > revealedUpTo;
+
+                if (isLocked) return null;
+
+                return (
+                  <div
+                    key={idx}
+                    className="bg-white rounded-2xl border border-[rgba(217,185,130,0.2)] shadow-sm overflow-hidden"
+                    style={idx === revealedUpTo && idx > 0 ? { animation: "fadeSlideIn 0.3s ease-out" } : undefined}
                   >
-                    <div className="w-7 h-7 rounded-full bg-[#0F3D43] text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
-                      {step.step_number}
-                    </div>
-                    <span className="text-sm font-semibold text-[#1a1815] flex-1">
-                      {step.title}
-                    </span>
-                    {expandedSteps.has(idx) ? (
-                      <ChevronUp className="w-4 h-4 text-[#8a7f6f]" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 text-[#8a7f6f]" />
-                    )}
-                  </button>
-                  {expandedSteps.has(idx) && (
-                    <div className="px-5 pb-5 border-t border-[rgba(217,185,130,0.1)]">
-                      <div className="pt-4 text-sm text-[#2C2A25] leading-relaxed">
-                        <RenderBody text={step.content} />
+                    <button
+                      onClick={() => toggleStep(idx)}
+                      className="w-full flex items-center gap-3 px-5 py-4 hover:bg-[#F7F4EE]/50 transition-colors text-left"
+                    >
+                      <div className="w-7 h-7 rounded-full bg-[#0F3D43] text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                        {step.step_number}
                       </div>
-                      {step.key_insight && (
-                        <div className="mt-3 flex items-start gap-2 px-3 py-2 bg-amber-50/60 border border-amber-200/30 rounded-lg">
-                          <Lightbulb className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                          <p className="text-xs text-amber-800">
-                            <RenderInline text={step.key_insight} />
+                      <span className="text-sm font-semibold text-[#1a1815] flex-1">
+                        {step.title}
+                      </span>
+                      {expandedSteps.has(idx) ? (
+                        <ChevronUp className="w-4 h-4 text-[#8a7f6f]" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-[#8a7f6f]" />
+                      )}
+                    </button>
+                    {expandedSteps.has(idx) && (
+                      <div className="px-5 pb-5 border-t border-[rgba(217,185,130,0.1)]">
+                        <div className="pt-4 text-sm text-[#2C2A25] leading-relaxed">
+                          <RenderBody text={step.content} />
+                        </div>
+                        {step.key_insight && (
+                          <div className="mt-3 flex items-start gap-2 px-3 py-2 bg-amber-50/60 border border-amber-200/30 rounded-lg">
+                            <Lightbulb className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                            <p className="text-xs text-amber-800">
+                              <RenderInline text={step.key_insight} />
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* "Show next step" / "Show all" buttons */}
+              {revealedUpTo < solution.steps.length - 1 && (
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => {
+                      const next = revealedUpTo + 1;
+                      setRevealedUpTo(next);
+                      setExpandedSteps((prev) => new Set([...prev, next]));
+                    }}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-[#1a1815] text-white rounded-xl text-sm font-semibold hover:bg-[#2a2825] active:scale-95 transition-all"
+                  >
+                    Show next step
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      const allIdxs = solution.steps.map((_, i) => i);
+                      setRevealedUpTo(solution.steps.length - 1);
+                      setExpandedSteps(new Set(allIdxs));
+                    }}
+                    className="text-sm font-medium text-[#8a7f6f] hover:text-[#1a1815] transition-colors"
+                  >
+                    Show all steps
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Answer — only show after all steps are revealed */}
+            {revealedUpTo >= solution.steps.length - 1 && (
+              <div
+                className="bg-[#0F3D43]/5 rounded-2xl border border-[#0F3D43]/15 p-5"
+                style={{ animation: "fadeSlideIn 0.3s ease-out" }}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle2 className="w-5 h-5 text-[#0F3D43]" />
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-[#0a2e33]">
+                    Answer
+                  </h3>
+                </div>
+                <div className="text-[15px] font-semibold text-[#1a1815] leading-relaxed">
+                  <RenderBody text={solution.answer} />
+                </div>
+              </div>
+            )}
+
+            {/* Post-answer sections — only visible after all steps revealed */}
+            {revealedUpTo >= solution.steps.length - 1 && (
+              <>
+                {/* Verification */}
+                {solution.verification && (
+                  <div className="bg-white rounded-2xl border border-[rgba(217,185,130,0.2)] p-5 shadow-sm">
+                    <div className="flex items-center gap-2 mb-3">
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-green-700">
+                        Verification
+                      </h3>
+                    </div>
+                    <div className="text-sm text-[#2C2A25] leading-relaxed">
+                      <RenderBody text={solution.verification} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Common Mistakes */}
+                {solution.common_mistakes.length > 0 && (
+                  <div className="bg-white rounded-2xl border border-[rgba(217,185,130,0.2)] p-5 shadow-sm">
+                    <div className="flex items-center gap-2 mb-3">
+                      <AlertTriangle className="w-4 h-4 text-orange-500" />
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-orange-600">
+                        Common Mistakes to Avoid
+                      </h3>
+                    </div>
+                    <div className="space-y-2">
+                      {solution.common_mistakes.map((mistake, i) => (
+                        <div key={i} className="flex items-start gap-2">
+                          <span className="text-orange-400 mt-0.5 flex-shrink-0">•</span>
+                          <p className="text-sm text-[#2C2A25]">
+                            <RenderInline text={mistake} />
                           </p>
                         </div>
-                      )}
+                      ))}
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
+                  </div>
+                )}
 
-            {/* Answer */}
-            <div className="bg-[#0F3D43]/5 rounded-2xl border border-[#0F3D43]/15 p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <CheckCircle2 className="w-5 h-5 text-[#0F3D43]" />
-                <h3 className="text-sm font-bold uppercase tracking-wider text-[#0a2e33]">
-                  Answer
-                </h3>
-              </div>
-              <div className="text-[15px] font-semibold text-[#1a1815] leading-relaxed">
-                <RenderBody text={solution.answer} />
-              </div>
-            </div>
-
-            {/* Verification */}
-            {solution.verification && (
-              <div className="bg-white rounded-2xl border border-[rgba(217,185,130,0.2)] p-5 shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                  <CheckCircle2 className="w-4 h-4 text-green-600" />
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-green-700">
-                    Verification
-                  </h3>
-                </div>
-                <div className="text-sm text-[#2C2A25] leading-relaxed">
-                  <RenderBody text={solution.verification} />
-                </div>
-              </div>
-            )}
-
-            {/* Common Mistakes */}
-            {solution.common_mistakes.length > 0 && (
-              <div className="bg-white rounded-2xl border border-[rgba(217,185,130,0.2)] p-5 shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                  <AlertTriangle className="w-4 h-4 text-orange-500" />
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-orange-600">
-                    Common Mistakes to Avoid
-                  </h3>
-                </div>
-                <div className="space-y-2">
-                  {solution.common_mistakes.map((mistake, i) => (
-                    <div key={i} className="flex items-start gap-2">
-                      <span className="text-orange-400 mt-0.5 flex-shrink-0">•</span>
-                      <p className="text-sm text-[#2C2A25]">
-                        <RenderInline text={mistake} />
-                      </p>
+                {/* Lecture Connection */}
+                {solution.lecture_connection && (
+                  <div className="bg-white rounded-2xl border border-[rgba(217,185,130,0.2)] p-5 shadow-sm">
+                    <div className="flex items-center gap-2 mb-3">
+                      <BookOpen className="w-4 h-4 text-[#0F3D43]" />
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-[#0F3D43]">
+                        Connection to Your Lecture
+                      </h3>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                    <div className="text-sm text-[#2C2A25] leading-relaxed">
+                      <RenderBody text={solution.lecture_connection} />
+                    </div>
+                  </div>
+                )}
 
-            {/* Lecture Connection */}
-            {solution.lecture_connection && (
-              <div className="bg-white rounded-2xl border border-[rgba(217,185,130,0.2)] p-5 shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                  <BookOpen className="w-4 h-4 text-[#0F3D43]" />
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#0F3D43]">
-                    Connection to Your Lecture
-                  </h3>
-                </div>
-                <div className="text-sm text-[#2C2A25] leading-relaxed">
-                  <RenderBody text={solution.lecture_connection} />
-                </div>
-              </div>
-            )}
-
-            {/* Follow-up */}
-            {solution.follow_up && (
-              <div className="bg-[#F7F4EE] rounded-2xl border border-[rgba(217,185,130,0.2)] p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <Zap className="w-4 h-4 text-[#0F3D43]" />
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#0F3D43]">
-                    Try This Next
-                  </h3>
-                </div>
-                <p className="text-sm text-[#2C2A25] leading-relaxed mb-3">
-                  <RenderInline text={solution.follow_up} />
-                </p>
-                <button
-                  onClick={() => {
-                    setProblem(solution.follow_up);
-                    setSolution(null);
-                    setStudentAttempt("");
-                    setSolveError("");
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#0F3D43] text-white rounded-lg text-sm font-medium hover:bg-[#1a5c64] transition-colors"
-                >
-                  <Target className="w-3.5 h-3.5" />
-                  Solve this one
-                </button>
-              </div>
+                {/* Follow-up */}
+                {solution.follow_up && (
+                  <div className="bg-[#F7F4EE] rounded-2xl border border-[rgba(217,185,130,0.2)] p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Zap className="w-4 h-4 text-[#0F3D43]" />
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-[#0F3D43]">
+                        Try This Next
+                      </h3>
+                    </div>
+                    <p className="text-sm text-[#2C2A25] leading-relaxed mb-3">
+                      <RenderInline text={solution.follow_up} />
+                    </p>
+                    <button
+                      onClick={() => {
+                        setProblem(solution.follow_up);
+                        setSolution(null);
+                        setStudentAttempt("");
+                        setSolveError("");
+                        setRevealedUpTo(0);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-[#0F3D43] text-white rounded-lg text-sm font-medium hover:bg-[#1a5c64] transition-colors"
+                    >
+                      <Target className="w-3.5 h-3.5" />
+                      Solve this one
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
       </main>
+
+      <style>{`
+        @keyframes fadeSlideIn {
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
