@@ -257,6 +257,51 @@ export async function processLecture(
   throw new Error("Processing timed out. Try a shorter audio file or try again.");
 }
 
+export async function retryLecture(
+  lectureId: string,
+  onStatusChange?: (status: string) => void
+): Promise<ProcessResult> {
+  // Step 1: Fire off the retry request
+  const headers = await freshAuthHeaders();
+  const res = await fetch(`${API_URL}/api/lectures/${lectureId}/retry`, {
+    method: "POST",
+    headers,
+  });
+
+  await checkResponse(res, "Retry failed");
+
+  // Step 2: Poll until ready or failed (same as processLecture)
+  const maxWait = 900_000;
+  const pollInterval = 3_000;
+  let waited = 0;
+
+  while (waited < maxWait) {
+    await new Promise((r) => setTimeout(r, pollInterval));
+    waited += pollInterval;
+
+    const lecture = await getLecture(lectureId);
+    const status = lecture.status;
+
+    if (onStatusChange) onStatusChange(status);
+
+    if (status === "ready") {
+      return {
+        lecture_id: lectureId,
+        status: "ready",
+        message: "Lecture processed successfully",
+        notes_title: lecture.notes?.title || "",
+        sections_count: lecture.notes?.sections?.length || 0,
+      };
+    }
+
+    if (status === "failed") {
+      throw new Error(lecture.error || "Retry failed. Please try again.");
+    }
+  }
+
+  throw new Error("Processing timed out. Try a shorter audio file or try again.");
+}
+
 export async function getLecture(lectureId: string): Promise<Lecture> {
   const headers = await freshAuthHeaders();
   const res = await fetch(`${API_URL}/api/lectures/${lectureId}`, {

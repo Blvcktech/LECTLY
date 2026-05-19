@@ -14,7 +14,7 @@ from slowapi.errors import RateLimitExceeded
 from contextlib import asynccontextmanager
 
 from app.config import get_settings
-from app.database import init_db, close_pool
+from app.database import init_db, close_pool, run_migrations, recover_stuck_lectures
 from app.routes.lectures import router as lectures_router
 from app.routes.push import router as push_router
 from app.routes.payments import router as payments_router
@@ -29,7 +29,9 @@ init_db()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup — pool already initialized by database.py import
+    # Startup — run migrations and recover any stuck lectures
+    run_migrations()
+    recover_stuck_lectures()
     yield
     # Shutdown — close all pooled connections gracefully
     close_pool()

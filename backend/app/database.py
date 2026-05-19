@@ -482,7 +482,7 @@ def create_lecture(lecture: dict) -> dict:
 
 ALLOWED_LECTURE_UPDATE_COLUMNS = frozenset({
     "status", "subject", "quality_score", "duration_seconds",
-    "error", "updated_at",
+    "error", "updated_at", "started_at", "processing_step",
 })
 
 
@@ -1049,3 +1049,185 @@ def cancel_subscription(user_id: str):
             (now, user_id),
         )
         conn.commit()
+
+
+# ──────────────────────────────────────────────
+# Migrations — version-based schema updates
+# ──────────────────────────────────────────────
+
+# Each migration is (version_number, description, sql_for_postgres, sql_for_sqlite).
+# They run in order, once, on every server boot.
+MIGRATIONS = [
+    (
+        1,
+        "Add started_at and processing_step to lectures",
+        "ALTER TABLE lectures ADD COLUMN IF NOT EXISTS started_at TEXT; "
+        "ALTER TABLE lectures ADD COLUMN IF NOT EXISTS processing_step TEXT;",
+        # SQLite doesn't support IF NOT EXISTS on ALTER TABLE, so we check in code
+        None,
+    ),
+    (
+        2,
+        "Add indexes on lectures.user_id and progress columns",
+        "CREATE INDEX IF NOT EXISTS idx_lectures_user_id ON lectures(user_id); "
+        "CREATE INDEX IF NOT EXISTS idx_progress_user_id ON progress(user_id); "
+        "CREATE INDEX IF NOT EXISTS idx_progress_lecture_id ON progress(lecture_id); "
+        "CREATE INDEX IF NOT EXISTS idx_progress_user_lecture ON progress(user_id, lecture_id);",
+        "CREATE INDEX IF NOT EXISTS idx_lectures_user_id ON lectures(user_id); "
+        "CREATE INDEX IF NOT EXISTS idx_progress_user_id ON progress(user_id); "
+        "CREATE INDEX IF NOT EXISTS idx_progress_lecture_id ON progress(lecture_id); "
+        "CREATE INDEX IF NOT EXISTS idx_progress_user_lecture ON progress(user_id, lecture_id);",
+    ),
+]
+
+
+def run_migrations():
+    """Run any pending schema migrations. Safe to call on every startup."""
+    with _get_conn() as conn:
+        # Create migrations table if it doesn't exist
+        if USE_POSTGRES:
+            _execute(conn, """
+                CREATE TABLE IF NOT EXISTS schema_migrations (
+                    version INTEGER PRIMARY KEY,
+                    description TEXT,
+                    applied_at TEXT NOT NULL
+                )
+            """)
+        else:
+            _execute(conn, """
+                CREATE TABLE IF NOT EXISTS schema_migrations (
+                    version INTEGER PRIMARY KEY,
+                    description TEXT,
+                    applied_at TEXT NOT NULL
+                )
+            """)
+        conn.commit()
+
+        # Get current version
+        row = _fetchone(conn, "SELECT MAX(version) as v FROM schema_migrations")
+        current_version = (row["v"] or 0) if row else 0
+
+        for version, description, pg_sql, sqlite_sql in MIGRATIONS:
+            if version <= current_version:
+                continue
+
+            print(f"[Lectly] Running migration {version}: {description}")
+            try:
+                if USE_POSTGRES and pg_sql:
+                    for stmt in pg_sql.split(";"):
+                        stmt = stmt.strip()
+                        if stmt:
+                            _execute(conn, stmt)
+                elif not USE_POSTGRES and sqlite_sql:
+                    for stmt in sqlite_sql.split(";"):
+                        stmt = stmt.strip()
+                        if stmt:
+                            _execute(conn, stmt)
+                elif not USE_POSTGRES and sqlite_sql is None:
+                    # SQLite-specific: add columns with try/except
+                    if version == 1:
+                        for col in ["started_at TEXT", "processing_step TEXT"]:
+                            try:
+                                _execute(conn, f"ALTER TABLE lectures ADD COLUMN {col}")
+                            except Exception:
+                                pass  # Column already exists
+
+                _execute(
+                    conn,
+                    f"INSERT INTO schema_migrations (version, description, applied_at) VALUES ({P}, {P}, {P})",
+                    (version, description, datetime.utcnow().isoformat()),
+                )
+                conn.commit()
+                print(f"[Lectly] Migration {version} applied successfully")
+            except Exception as e:
+                conn.rollback()
+                print(f"[Lectly] Migration {version} FAILED: {e}")
+                raise
+
+
+# ──────────────────────────────────────────────
+# Stuck Lecture Recovery
+# ──────────────────────────────────────────────
+
+STUCK_TIMEOUT_MINUTES = 20
+
+
+def recover_stuck_lectures():
+    """
+    Find lectures stuck in processing states and mark them as failed.
+
+    This runs on every server boot to recover from crashes/restarts
+    during processing. A lecture is "stuck" if it has been in a
+    transitional status (processing, cleaning, transcribing, generating_notes)
+    for longer than STUCK_TIMEOUT_MINUTES.
+    """
+    transitional_statuses = ("processing", "cleaning", "transcribing", "generating_notes")
+    now = datetime.utcnow().isoformat()
+
+    with _get_conn() as conn:
+        # Find all lectures in transitional states
+        placeholders = ", ".join([P] * len(transitional_statuses))
+        stuck = _fetchall(
+            conn,
+            f"SELECT id, status, started_at, updated_at FROM lectures WHERE status IN ({placeholders})",
+            transitional_statuses,
+        )
+
+        recovered = 0
+        for lecture in stuck:
+            # Determine how long it's been stuck
+            ref_time = lecture.get("started_at") or lecture.get("updated_at")
+            if not ref_time:
+                # No timestamp at all — mark as failed
+                _execute(
+                    conn,
+                    f"UPDATE lectures SET status = 'failed', error = {P}, updated_at = {P} WHERE id = {P}",
+                    ("Processing interrupted by server restart. You can retry this lecture.", now, lecture["id"]),
+                )
+                recovered += 1
+                invalidate_lecture(lecture["id"])
+                continue
+
+            try:
+                ref_dt = datetime.fromisoformat(ref_time.replace("Z", "+00:00")) if "Z" in ref_time else datetime.fromisoformat(ref_time)
+                now_dt = datetime.utcnow()
+                elapsed_minutes = (now_dt - ref_dt).total_seconds() / 60
+            except (ValueError, TypeError):
+                elapsed_minutes = STUCK_TIMEOUT_MINUTES + 1  # Can't parse — assume stuck
+
+            if elapsed_minutes >= STUCK_TIMEOUT_MINUTES:
+                step = lecture.get("status", "unknown")
+                _execute(
+                    conn,
+                    f"UPDATE lectures SET status = 'failed', error = {P}, updated_at = {P} WHERE id = {P}",
+                    (
+                        f"Processing timed out during '{step}' step (stuck for {int(elapsed_minutes)} minutes). You can retry this lecture.",
+                        now,
+                        lecture["id"],
+                    ),
+                )
+                recovered += 1
+                invalidate_lecture(lecture["id"])
+
+        if recovered > 0:
+            conn.commit()
+            print(f"[Lectly] Recovered {recovered} stuck lecture(s) on startup")
+        else:
+            print(f"[Lectly] No stuck lectures found (checked {len(stuck)} in transitional states)")
+
+
+def get_lectures_for_retry(lecture_id: str) -> Optional[dict]:
+    """Get a lecture with info about whether it has a transcript (for smart retry)."""
+    with _get_conn() as conn:
+        lecture = _fetchone(conn, f"SELECT * FROM lectures WHERE id = {P}", (lecture_id,))
+        if not lecture:
+            return None
+
+        # Check if transcript exists
+        t_row = _fetchone(
+            conn,
+            f"SELECT lecture_id FROM transcripts WHERE lecture_id = {P}",
+            (lecture_id,),
+        )
+        lecture["has_transcript"] = t_row is not None
+        return lecture

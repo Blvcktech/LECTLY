@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import {
   getLecture,
+  retryLecture,
   explainText,
   downloadNotesPdf,
   askTutor,
@@ -156,6 +157,10 @@ export default function LecturePage({
   // PDF Download state
   const [pdfLoading, setPdfLoading] = useState(false);
   const { toast, confirm: showConfirm } = useToast();
+
+  // Retry state
+  const [retrying, setRetrying] = useState(false);
+  const [retryStatus, setRetryStatus] = useState("");
 
   // Tutor chat state (floating composer)
   const [tutorOpen, setTutorOpen] = useState(false);
@@ -342,6 +347,32 @@ export default function LecturePage({
     });
   };
 
+  const handleRetry = async () => {
+    setRetrying(true);
+    setRetryStatus("Starting retry...");
+    try {
+      const result = await retryLecture(id, (status) => {
+        const labels: Record<string, string> = {
+          processing: "Starting...",
+          transcribing: "Transcribing audio...",
+          cleaning: "Cleaning audio...",
+          generating_notes: "Generating notes...",
+        };
+        setRetryStatus(labels[status] || status);
+      });
+      if (result.status === "ready") {
+        toast("Lecture processed successfully!", "success");
+        const data = await getLecture(id);
+        setLecture(data);
+      }
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Retry failed. Please try again.", "error");
+    } finally {
+      setRetrying(false);
+      setRetryStatus("");
+    }
+  };
+
   // Scroll tutor chat to bottom when new messages arrive
   useEffect(() => {
     if (tutorEndRef.current) {
@@ -500,6 +531,50 @@ export default function LecturePage({
               Back to dashboard
             </Link>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Failed lecture with retry option ──
+  if (lecture && lecture.status === "failed") {
+    return (
+      <div className="min-h-screen bg-[#F7F4EE] flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto mb-5">
+            <AlertCircle className="w-8 h-8 text-amber-500" />
+          </div>
+          <h2 className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+            Processing failed
+          </h2>
+          <p className="text-[#8a7f6f] text-sm mb-2">
+            {lecture.error || "Something went wrong during processing."}
+          </p>
+          <p className="text-[#b5ad9e] text-xs mb-6">
+            {lecture.error?.includes("transcript") || lecture.error?.includes("Transcri")
+              ? "The audio may need to be re-transcribed."
+              : "Your transcript is saved. Only note generation will be retried."}
+          </p>
+
+          {retrying ? (
+            <div className="flex items-center justify-center gap-3 bg-[#0F3D43]/5 border border-[#0F3D43]/15 rounded-xl px-5 py-3">
+              <Loader2 className="w-5 h-5 text-[#0F3D43] animate-spin" />
+              <span className="text-sm font-medium text-[#0F3D43]">{retryStatus || "Retrying..."}</span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={handleRetry}
+                className="flex items-center gap-2 text-sm font-semibold bg-[#0F3D43] hover:bg-[#1a5c65] text-white px-6 py-3 rounded-xl transition-colors shadow-md shadow-[#0F3D43]/15"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Retry Processing
+              </button>
+              <Link href="/dashboard" className="text-sm text-[#8a7f6f] hover:text-[#1a1815] transition-colors">
+                Back to dashboard
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     );

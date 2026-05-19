@@ -12,6 +12,7 @@ from typing import Optional
 
 from app.config import get_settings
 from app.deps import get_current_user, get_current_user_upload
+from datetime import datetime
 from app.rate_limit import limiter
 from app.models.lecture import (
     LectureUploadResponse,
@@ -43,6 +44,7 @@ from app.database import (
     get_last_studied as db_get_last_studied,
     get_user_tier,
     get_user_lecture_limit,
+    get_lectures_for_retry,
 )
 from app.services.push import send_push_to_user
 
@@ -111,12 +113,17 @@ async def _process_lecture_pipeline(lecture_id: str):
     """
     try:
         print(f"[Lectly] Background processing started for {lecture_id}")
-        update_lecture_db(lecture_id, {"status": "processing"})
+        update_lecture_db(lecture_id, {
+            "status": "processing",
+            "started_at": datetime.utcnow().isoformat(),
+            "processing_step": "transcribing",
+        })
 
         # Step 1: Transcribe
         await transcribe_audio(lecture_id)
 
         # Step 2: Generate structured notes
+        update_lecture_db(lecture_id, {"processing_step": "generating_notes"})
         await generate_notes(lecture_id)
 
         print(f"[Lectly] Background processing complete for {lecture_id}")
@@ -198,6 +205,88 @@ async def process_lecture(
         "lecture_id": lecture_id,
         "status": "processing",
         "message": "Processing started. Poll GET /lectures/{lecture_id} for status updates.",
+    }
+
+
+async def _retry_lecture_pipeline(lecture_id: str, skip_transcription: bool = False):
+    """
+    Retry pipeline that can skip transcription if a transcript already exists.
+    This saves users from re-uploading and re-transcribing when only note
+    generation failed.
+    """
+    try:
+        print(f"[Lectly] Retry processing started for {lecture_id} (skip_transcription={skip_transcription})")
+        update_lecture_db(lecture_id, {
+            "status": "processing",
+            "error": None,
+            "started_at": datetime.utcnow().isoformat(),
+            "processing_step": "generating_notes" if skip_transcription else "transcribing",
+        })
+
+        if not skip_transcription:
+            await transcribe_audio(lecture_id)
+            update_lecture_db(lecture_id, {"processing_step": "generating_notes"})
+
+        await generate_notes(lecture_id)
+        print(f"[Lectly] Retry processing complete for {lecture_id}")
+
+        # Send push notification
+        try:
+            lecture = await get_lecture(lecture_id)
+            if lecture and lecture.get("user_id"):
+                title = lecture.get("subject") or lecture.get("filename") or "Your lecture"
+                send_push_to_user(
+                    user_id=lecture["user_id"],
+                    title="Your notes are ready!",
+                    body=f'"{title}" has been processed. Tap to view your notes.',
+                    url=f"/lecture/{lecture_id}",
+                    tag=f"lecture-ready-{lecture_id}",
+                )
+        except Exception:
+            pass
+
+    except Exception as e:
+        print(f"[Lectly] Retry processing FAILED for {lecture_id}: {e}")
+        update_lecture_db(lecture_id, {"status": "failed", "error": str(e)})
+
+
+@router.post("/lectures/{lecture_id}/retry")
+@limiter.limit("5/hour")
+async def retry_lecture(
+    lecture_id: str,
+    request: Request,
+    background_tasks: BackgroundTasks,
+    user_id: str = Depends(get_current_user),
+):
+    """
+    Retry processing a failed lecture. Smart retry: if a transcript
+    already exists, skips transcription and only re-runs note generation.
+    """
+    lecture = get_lectures_for_retry(lecture_id)
+    if not lecture:
+        raise HTTPException(status_code=404, detail="Lecture not found")
+
+    if lecture.get("user_id") and lecture["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    if lecture.get("status") not in ("failed",):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot retry a lecture with status '{lecture.get('status')}'. Only failed lectures can be retried.",
+        )
+
+    skip_transcription = lecture.get("has_transcript", False)
+    background_tasks.add_task(_retry_lecture_pipeline, lecture_id, skip_transcription)
+
+    return {
+        "lecture_id": lecture_id,
+        "status": "processing",
+        "skip_transcription": skip_transcription,
+        "message": (
+            "Retrying note generation (transcript already exists)."
+            if skip_transcription
+            else "Retrying full processing (transcription + notes)."
+        ),
     }
 
 
