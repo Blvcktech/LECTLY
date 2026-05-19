@@ -584,7 +584,11 @@ def count_user_lectures(user_id: str) -> int:
 
 
 def list_lectures(user_id: Optional[str] = None) -> list[dict]:
-    """List lectures with their notes (for dashboard). Optionally filter by user. Cached per user."""
+    """
+    List lectures with their notes (for dashboard). Optionally filter by user.
+    Uses a single LEFT JOIN query instead of N+1 queries — fetches lectures,
+    notes, and transcript existence in one round trip to the database.
+    """
     # Check cache for user-specific lists
     if user_id:
         cached = cache.get(lecture_list_key(user_id))
@@ -592,41 +596,52 @@ def list_lectures(user_id: Optional[str] = None) -> list[dict]:
             return cached
 
     with _get_conn() as conn:
+        # Single query: lectures LEFT JOIN notes LEFT JOIN transcripts
+        # This replaces the old N+1 pattern (1 + 2N queries → 1 query)
+        base_sql = f"""
+            SELECT
+                l.*,
+                n.title       AS notes_title,
+                n.summary     AS notes_summary,
+                n.sections    AS notes_sections,
+                n.generated_at AS notes_generated_at,
+                t.transcript_text
+            FROM lectures l
+            LEFT JOIN notes n ON n.lecture_id = l.id
+            LEFT JOIN transcripts t ON t.lecture_id = l.id
+        """
         if user_id:
             rows = _fetchall(
                 conn,
-                f"SELECT * FROM lectures WHERE user_id = {P} ORDER BY created_at DESC",
+                base_sql + f" WHERE l.user_id = {P} ORDER BY l.created_at DESC",
                 (user_id,),
             )
         else:
-            rows = _fetchall(conn, "SELECT * FROM lectures ORDER BY created_at DESC")
+            rows = _fetchall(conn, base_sql + " ORDER BY l.created_at DESC")
 
         lectures = []
-        for lecture in rows:
-            # Get notes for each lecture
-            n_row = _fetchone(
-                conn,
-                f"SELECT title, summary, sections, generated_at FROM notes WHERE lecture_id = {P}",
-                (lecture["id"],),
-            )
-            if n_row:
+        for row in rows:
+            lecture = dict(row)
+
+            # Build notes dict from the joined columns
+            if lecture.pop("notes_title", None) is not None:
                 lecture["notes"] = {
-                    "title": n_row["title"],
-                    "summary": n_row["summary"],
-                    "sections": json.loads(n_row["sections"]),
-                    "generated_at": n_row["generated_at"],
+                    "title": row["notes_title"],
+                    "summary": row["notes_summary"],
+                    "sections": json.loads(row["notes_sections"]),
+                    "generated_at": row["notes_generated_at"],
                 }
             else:
                 lecture["notes"] = None
 
-            # Check if transcript exists
-            t_row = _fetchone(
-                conn,
-                f"SELECT transcript_text FROM transcripts WHERE lecture_id = {P}",
-                (lecture["id"],),
-            )
-            lecture["transcript_text"] = t_row["transcript_text"] if t_row else None
-            lecture["transcript"] = None  # Don't load full segments for list view
+            # Clean up the joined notes columns from the lecture dict
+            lecture.pop("notes_summary", None)
+            lecture.pop("notes_sections", None)
+            lecture.pop("notes_generated_at", None)
+
+            # transcript_text is already in the dict from the JOIN
+            # Don't load full segments for list view
+            lecture["transcript"] = None
 
             lectures.append(lecture)
 
