@@ -98,6 +98,38 @@ async def upload_lecture(
             detail=f"File too large. Maximum size: {settings.max_file_size_mb}MB",
         )
 
+    # Validate file content — check magic bytes to prevent disguised uploads
+    # Audio/video files have recognizable headers
+    _AUDIO_MAGIC = {
+        b"ID3": "mp3",             # MP3 with ID3 tag
+        b"\xff\xfb": "mp3",       # MP3 frame sync
+        b"\xff\xf3": "mp3",       # MP3 frame sync (MPEG2)
+        b"\xff\xf2": "mp3",       # MP3 frame sync
+        b"RIFF": "wav",           # WAV/AVI
+        b"fLaC": "flac",          # FLAC
+        b"OggS": "ogg",           # OGG/Opus
+        b"\x1aE\xdf\xa3": "webm", # WebM/MKV
+    }
+    header = content[:12]
+    is_valid_audio = False
+    # Check magic bytes
+    for magic in _AUDIO_MAGIC:
+        if header.startswith(magic):
+            is_valid_audio = True
+            break
+    # MP4/M4A/AAC containers use ftyp box (starts at byte 4)
+    if not is_valid_audio and len(header) >= 8 and header[4:8] == b"ftyp":
+        is_valid_audio = True
+    # CAF (Core Audio Format)
+    if not is_valid_audio and header.startswith(b"caff"):
+        is_valid_audio = True
+
+    if not is_valid_audio:
+        raise HTTPException(
+            status_code=400,
+            detail="File does not appear to be a valid audio/video file. Please upload an actual recording.",
+        )
+
     # Save and create record
     result = await save_upload(content, file.filename or "audio.mp3", subject, user_id=user_id)
     return result
@@ -291,14 +323,16 @@ async def retry_lecture(
 
 
 @router.get("/lectures")
-async def get_lectures(user_id: str = Depends(get_current_user)):
+@limiter.limit("60/minute")
+async def get_lectures(request: Request, user_id: str = Depends(get_current_user)):
     """List all lectures for the current user."""
     lectures = await list_lectures(user_id=user_id)
     return {"lectures": lectures, "count": len(lectures)}
 
 
 @router.get("/lectures/{lecture_id}")
-async def get_lecture_detail(lecture_id: str, user_id: str = Depends(get_current_user)):
+@limiter.limit("120/minute")
+async def get_lecture_detail(request: Request, lecture_id: str, user_id: str = Depends(get_current_user)):
     """Get full lecture details including notes."""
 
     lecture = await get_lecture(lecture_id)
@@ -415,7 +449,8 @@ async def solve_mode(body: SolveModeRequest, request: Request, user_id: str = De
 
 
 @router.get("/lectures/{lecture_id}/pdf")
-async def download_notes_pdf(lecture_id: str, user_id: str = Depends(get_current_user)):
+@limiter.limit("10/hour")
+async def download_notes_pdf(request: Request, lecture_id: str, user_id: str = Depends(get_current_user)):
     """Download lecture notes as a formatted PDF."""
 
     # Verify ownership before generating
@@ -449,7 +484,8 @@ async def download_notes_pdf(lecture_id: str, user_id: str = Depends(get_current
 
 
 @router.delete("/lectures/{lecture_id}")
-async def delete_lecture(lecture_id: str, user_id: str = Depends(get_current_user)):
+@limiter.limit("10/hour")
+async def delete_lecture(request: Request, lecture_id: str, user_id: str = Depends(get_current_user)):
     """Delete a lecture and all associated data."""
 
     lecture = await get_lecture(lecture_id)
@@ -493,7 +529,7 @@ async def update_lecture_details(lecture_id: str, request: Request, user_id: str
     updates = {}
 
     if "title" in body and body["title"]:
-        title = body["title"].strip()
+        title = str(body["title"]).strip()[:200]  # Max 200 chars for title
         if lecture.get("notes"):
             notes = lecture["notes"]
             save_notes(
@@ -535,7 +571,8 @@ async def save_progress(request_body: ProgressSaveRequest, user_id: str = Depend
 
 
 @router.get("/progress")
-async def get_all_progress(user_id: str = Depends(get_current_user)):
+@limiter.limit("60/minute")
+async def get_all_progress(request: Request, user_id: str = Depends(get_current_user)):
     """Get all progress for the current user."""
     progress = db_get_all_progress(user_id)
     last_studied = db_get_last_studied(user_id)
@@ -554,7 +591,8 @@ async def get_lecture_progress(lecture_id: str, user_id: str = Depends(get_curre
 # ──────────────────────────────────────────────
 
 @router.get("/user/limits")
-async def get_user_limits(user_id: str = Depends(get_current_user)):
+@limiter.limit("30/minute")
+async def get_user_limits(request: Request, user_id: str = Depends(get_current_user)):
     """Get current usage limits for the authenticated user."""
 
     tier = get_user_tier(user_id)

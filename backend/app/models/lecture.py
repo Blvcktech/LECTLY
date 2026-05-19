@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 from enum import Enum
@@ -61,8 +61,8 @@ class StructuredNotes(BaseModel):
 
 
 class ExplainRequest(BaseModel):
-    text: str
-    level: str = "intermediate"  # beginner, intermediate, advanced
+    text: str = Field(..., min_length=1, max_length=5000)
+    level: str = Field("intermediate", pattern="^(beginner|intermediate|advanced)$")
 
 
 class ExplainResponse(BaseModel):
@@ -73,10 +73,10 @@ class ExplainResponse(BaseModel):
 
 
 class LearnModeRequest(BaseModel):
-    lecture_id: str
-    section_index: Optional[int] = None
-    level: str = "intermediate"
-    card_style: str = "mixed"  # "mixed", "explanations", "quizzes"
+    lecture_id: str = Field(..., min_length=1, max_length=100)
+    section_index: Optional[int] = Field(None, ge=0, le=100)
+    level: str = Field("intermediate", pattern="^(beginner|intermediate|advanced)$")
+    card_style: str = Field("mixed", pattern="^(mixed|explanations|quizzes)$")
 
 
 class QuizQuestion(BaseModel):
@@ -120,8 +120,8 @@ class LearnModeResponse(BaseModel):
 # ──────────────────────────────────────────────
 
 class TutorMessage(BaseModel):
-    role: str  # "user" or "tutor"
-    content: str
+    role: str = Field(..., pattern="^(user|tutor)$")
+    content: str = Field(..., min_length=1, max_length=5000)
 
 
 class CardContext(BaseModel):
@@ -135,10 +135,10 @@ class CardContext(BaseModel):
 
 
 class TutorAskRequest(BaseModel):
-    lecture_id: str
-    question: str
-    conversation_history: list[TutorMessage] = []
-    current_section_index: Optional[int] = None
+    lecture_id: str = Field(..., min_length=1, max_length=100)
+    question: str = Field(..., min_length=1, max_length=2000)
+    conversation_history: list[TutorMessage] = Field(default=[], max_length=50)
+    current_section_index: Optional[int] = Field(None, ge=0, le=100)
     card_context: Optional[CardContext] = None
 
 
@@ -157,10 +157,10 @@ class TutorAskResponse(BaseModel):
 # ──────────────────────────────────────────────
 
 class SolveModeRequest(BaseModel):
-    lecture_id: str
-    problem: str
-    student_attempt: Optional[str] = None  # optional: what the student tried
-    section_index: Optional[int] = None
+    lecture_id: str = Field(..., min_length=1, max_length=100)
+    problem: str = Field(..., min_length=1, max_length=3000)
+    student_attempt: Optional[str] = Field(None, max_length=3000)
+    section_index: Optional[int] = Field(None, ge=0, le=100)
 
 
 class SolveStep(BaseModel):

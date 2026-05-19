@@ -5,7 +5,7 @@ The AI-powered lecture companion that doesn't just take notes — it teaches.
 """
 
 import os
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
@@ -45,6 +45,9 @@ app = FastAPI(
     description="AI-powered lecture processing: audio cleanup, transcription, structured notes, and Learn Mode.",
     version="0.3.0",
     lifespan=lifespan,
+    # Disable Swagger/ReDoc in production — no need to expose API docs publicly
+    docs_url="/docs" if settings.debug else None,
+    redoc_url="/redoc" if settings.debug else None,
 )
 
 # Rate limiting
@@ -82,132 +85,13 @@ async def root():
         "app": "Lectly API",
         "version": "0.3.0",
         "status": "running",
-        "docs": "/docs",
-    }
-
-
-@app.get("/health/auth")
-async def health_auth(request: Request):
-    """
-    Debug endpoint — test if your auth token is valid.
-    Send a request with Authorization: Bearer <token> and see what happens.
-    Also works from browser console: fetch('/health/auth', {headers: {'Authorization': 'Bearer ...'}})
-    """
-    auth_header = request.headers.get("authorization", "")
-    if not auth_header:
-        return {
-            "auth_present": False,
-            "error": "No Authorization header found",
-            "hint": "Make sure the frontend is sending the Bearer token",
-        }
-
-    from app.deps import _extract_user_id
-    user_id = _extract_user_id(request)
-    clerk_issuer = settings.clerk_issuer
-
-    return {
-        "auth_present": True,
-        "token_prefix": auth_header[:30] + "..." if len(auth_header) > 30 else auth_header,
-        "clerk_issuer_configured": bool(clerk_issuer),
-        "clerk_issuer_value": clerk_issuer[:30] + "..." if clerk_issuer else "(empty)",
-        "user_id": user_id,
-        "auth_valid": bool(user_id),
-        "error": None if user_id else "Token verification failed — check CLERK_ISSUER and token validity",
     }
 
 
 @app.get("/health")
 async def health():
+    """Public health check — only reveals the service is running. No internals."""
     return {
         "status": "healthy",
         "version": "0.3.0",
-        "openai_configured": bool(settings.openai_api_key),
-        "anthropic_configured": bool(settings.anthropic_api_key),
-        "gemini_configured": bool(settings.gemini_api_key),
-        "groq_configured": bool(settings.groq_api_key),
-        "assemblyai_configured": bool(settings.assemblyai_api_key),
-    }
-
-
-@app.get("/health/llm")
-async def health_llm():
-    """
-    Test each LLM provider with a tiny request.
-    Returns the exact error for any that fail — use this to diagnose
-    why Gemini/Groq/Claude might not be working on Railway.
-    """
-    import requests as http_requests
-
-    results = {}
-
-    # ── Test Gemini ──
-    gemini_key = settings.gemini_api_key
-    if not gemini_key:
-        results["gemini"] = {"status": "not_configured", "error": "GEMINI_API_KEY is empty"}
-    else:
-        try:
-            api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
-            payload = {
-                "contents": [{"role": "user", "parts": [{"text": "Reply with exactly: OK"}]}],
-                "generationConfig": {"temperature": 0, "maxOutputTokens": 10},
-            }
-            resp = http_requests.post(api_url, json=payload, headers={"Content-Type": "application/json"}, timeout=30)
-            if resp.status_code == 200:
-                text = resp.json().get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-                results["gemini"] = {"status": "ok", "response": text.strip(), "model": "gemini-2.5-flash"}
-            else:
-                results["gemini"] = {
-                    "status": "error",
-                    "http_code": resp.status_code,
-                    "error": resp.text[:500],
-                    "key_prefix": gemini_key[:10] + "...",
-                }
-        except Exception as e:
-            results["gemini"] = {"status": "error", "error": str(e)}
-
-    # ── Test Groq ──
-    groq_key = settings.groq_api_key
-    if not groq_key:
-        results["groq"] = {"status": "not_configured", "error": "GROQ_API_KEY is empty"}
-    else:
-        try:
-            resp = http_requests.post(
-                "https://api.groq.com/openai/v1/chat/completions",
-                headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
-                json={"model": "llama-3.1-8b-instant", "messages": [{"role": "user", "content": "Reply with exactly: OK"}], "max_tokens": 10},
-                timeout=30,
-            )
-            if resp.status_code == 200:
-                text = resp.json()["choices"][0]["message"]["content"]
-                results["groq"] = {"status": "ok", "response": text.strip(), "model": "llama-3.1-8b-instant"}
-            else:
-                results["groq"] = {"status": "error", "http_code": resp.status_code, "error": resp.text[:500]}
-        except Exception as e:
-            results["groq"] = {"status": "error", "error": str(e)}
-
-    # ── Test Claude ──
-    claude_key = settings.anthropic_api_key
-    if not claude_key:
-        results["claude"] = {"status": "not_configured", "error": "ANTHROPIC_API_KEY is empty"}
-    else:
-        try:
-            resp = http_requests.post(
-                "https://api.anthropic.com/v1/messages",
-                headers={"x-api-key": claude_key, "anthropic-version": "2023-06-01", "Content-Type": "application/json"},
-                json={"model": "claude-haiku-4-5-20251001", "max_tokens": 10, "messages": [{"role": "user", "content": "Reply with exactly: OK"}]},
-                timeout=30,
-            )
-            if resp.status_code == 200:
-                text = resp.json()["content"][0]["text"]
-                results["claude"] = {"status": "ok", "response": text.strip(), "model": "claude-haiku-4-5-20251001"}
-            else:
-                results["claude"] = {"status": "error", "http_code": resp.status_code, "error": resp.text[:500]}
-        except Exception as e:
-            results["claude"] = {"status": "error", "error": str(e)}
-
-    # Summary
-    all_ok = all(r.get("status") == "ok" for r in results.values())
-    return {
-        "overall": "healthy" if all_ok else "degraded",
-        "providers": results,
     }
