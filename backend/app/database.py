@@ -986,6 +986,7 @@ def upsert_subscription(user_id: str, data: dict) -> dict:
                     paystack_subscription_code = COALESCE({P}, paystack_subscription_code),
                     paystack_authorization_code = COALESCE({P}, paystack_authorization_code),
                     paystack_email = COALESCE({P}, paystack_email),
+                    paystack_reference = COALESCE({P}, paystack_reference),
                     lectures_limit = {P},
                     current_period_start = COALESCE({P}, current_period_start),
                     current_period_end = COALESCE({P}, current_period_end),
@@ -998,6 +999,7 @@ def upsert_subscription(user_id: str, data: dict) -> dict:
                     data.get("paystack_subscription_code"),
                     data.get("paystack_authorization_code"),
                     data.get("paystack_email"),
+                    data.get("paystack_reference"),
                     lectures_limit,
                     data.get("current_period_start"),
                     data.get("current_period_end"),
@@ -1014,9 +1016,10 @@ def upsert_subscription(user_id: str, data: dict) -> dict:
                 conn,
                 f"""INSERT INTO subscriptions
                     (user_id, tier, paystack_customer_code, paystack_subscription_code,
-                     paystack_authorization_code, paystack_email, lectures_limit,
-                     current_period_start, current_period_end, status, created_at, updated_at)
-                    VALUES ({P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P})""",
+                     paystack_authorization_code, paystack_email, paystack_reference,
+                     lectures_limit, current_period_start, current_period_end,
+                     status, created_at, updated_at)
+                    VALUES ({P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P})""",
                 (
                     user_id,
                     tier,
@@ -1024,6 +1027,7 @@ def upsert_subscription(user_id: str, data: dict) -> dict:
                     data.get("paystack_subscription_code"),
                     data.get("paystack_authorization_code"),
                     data.get("paystack_email"),
+                    data.get("paystack_reference"),
                     lectures_limit,
                     data.get("current_period_start"),
                     data.get("current_period_end"),
@@ -1035,6 +1039,26 @@ def upsert_subscription(user_id: str, data: dict) -> dict:
             conn.commit()
 
     return get_subscription(user_id)
+
+
+def get_subscription_by_customer_code(customer_code: str) -> Optional[dict]:
+    """Look up a subscription by Paystack customer code (used by webhooks)."""
+    with _get_conn() as conn:
+        return _fetchone(
+            conn,
+            f"SELECT * FROM subscriptions WHERE paystack_customer_code = {P}",
+            (customer_code,),
+        )
+
+
+def get_subscription_by_reference(reference: str) -> Optional[dict]:
+    """Look up a subscription by Paystack transaction reference (duplicate protection)."""
+    with _get_conn() as conn:
+        return _fetchone(
+            conn,
+            f"SELECT * FROM subscriptions WHERE paystack_reference = {P}",
+            (reference,),
+        )
 
 
 def cancel_subscription(user_id: str):
@@ -1077,6 +1101,14 @@ MIGRATIONS = [
         "CREATE INDEX IF NOT EXISTS idx_progress_user_id ON progress(user_id); "
         "CREATE INDEX IF NOT EXISTS idx_progress_lecture_id ON progress(lecture_id); "
         "CREATE INDEX IF NOT EXISTS idx_progress_user_lecture ON progress(user_id, lecture_id);",
+    ),
+    (
+        3,
+        "Add paystack_reference to subscriptions + index on customer_code",
+        "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS paystack_reference TEXT; "
+        "CREATE INDEX IF NOT EXISTS idx_subs_customer_code ON subscriptions(paystack_customer_code); "
+        "CREATE INDEX IF NOT EXISTS idx_subs_reference ON subscriptions(paystack_reference);",
+        None,  # SQLite handled in code below
     ),
 ]
 
@@ -1131,6 +1163,13 @@ def run_migrations():
                                 _execute(conn, f"ALTER TABLE lectures ADD COLUMN {col}")
                             except Exception:
                                 pass  # Column already exists
+                    elif version == 3:
+                        try:
+                            _execute(conn, "ALTER TABLE subscriptions ADD COLUMN paystack_reference TEXT")
+                        except Exception:
+                            pass  # Column already exists
+                        _execute(conn, "CREATE INDEX IF NOT EXISTS idx_subs_customer_code ON subscriptions(paystack_customer_code)")
+                        _execute(conn, "CREATE INDEX IF NOT EXISTS idx_subs_reference ON subscriptions(paystack_reference)")
 
                 _execute(
                     conn,

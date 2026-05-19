@@ -15,6 +15,7 @@ import hashlib
 import hmac
 import json
 import logging
+from datetime import datetime, timedelta
 
 import requests
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -24,6 +25,8 @@ from app.config import get_settings
 from app.deps import get_current_user
 from app.database import (
     get_subscription,
+    get_subscription_by_customer_code,
+    get_subscription_by_reference,
     upsert_subscription,
     cancel_subscription,
     TIER_LIMITS,
@@ -143,6 +146,16 @@ async def verify_payment(
     if not settings.paystack_secret_key:
         raise HTTPException(status_code=500, detail="Payment not configured")
 
+    # Duplicate protection: if this reference was already processed, return success
+    existing = get_subscription_by_reference(body.reference)
+    if existing and existing.get("status") == "active":
+        logger.info(f"[Lectly] Duplicate verify for reference {body.reference} — already processed")
+        return {
+            "verified": True,
+            "plan": existing.get("tier", "basic"),
+            "message": f"Already upgraded to {existing.get('tier', 'basic').title()} plan!",
+        }
+
     try:
         resp = requests.get(
             f"{PAYSTACK_API}/transaction/verify/{body.reference}",
@@ -163,6 +176,10 @@ async def verify_payment(
         if tx_user_id and tx_user_id != user_id:
             raise HTTPException(status_code=403, detail="Transaction does not belong to this user")
 
+        # Calculate subscription period (30 days from now)
+        now = datetime.utcnow()
+        period_end = now + timedelta(days=30)
+
         # Upgrade the subscription
         upsert_subscription(user_id, {
             "tier": plan,
@@ -170,10 +187,13 @@ async def verify_payment(
             "paystack_email": tx.get("customer", {}).get("email"),
             "paystack_customer_code": tx.get("customer", {}).get("customer_code"),
             "paystack_authorization_code": tx.get("authorization", {}).get("authorization_code"),
+            "paystack_reference": body.reference,
+            "current_period_start": now.isoformat(),
+            "current_period_end": period_end.isoformat(),
             "status": "active",
         })
 
-        logger.info(f"[Lectly] User {user_id} upgraded to {plan} (ref: {body.reference})")
+        logger.info(f"[Lectly] User {user_id} upgraded to {plan} (ref: {body.reference}, expires: {period_end.isoformat()})")
 
         return {
             "verified": True,
@@ -228,29 +248,45 @@ async def paystack_webhook(request: Request):
     event_type = event.get("event")
     data = event.get("data", {})
 
+    logger.info(f"[Lectly] Webhook received: {event_type}")
+
     if event_type == "charge.success":
         metadata = data.get("metadata", {})
         user_id = metadata.get("user_id")
         plan = metadata.get("plan", "basic")
+        reference = data.get("reference", "")
 
         if user_id:
-            upsert_subscription(user_id, {
-                "tier": plan,
-                "lectures_limit": TIER_LIMITS.get(plan, 8),
-                "paystack_email": data.get("customer", {}).get("email"),
-                "paystack_customer_code": data.get("customer", {}).get("customer_code"),
-                "paystack_authorization_code": data.get("authorization", {}).get("authorization_code"),
-                "status": "active",
-            })
-            logger.info(f"[Lectly] Webhook: User {user_id} upgraded to {plan}")
+            # Duplicate protection
+            existing = get_subscription_by_reference(reference) if reference else None
+            if existing and existing.get("status") == "active":
+                logger.info(f"[Lectly] Webhook: Reference {reference} already processed — skipping")
+            else:
+                now = datetime.utcnow()
+                period_end = now + timedelta(days=30)
+                upsert_subscription(user_id, {
+                    "tier": plan,
+                    "lectures_limit": TIER_LIMITS.get(plan, 8),
+                    "paystack_email": data.get("customer", {}).get("email"),
+                    "paystack_customer_code": data.get("customer", {}).get("customer_code"),
+                    "paystack_authorization_code": data.get("authorization", {}).get("authorization_code"),
+                    "paystack_reference": reference,
+                    "current_period_start": now.isoformat(),
+                    "current_period_end": period_end.isoformat(),
+                    "status": "active",
+                })
+                logger.info(f"[Lectly] Webhook: User {user_id} upgraded to {plan}")
 
     elif event_type in ("subscription.disable", "subscription.not_renew"):
-        # Handle subscription cancellation
+        # Handle subscription cancellation — look up user by customer code
         customer_code = data.get("customer", {}).get("customer_code")
         if customer_code:
-            # Find user by customer code and cancel
-            # For now, log it — we'd need a lookup by customer_code
-            logger.info(f"[Lectly] Webhook: Subscription cancelled for customer {customer_code}")
+            sub = get_subscription_by_customer_code(customer_code)
+            if sub:
+                cancel_subscription(sub["user_id"])
+                logger.info(f"[Lectly] Webhook: User {sub['user_id']} downgraded to free (customer: {customer_code})")
+            else:
+                logger.warning(f"[Lectly] Webhook: No subscription found for customer {customer_code}")
 
     return {"ok": True}
 
