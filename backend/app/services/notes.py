@@ -771,17 +771,26 @@ def _call_gemini(system_prompt: str, user_message: str, json_mode: bool = True, 
         "generationConfig": gen_config,
     }
 
-    # Retry up to 3 times on transient errors (503, 429)
+    # Retry up to 3 times on transient errors (503, 429) or timeouts
     max_retries = 3
     for attempt in range(max_retries):
         print(f"[Lectly] Calling Gemini 2.5 Flash{'(JSON)' if json_mode else ' (text)'}{'...' if attempt == 0 else f' (retry {attempt})...'}")
 
-        response = http_requests.post(
-            api_url,
-            headers={"Content-Type": "application/json"},
-            json=payload,
-            timeout=180,  # 3 min timeout (long transcripts can take a while)
-        )
+        try:
+            response = http_requests.post(
+                api_url,
+                headers={"Content-Type": "application/json"},
+                json=payload,
+                timeout=180,  # 3 min timeout (long transcripts can take a while)
+            )
+        except (http_requests.exceptions.Timeout, http_requests.exceptions.ConnectionError) as e:
+            if attempt < max_retries - 1:
+                wait = (attempt + 1) * 3
+                print(f"[Lectly] Gemini connection error: {e}, retrying in {wait}s...")
+                import time as _time
+                _time.sleep(wait)
+                continue
+            raise Exception(f"Gemini connection failed after {max_retries} attempts: {e}")
 
         if response.status_code == 200:
             result = response.json()
@@ -854,16 +863,29 @@ def _call_claude(system_prompt: str, user_message: str, json_mode: bool = True, 
         ],
     }
 
-    # Retry up to 3 times on transient errors (429, 529)
+    # Retry up to 3 times on transient errors (429, 529) or timeouts
     max_retries = 3
     for attempt in range(max_retries):
         print(f"[Lectly] Calling Claude Haiku{'(JSON)' if json_mode else ' (text)'}{'...' if attempt == 0 else f' (retry {attempt})...'}")
 
-        response = http_requests.post(api_url, headers=headers, json=payload, timeout=120)
+        try:
+            response = http_requests.post(api_url, headers=headers, json=payload, timeout=120)
+        except (http_requests.exceptions.Timeout, http_requests.exceptions.ConnectionError) as e:
+            if attempt < max_retries - 1:
+                wait = (attempt + 1) * 3
+                print(f"[Lectly] Claude connection error: {e}, retrying in {wait}s...")
+                _time.sleep(wait)
+                continue
+            raise Exception(f"Claude connection failed after {max_retries} attempts: {e}")
 
         if response.status_code == 200:
             result = response.json()
-            text = result["content"][0]["text"].strip()
+            content = result.get("content", [])
+            if not content or not content[0].get("text"):
+                raise Exception(f"Claude returned empty response body: {json.dumps(result)[:300]}")
+            text = content[0]["text"].strip()
+            if not text:
+                raise Exception("Claude returned empty text content")
             print(f"[Lectly] Claude response received ({len(text)} chars)")
             return text
 
@@ -943,7 +965,15 @@ def _call_groq(system_prompt: str, user_message: str) -> str:
 
     import time
     for attempt in range(3):
-        response = http_requests.post(api_url, headers=headers, json=payload, timeout=120)
+        try:
+            response = http_requests.post(api_url, headers=headers, json=payload, timeout=120)
+        except (http_requests.exceptions.Timeout, http_requests.exceptions.ConnectionError) as e:
+            if attempt < 2:
+                wait = 10 * (attempt + 1)
+                print(f"[Lectly] Groq connection error: {e}, retrying in {wait}s...")
+                time.sleep(wait)
+                continue
+            raise Exception(f"Groq connection failed after 3 attempts: {e}")
 
         if response.status_code == 429:
             wait = 10 * (attempt + 1)
@@ -955,7 +985,10 @@ def _call_groq(system_prompt: str, user_message: str) -> str:
             raise Exception(f"Groq API error ({response.status_code}): {response.text[:200]}")
 
         result = response.json()
-        text = result["choices"][0]["message"]["content"].strip()
+        choices = result.get("choices", [])
+        if not choices or not choices[0].get("message", {}).get("content"):
+            raise Exception(f"Groq returned empty response: {json.dumps(result)[:300]}")
+        text = choices[0]["message"]["content"].strip()
         print(f"[Lectly] Groq response received ({len(text)} chars)")
         return text
 
@@ -1053,10 +1086,32 @@ async def generate_notes(lecture_id: str) -> StructuredNotes:
         user_message = f"Subject: {subject}\n\nTranscript:\n{transcript_text}"
 
         # Call LLM (Gemini primary, Groq fallback)
-        print(f"[Lectly] Generating notes for {lecture_id}...")
-        raw_response = _call_llm(NOTES_SYSTEM_PROMPT, user_message)
-        print(f"[Lectly] LLM response received for {lecture_id} ({len(raw_response)} chars)")
-        data = _parse_json_response(raw_response)
+        # Retry once if the response is empty or has no sections
+        data = None
+        for attempt in range(2):
+            print(f"[Lectly] Generating notes for {lecture_id}{'...' if attempt == 0 else f' (retry {attempt})...'}")
+            raw_response = _call_llm(NOTES_SYSTEM_PROMPT, user_message)
+            print(f"[Lectly] LLM response received for {lecture_id} ({len(raw_response)} chars)")
+            data = _parse_json_response(raw_response)
+
+            has_sections = bool(data.get("sections") and len(data.get("sections", [])) >= 1)
+            has_title = bool(data.get("title") and len(str(data.get("title", ""))) > 2)
+            has_summary = bool(data.get("summary") and len(str(data.get("summary", ""))) > 10)
+
+            if has_sections and has_title and has_summary:
+                print(f"[Lectly] Note generation complete (attempt {attempt + 1}, {len(data.get('sections', []))} sections)")
+                break
+            else:
+                missing = []
+                if not has_sections: missing.append("sections")
+                if not has_title: missing.append("title")
+                if not has_summary: missing.append("summary")
+                print(f"[Lectly] Note generation incomplete (attempt {attempt + 1}), missing: {', '.join(missing)}")
+                if attempt == 0:
+                    print(f"[Lectly] Retrying note generation...")
+
+        if data is None:
+            raise ValueError("Failed to generate notes — LLM returned no data")
 
         # Build structured notes
         sections = []
@@ -1506,10 +1561,31 @@ async def solve_problem(request: SolveModeRequest) -> SolveModeResponse:
     print(f"[Lectly] Solve Mode for lecture {request.lecture_id}: \"{request.problem[:80]}...\"")
 
     try:
-        raw_response = _call_claude_with_fallback(SOLVE_MODE_PROMPT, user_message, json_mode=True, temperature=0.3)
-        data = _parse_json_response(raw_response)
+        # Try up to 2 times — retry if response is incomplete (missing steps or answer)
+        data = None
+        for attempt in range(2):
+            raw_response = _call_claude_with_fallback(SOLVE_MODE_PROMPT, user_message, json_mode=True, temperature=0.3)
+            data = _parse_json_response(raw_response)
 
-        # Build response
+            # Validate completeness — steps and answer are the critical fields
+            has_steps = bool(data.get("steps") and len(data.get("steps", [])) >= 1)
+            has_answer = bool(data.get("answer") and len(str(data.get("answer", ""))) > 5)
+
+            if has_steps and has_answer:
+                print(f"[Lectly] Solve Mode response complete (attempt {attempt + 1})")
+                break
+            else:
+                missing = []
+                if not has_steps: missing.append("steps")
+                if not has_answer: missing.append("answer")
+                print(f"[Lectly] Solve Mode response incomplete (attempt {attempt + 1}), missing: {', '.join(missing)}")
+                if attempt == 0:
+                    print(f"[Lectly] Retrying...")
+
+        if data is None:
+            raise ValueError("Failed to generate Solve Mode content")
+
+        # Build response with safe defaults for all fields
         steps = []
         for s in data.get("steps", []):
             steps.append(SolveStep(
@@ -1517,6 +1593,15 @@ async def solve_problem(request: SolveModeRequest) -> SolveModeResponse:
                 title=s.get("title", f"Step {len(steps) + 1}"),
                 content=s.get("content", ""),
                 key_insight=s.get("key_insight", ""),
+            ))
+
+        # Ensure at least one step exists (graceful fallback)
+        if not steps:
+            steps.append(SolveStep(
+                step_number=1,
+                title="Solution",
+                content=data.get("answer", "Could not generate a step-by-step solution."),
+                key_insight="",
             ))
 
         return SolveModeResponse(
