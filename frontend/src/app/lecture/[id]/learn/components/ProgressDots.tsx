@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import type { FlowCard } from "./types";
 
 interface ProgressDotsProps {
@@ -9,7 +10,7 @@ interface ProgressDotsProps {
   onSelectCard: (index: number) => void;
 }
 
-export function ProgressDots({
+export const ProgressDots = React.memo(function ProgressDots({
   cardFlow,
   cardIndex,
   totalCards,
@@ -50,4 +51,4 @@ export function ProgressDots({
       </span>
     </div>
   );
-}
+})

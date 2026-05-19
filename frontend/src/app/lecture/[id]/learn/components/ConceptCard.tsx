@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import React, { useState } from "react";
+import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { RenderBody } from "./markdown";
 
 interface ConceptCardProps {
@@ -13,7 +14,10 @@ interface ConceptCardProps {
   onViewNotes: () => void;
 }
 
-export function ConceptCard({
+/** Threshold in characters — bodies longer than this get a "Show more" toggle on mobile */
+const TRUNCATE_THRESHOLD = 600;
+
+export const ConceptCard = React.memo(function ConceptCard({
   card,
   cardIndex,
   isFirst,
@@ -22,6 +26,14 @@ export function ConceptCard({
   onPrev,
   onViewNotes,
 }: ConceptCardProps) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = card.body.length > TRUNCATE_THRESHOLD;
+
+  // On mobile, truncate long cards to first ~600 chars (at a paragraph break)
+  const displayBody = !expanded && isLong
+    ? card.body.slice(0, TRUNCATE_THRESHOLD).replace(/\n[^\n]*$/, "") + "..."
+    : card.body;
+
   return (
     <div
       key={`concept-${cardIndex}`}
@@ -43,9 +55,22 @@ export function ConceptCard({
           </h2>
         )}
 
-        {/* Card body */}
+        {/* Card body — truncated on mobile for long content */}
         <div className="prose max-w-none">
-          <RenderBody text={card.body} />
+          <div className="sm:hidden">
+            <RenderBody text={displayBody} />
+            {isLong && !expanded && (
+              <button
+                onClick={() => setExpanded(true)}
+                className="flex items-center gap-1 text-xs font-semibold text-[#0F3D43] hover:text-[#1a5c64] mt-2 transition-colors"
+              >
+                Show more <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+          <div className="hidden sm:block">
+            <RenderBody text={card.body} />
+          </div>
         </div>
       </div>
 
@@ -83,4 +108,4 @@ export function ConceptCard({
       </div>
     </div>
   );
-}
+})

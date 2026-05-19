@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, use } from "react";
+import { useState, useEffect, useRef, use, useMemo, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -36,6 +36,7 @@ import { QuizCard } from "./components/QuizCard";
 import { AnalogyCard } from "./components/AnalogyCard";
 import { NotesView } from "./components/NotesView";
 import { TutorComposer } from "./components/TutorComposer";
+import { useSwipe } from "./components/useSwipe";
 
 export default function LearnModePage({
   params,
@@ -105,8 +106,8 @@ export default function LearnModePage({
   const [existingProgress, setExistingProgress] = useState<StudyProgress[]>([]);
   const progressSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ── Build unified card flow (from a given result, for resume logic) ──
-  const buildCardFlowFrom = (result: LearnResult): FlowCard[] => {
+  // ── Build unified card flow from a learn result (shared helper) ──
+  const buildCardFlowFrom = useCallback((result: LearnResult): FlowCard[] => {
     const flow: FlowCard[] = [];
     const concepts = result.explanation;
     const quizQuestions = result.quiz;
@@ -124,48 +125,13 @@ export default function LearnModePage({
       qIdx++;
     }
     return flow;
-  };
+  }, []);
 
-  // ── Build unified card flow ──
-  const buildCardFlow = (): FlowCard[] => {
-    if (!learnResult) return [];
-    const flow: FlowCard[] = [];
-    const concepts = learnResult.explanation;
-    const quizQuestions = learnResult.quiz;
-
-    // Interleave concept cards with quiz cards
-    // Pattern: every 3 concept cards, insert a quiz question (if available)
-    let quizIdx = 0;
-    for (let i = 0; i < concepts.length; i++) {
-      flow.push({
-        type: "concept",
-        index: i,
-        subtitle: concepts[i].subtitle,
-        body: concepts[i].body,
-      });
-
-      // After every 3rd concept card, insert a quiz if available
-      if ((i + 1) % 3 === 0 && quizIdx < quizQuestions.length) {
-        flow.push({ type: "quiz", questionIndex: quizIdx });
-        quizIdx++;
-      }
-    }
-
-    // Add analogy card at the end of concept/quiz flow
-    if (learnResult.analogy) {
-      flow.push({ type: "analogy", body: learnResult.analogy });
-    }
-
-    // Add remaining quiz questions
-    while (quizIdx < quizQuestions.length) {
-      flow.push({ type: "quiz", questionIndex: quizIdx });
-      quizIdx++;
-    }
-
-    return flow;
-  };
-
-  const cardFlow = learnResult ? buildCardFlow() : [];
+  // Memoize card flow — only recomputes when learnResult changes, not every render
+  const cardFlow = useMemo(
+    () => (learnResult ? buildCardFlowFrom(learnResult) : []),
+    [learnResult, buildCardFlowFrom]
+  );
   const currentFlowCard = cardFlow[cardIndex] || null;
   const totalFlowCards = cardFlow.length;
 
@@ -201,6 +167,21 @@ export default function LearnModePage({
     }
   }, [lecture, autoStarted, searchParams]);
 
+  // Stable navigation callbacks for swipe + keyboard
+  const goNext = useCallback(() => {
+    setCardIndex((prev) => Math.min(prev + 1, totalFlowCards - 1));
+  }, [totalFlowCards]);
+
+  const goPrev = useCallback(() => {
+    setCardIndex((prev) => Math.max(prev - 1, 0));
+  }, []);
+
+  // Swipe gestures — left swipe = next card, right swipe = previous card
+  const swipeHandlers = useSwipe({
+    onSwipeLeft: goNext,
+    onSwipeRight: goPrev,
+  });
+
   // Keyboard navigation for card flow
   useEffect(() => {
     if (activeMode !== 0 || !learnResult) return;
@@ -210,16 +191,16 @@ export default function LearnModePage({
 
       if (e.key === "ArrowRight" || e.key === "ArrowDown") {
         e.preventDefault();
-        setCardIndex((prev) => Math.min(prev + 1, totalFlowCards - 1));
+        goNext();
       } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
         e.preventDefault();
-        setCardIndex((prev) => Math.max(prev - 1, 0));
+        goPrev();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeMode, learnResult, totalFlowCards]);
+  }, [activeMode, learnResult, goNext, goPrev]);
 
   // Auto-scroll chat
   useEffect(() => {
@@ -774,7 +755,7 @@ export default function LearnModePage({
                   const isLast = cardIndex >= totalFlowCards - 1;
 
                   return (
-                    <div className="flex-1 flex flex-col">
+                    <div className="flex-1 flex flex-col" {...swipeHandlers}>
                       {/* Progress dots */}
                       <ProgressDots
                         cardFlow={cardFlow}
@@ -847,32 +828,121 @@ export default function LearnModePage({
                       </p>
                       {/* Swipe hint — mobile only */}
                       <p className="text-center text-[11px] text-[#8a7f6f] mt-4 sm:hidden">
-                        Tap the buttons or dots to navigate
+                        Swipe left/right or tap buttons to navigate
                       </p>
                     </div>
                   );
                 })()}
 
-                {/* ═══ MODE 1: PRACTICE (placeholder) ═══ */}
-                {activeMode === 1 && (
-                  <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
-                    <div className="w-16 h-16 rounded-2xl bg-[#EDE8DF] flex items-center justify-center mb-5">
-                      <PenTool className="w-8 h-8 text-[#8a7f6f]" />
+                {/* ═══ MODE 1: PRACTICE (rapid-fire quiz) ═══ */}
+                {activeMode === 1 && (() => {
+                  const quizCards = cardFlow.filter((c) => c.type === "quiz");
+                  if (quizCards.length === 0) {
+                    return (
+                      <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-[#EDE8DF] flex items-center justify-center mb-5">
+                          <PenTool className="w-8 h-8 text-[#8a7f6f]" />
+                        </div>
+                        <h2 className="text-lg font-bold text-[#1a1815] mb-2" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+                          No practice questions yet
+                        </h2>
+                        <p className="text-sm text-[#8a7f6f] max-w-sm">
+                          Go through the Cards first — quizzes will appear here for focused practice.
+                        </p>
+                        <button
+                          onClick={() => setActiveMode(0)}
+                          className="mt-6 text-sm font-medium text-[#1a1815] px-5 py-2.5 rounded-xl border border-[rgba(217,185,130,0.3)] hover:bg-[#FDFCF9] transition-colors"
+                        >
+                          Back to Cards
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  // Show all quiz questions in a scrollable list for rapid practice
+                  const answeredCount = quizCards.filter((c) => c.type === "quiz" && quizRevealed[c.questionIndex]).length;
+                  const correctCount = quizCards.filter((c) => c.type === "quiz" && quizRevealed[c.questionIndex] && quizAnswers[c.questionIndex] === learnResult.quiz[c.questionIndex]?.correct_index).length;
+
+                  return (
+                    <div className="flex-1 flex flex-col">
+                      {/* Practice header */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <span className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest">
+                            Practice Quiz
+                          </span>
+                          <span className="text-[10px] text-[#8a7f6f]">
+                            {answeredCount}/{quizCards.length} answered
+                          </span>
+                        </div>
+                        {answeredCount > 0 && (
+                          <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                            correctCount === answeredCount
+                              ? "bg-green-100 text-green-700"
+                              : correctCount >= answeredCount * 0.7
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-red-100 text-red-700"
+                          }`}>
+                            {correctCount}/{answeredCount} correct
+                          </span>
+                        )}
+                      </div>
+
+                      {/* All quiz questions stacked */}
+                      <div className="space-y-4">
+                        {quizCards.map((card) => {
+                          if (card.type !== "quiz") return null;
+                          const qi = card.questionIndex;
+                          const q = learnResult.quiz[qi];
+                          if (!q) return null;
+
+                          return (
+                            <QuizCard
+                              key={`practice-${qi}`}
+                              question={q}
+                              questionIndex={qi}
+                              isFirst={true}
+                              isLast={true}
+                              cardIndex={qi}
+                              selectedAnswer={quizAnswers[qi]}
+                              isRevealed={!!quizRevealed[qi]}
+                              onSelectAnswer={selectQuizAnswer}
+                              onNext={() => {}}
+                              onPrev={() => {}}
+                              onViewNotes={() => setActiveMode(2)}
+                              reteachIndex={reteachIndex}
+                              reteachLoading={reteachLoading}
+                              reteachText={reteachText}
+                              onReteach={handleReteach}
+                            />
+                          );
+                        })}
+                      </div>
+
+                      {/* Summary when all answered */}
+                      {answeredCount === quizCards.length && (
+                        <div className="mt-6 p-5 bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl text-center">
+                          <p className="text-lg font-bold text-[#1a1815] mb-1" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+                            {correctCount === quizCards.length
+                              ? "Perfect score!"
+                              : correctCount >= quizCards.length * 0.7
+                              ? "Good job!"
+                              : "Keep practicing!"}
+                          </p>
+                          <p className="text-sm text-[#8a7f6f] mb-4">
+                            You got {correctCount} out of {quizCards.length} correct
+                          </p>
+                          <button
+                            onClick={() => setActiveMode(0)}
+                            className="text-sm font-medium text-[#1a1815] px-5 py-2.5 rounded-xl border border-[rgba(217,185,130,0.3)] hover:bg-[#EDE8DF] transition-colors"
+                          >
+                            Back to Cards
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <h2 className="text-lg font-bold text-[#1a1815] mb-2" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
-                      Practice — Coming Soon
-                    </h2>
-                    <p className="text-sm text-[#8a7f6f] max-w-sm">
-                      AI-generated practice problems based on your lesson. Work through progressively harder questions with guided hints and step-by-step feedback.
-                    </p>
-                    <button
-                      onClick={() => setActiveMode(0)}
-                      className="mt-6 text-sm font-medium text-[#1a1815] px-5 py-2.5 rounded-xl border border-[rgba(217,185,130,0.3)] hover:bg-[#FDFCF9] transition-colors"
-                    >
-                      Back to Cards
-                    </button>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* ═══ MODE 2: NOTES (examples + resources + reference) ═══ */}
                 {activeMode === 2 && (

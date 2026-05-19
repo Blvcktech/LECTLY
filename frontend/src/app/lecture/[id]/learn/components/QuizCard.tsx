@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { CheckCircle2, XCircle, ChevronLeft, ChevronRight, Loader2, Sparkles } from "lucide-react";
 import { RenderBody, RenderInline, TutorMessageContent } from "./markdown";
 import type { QuizQuestion } from "@/lib/api";
@@ -22,7 +23,7 @@ interface QuizCardProps {
   onReteach: (qIndex: number) => void;
 }
 
-export function QuizCard({
+export const QuizCard = React.memo(function QuizCard({
   question,
   questionIndex,
   isFirst,
@@ -178,4 +179,4 @@ export function QuizCard({
       </div>
     </div>
   );
-}
+})

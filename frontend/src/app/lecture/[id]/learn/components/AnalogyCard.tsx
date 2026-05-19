@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Lightbulb, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface AnalogyCardProps {
@@ -14,7 +15,7 @@ interface AnalogyCardProps {
   onAskTutor: (message: string) => void;
 }
 
-export function AnalogyCard({
+export const AnalogyCard = React.memo(function AnalogyCard({
   body,
   cardIndex,
   totalCards,
@@ -81,4 +82,4 @@ export function AnalogyCard({
       </div>
     </div>
   );
-}
+})
