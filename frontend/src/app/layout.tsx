@@ -6,6 +6,7 @@ import { ToastProvider } from "@/components/Toast";
 import AuthSync from "@/components/AuthSync";
 import NotificationWatcher from "@/components/NotificationWatcher";
 import PushNotifications from "@/components/PushNotifications";
+import InstallPrompt from "@/components/InstallPrompt";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -83,6 +84,7 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover" as const,
   themeColor: "#0F3D43",
 };
 
@@ -105,6 +107,7 @@ export default function RootLayout({
           <ToastProvider>
             <NotificationWatcher />
             <PushNotifications />
+            <InstallPrompt />
             {children}
           </ToastProvider>
           <Analytics />

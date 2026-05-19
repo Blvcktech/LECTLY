@@ -96,3 +96,27 @@ html {
 }
 .dark-theme ::-webkit-scrollbar-thumb { background: #1a2a2d; }
 .dark-theme ::-webkit-scrollbar-thumb:hover { background: #1a5c65; }
+
+/* Safe area insets for notched phones (iPhone X+, etc.) */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Standalone PWA mode — extra bottom padding for home indicator */
+@media (display-mode: standalone) {
+  .pwa-standalone-bottom {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 4px);
+  }
+}
+
+/* Pull-to-refresh prevention in standalone mode (native feel) */
+@media (display-mode: standalone) {
+  html {
+    overscroll-behavior-y: contain;
+  }
+}
+
+/* Tap highlight removal for mobile buttons */
+button, a {
+  -webkit-tap-highlight-color: transparent;
+}

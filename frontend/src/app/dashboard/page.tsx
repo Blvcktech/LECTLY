@@ -737,7 +737,7 @@ export default function DashboardPage() {
         </main>
       </div>
       {/* Mobile Bottom Nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#FDFCF9] border-t border-[rgba(217,185,130,0.25)] backdrop-blur-xl">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#FDFCF9] border-t border-[rgba(217,185,130,0.25)] backdrop-blur-xl safe-bottom pwa-standalone-bottom">
         <div className="flex items-center justify-around h-14">
           <Link href="/dashboard" className="flex flex-col items-center gap-0.5 text-[#0F3D43]">
             <Home className="w-5 h-5" />
