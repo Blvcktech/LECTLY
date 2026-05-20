@@ -45,16 +45,21 @@ if USE_POSTGRES:
     DB_POOL_MIN = int(os.environ.get("DB_POOL_MIN", "2"))
     DB_POOL_MAX = int(os.environ.get("DB_POOL_MAX", "20"))
 
+    # Query timeout: kill queries running longer than 30s (prevents runaway queries)
+    DB_QUERY_TIMEOUT_MS = int(os.environ.get("DB_QUERY_TIMEOUT_MS", "30000"))
+
     def _init_pool():
         """Create the connection pool (called once at import time)."""
         global _pg_pool
         if _pg_pool is None:
+            # Set statement_timeout on all connections from the pool
             _pg_pool = ThreadedConnectionPool(
                 DB_POOL_MIN,
                 DB_POOL_MAX,
                 DATABASE_URL,
+                options=f"-c statement_timeout={DB_QUERY_TIMEOUT_MS}",
             )
-            logger.info(f"[Lectly] PostgreSQL pool created (min={DB_POOL_MIN}, max={DB_POOL_MAX})")
+            logger.info(f"[Lectly] PostgreSQL pool created (min={DB_POOL_MIN}, max={DB_POOL_MAX}, timeout={DB_QUERY_TIMEOUT_MS}ms)")
 
     def _close_pool():
         """Gracefully close all pooled connections on shutdown."""
@@ -72,14 +77,31 @@ else:
 
 
 def get_connection():
-    """Get a database connection (from pool for PostgreSQL, new for SQLite)."""
+    """Get a database connection (from pool for PostgreSQL, new for SQLite).
+
+    For PostgreSQL: validates the connection is alive before returning it.
+    If a pooled connection is stale (server restarted, network blip), it's
+    discarded and a fresh one is obtained.
+    """
     if USE_POSTGRES:
-        return _pg_pool.getconn()
+        conn = _pg_pool.getconn()
+        try:
+            # Lightweight health check — catches stale/broken connections
+            conn.cursor().execute("SELECT 1")
+        except Exception:
+            # Connection is dead — discard it and get a fresh one
+            try:
+                _pg_pool.putconn(conn, close=True)
+            except Exception:
+                pass
+            conn = _pg_pool.getconn()
+        return conn
     else:
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(DB_PATH, timeout=10)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA journal_mode=WAL")
         conn.execute("PRAGMA foreign_keys=ON")
+        conn.execute("PRAGMA busy_timeout=5000")  # Wait up to 5s for locks
         return conn
 
 
@@ -1124,6 +1146,26 @@ MIGRATIONS = [
         "CREATE INDEX IF NOT EXISTS idx_subs_customer_code ON subscriptions(paystack_customer_code); "
         "CREATE INDEX IF NOT EXISTS idx_subs_reference ON subscriptions(paystack_reference);",
         None,  # SQLite handled in code below
+    ),
+    (
+        4,
+        "Add indexes for status queries, subscriptions, push_subscriptions, learn_mode_cache",
+        "CREATE INDEX IF NOT EXISTS idx_lectures_status ON lectures(status); "
+        "CREATE INDEX IF NOT EXISTS idx_lectures_user_status ON lectures(user_id, status); "
+        "CREATE INDEX IF NOT EXISTS idx_lectures_created ON lectures(created_at); "
+        "CREATE INDEX IF NOT EXISTS idx_subs_user_id ON subscriptions(user_id); "
+        "CREATE INDEX IF NOT EXISTS idx_subs_status ON subscriptions(status); "
+        "CREATE INDEX IF NOT EXISTS idx_push_user_id ON push_subscriptions(user_id); "
+        "CREATE INDEX IF NOT EXISTS idx_learn_cache_lookup ON learn_mode_cache(lecture_id, section_index, level, card_style); "
+        "CREATE INDEX IF NOT EXISTS idx_progress_last_studied ON progress(user_id, last_studied_at);",
+        "CREATE INDEX IF NOT EXISTS idx_lectures_status ON lectures(status); "
+        "CREATE INDEX IF NOT EXISTS idx_lectures_user_status ON lectures(user_id, status); "
+        "CREATE INDEX IF NOT EXISTS idx_lectures_created ON lectures(created_at); "
+        "CREATE INDEX IF NOT EXISTS idx_subs_user_id ON subscriptions(user_id); "
+        "CREATE INDEX IF NOT EXISTS idx_subs_status ON subscriptions(status); "
+        "CREATE INDEX IF NOT EXISTS idx_push_user_id ON push_subscriptions(user_id); "
+        "CREATE INDEX IF NOT EXISTS idx_learn_cache_lookup ON learn_mode_cache(lecture_id, section_index, level, card_style); "
+        "CREATE INDEX IF NOT EXISTS idx_progress_last_studied ON progress(user_id, last_studied_at);",
     ),
 ]
 

@@ -2,6 +2,7 @@
 
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
 import { AlertCircle, RotateCcw, Home } from "lucide-react";
+import { reportError } from "@/lib/errorTracking";
 
 // ── Types ────────────────────────────────────────
 
@@ -37,12 +38,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.setState({ errorInfo });
 
-    // Log to console for debugging — in production you'd send this to Sentry/etc
-    console.error(
-      `[Lectly ErrorBoundary${this.props.label ? ` — ${this.props.label}` : ""}]`,
-      error,
-      errorInfo
-    );
+    reportError(error, {
+      component: `ErrorBoundary${this.props.label ? ` — ${this.props.label}` : ""}`,
+      action: "componentDidCatch",
+      metadata: { componentStack: errorInfo.componentStack || undefined },
+    });
   }
 
   handleReset = () => {

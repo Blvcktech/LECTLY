@@ -7,6 +7,7 @@ import AuthSync from "@/components/AuthSync";
 import NotificationWatcher from "@/components/NotificationWatcher";
 import PushNotifications from "@/components/PushNotifications";
 import InstallPrompt from "@/components/InstallPrompt";
+import ErrorTrackingInit from "@/components/ErrorTrackingInit";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -110,6 +111,7 @@ export default function RootLayout({
             <InstallPrompt />
             {children}
           </ToastProvider>
+          <ErrorTrackingInit />
           <Analytics />
         </body>
       </html>

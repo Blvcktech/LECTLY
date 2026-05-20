@@ -18,10 +18,16 @@ from app.database import init_db, close_pool, run_migrations, recover_stuck_lect
 from app.routes.lectures import router as lectures_router
 from app.routes.push import router as push_router
 from app.routes.payments import router as payments_router
+from app.routes.metrics import router as metrics_router
 from app.rate_limit import limiter, rate_limit_exceeded_handler
+from app.middleware import RequestLoggingMiddleware, CacheHeaderMiddleware
+from app.logging_config import setup_logging
 
 
 settings = get_settings()
+
+# Set up structured logging before anything else
+setup_logging(debug=settings.debug)
 
 # Initialize database on startup
 init_db()
@@ -73,10 +79,17 @@ app.add_middleware(
     max_age=3600,
 )
 
+# Middleware stack (outermost runs first):
+# 1. Logging wraps everything — sees final status + duration
+# 2. Cache headers added to responses
+app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(CacheHeaderMiddleware)
+
 # Routes
 app.include_router(lectures_router)
 app.include_router(push_router)
 app.include_router(payments_router)
+app.include_router(metrics_router)
 
 
 @app.get("/")

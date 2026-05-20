@@ -15,6 +15,33 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   turbopack: {},
+
+  // Cache static assets aggressively (fonts, images, icons)
+  async headers() {
+    return [
+      {
+        source: "/:all*(svg|jpg|jpeg|png|gif|ico|webp|woff|woff2)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/manifest.json",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400", // 1 day
+          },
+        ],
+      },
+    ];
+  },
+
+  // Compress responses
+  compress: true,
 };
 
 export default withPWA(nextConfig);
