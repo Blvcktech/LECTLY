@@ -37,6 +37,7 @@ import { AnalogyCard } from "./components/AnalogyCard";
 import { NotesView } from "./components/NotesView";
 import { TutorComposer } from "./components/TutorComposer";
 import { useSwipe } from "./components/useSwipe";
+import { MobileTopicPills } from "./components/MobileTopicPills";
 
 export default function LearnModePage({
   params,
@@ -629,40 +630,16 @@ export default function LearnModePage({
 
           {/* ── Main content area ── */}
           <div className="flex-1 min-w-0 flex flex-col">
-            {/* Mobile: topic selector */}
-            <div className="lg:hidden mb-4">
-              <select
-                value={selectedSection ?? ""}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val !== "") handleStartLearn(parseInt(val));
-                }}
-                disabled={learnLoading}
-                className="w-full bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl px-4 py-3 text-sm text-[#1a1815] appearance-none disabled:opacity-50"
-              >
-                <option value="" disabled>Select a topic to learn...</option>
-                {sections.map((section, i) => (
-                  <option key={i} value={i}>{section.heading}</option>
-                ))}
-                <option value={-1}>Full Lecture Overview</option>
-              </select>
-              <div className="flex gap-1 mt-2 bg-[#EDE8DF] rounded-xl p-1">
-                {["beginner", "intermediate", "advanced"].map((level) => (
-                  <button
-                    key={level}
-                    onClick={() => setLearnLevel(level)}
-                    disabled={learnLoading}
-                    className={`flex-1 text-[11px] font-semibold py-2 rounded-lg transition-all capitalize ${
-                      learnLevel === level
-                        ? "bg-[#1a1815] text-white shadow-md"
-                        : "text-[#8a7f6f] hover:text-[#1a1815]"
-                    }`}
-                  >
-                    {level}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Mobile: scrollable topic pills */}
+            <MobileTopicPills
+              sections={sections}
+              selectedSection={selectedSection}
+              learnLevel={learnLevel}
+              learnLoading={learnLoading}
+              onSelectLevel={setLearnLevel}
+              onStartLearn={handleStartLearn}
+              getProgressForSection={getProgressForSection}
+            />
 
             {/* No section selected */}
             {selectedSection === null && !learnLoading && (
