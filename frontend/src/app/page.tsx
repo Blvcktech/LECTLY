@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -11,17 +8,110 @@ import {
   Download,
   ChevronDown,
   Check,
-  Menu,
-  X,
   Mic,
 } from "lucide-react";
 import StratumLogo from "@/components/StratumLogo";
+import { MobileMenu } from "@/components/MobileMenu";
+import type { Metadata } from "next";
 
-export default function Home() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+// ── SEO Metadata ──
+export const metadata: Metadata = {
+  title: "Lectly — Your AI Lecture Companion | Smart Notes & Learn Mode",
+  description:
+    "Upload lecture recordings. Get structured notes with key points and definitions. Then learn it back with an AI tutor — section by section, at your level. Built for Nigerian students.",
+  keywords: [
+    "lecture notes",
+    "AI tutor",
+    "student",
+    "study",
+    "transcription",
+    "learn mode",
+    "university",
+    "Nigeria",
+    "lecture recording",
+    "smart notes",
+    "AI study tool",
+  ],
+  openGraph: {
+    title: "Lectly — Your AI Lecture Companion",
+    description:
+      "Upload messy lecture recordings. Get clean notes. Learn with an AI tutor that teaches it back to you.",
+    url: "https://lectly.vercel.app",
+    siteName: "Lectly",
+    type: "website",
+    locale: "en_NG",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Lectly — AI-powered lecture notes, Learn Mode, and AI Tutor",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Lectly — Your AI Lecture Companion",
+    description:
+      "Upload messy lecture recordings. Get clean notes. Learn with an AI tutor that teaches it back to you.",
+    images: ["/og-image.png"],
+  },
+  alternates: {
+    canonical: "https://lectly.vercel.app",
+  },
+};
+
+// ── JSON-LD Structured Data ──
+function JsonLd() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "Lectly",
+    applicationCategory: "EducationalApplication",
+    operatingSystem: "Web",
+    url: "https://lectly.vercel.app",
+    description:
+      "AI-powered lecture companion that transforms audio recordings into structured study materials with notes, Learn Mode, and an AI tutor.",
+    offers: [
+      {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "NGN",
+        name: "Free Trial",
+        description: "3 free lecture uploads",
+      },
+      {
+        "@type": "Offer",
+        price: "3500",
+        priceCurrency: "NGN",
+        name: "Basic",
+        description: "8 lectures per month with PDF export",
+      },
+      {
+        "@type": "Offer",
+        price: "8500",
+        priceCurrency: "NGN",
+        name: "Pro",
+        description: "20 lectures per month with priority processing",
+      },
+    ],
+    aggregateRating: undefined,
+  };
 
   return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
+}
+
+// ── Page (Server Component — no "use client") ──
+export default function Home() {
+  return (
     <div className="flex flex-col min-h-screen bg-[#F7F4EE] text-[#1a1815]">
+      <JsonLd />
+
       {/* ─── Navigation ─── */}
       <nav className="fixed top-0 w-full z-50 bg-[#FDFCF9]/92 backdrop-blur-xl border-b border-[rgba(217,185,130,0.25)]">
         <div className="max-w-[1100px] mx-auto px-5 sm:px-8">
@@ -63,33 +153,8 @@ export default function Home() {
               </Link>
             </div>
 
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden text-[#8a7f6f] hover:text-[#1a1815] p-1"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
+            <MobileMenu />
           </div>
-
-          {mobileMenuOpen && (
-            <div className="md:hidden pb-4 border-t border-[rgba(217,185,130,0.2)] pt-3 space-y-2">
-              <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-[#8a7f6f] py-1.5">
-                How It Works
-              </a>
-              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-[#8a7f6f] py-1.5">
-                Features
-              </a>
-              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-[#8a7f6f] py-1.5">
-                Pricing
-              </a>
-              <div className="flex items-center gap-3 pt-2">
-                <Link href="/sign-in" className="text-sm text-[#8a7f6f]">Sign In</Link>
-                <Link href="/sign-up" className="text-sm bg-[#1a1815] text-white px-4 py-2 rounded-lg font-medium">
-                  Get Started
-                </Link>
-              </div>
-            </div>
-          )}
         </div>
       </nav>
 
@@ -165,7 +230,6 @@ export default function Home() {
                 <p className="text-[10px] text-[#8a7f6f] leading-relaxed mb-2.5">
                   Physical quantities that cannot be derived from other quantities. These form the basis of all measurements in physics...
                 </p>
-                {/* Key point */}
                 <div className="flex items-start gap-2 bg-[#1a5c65]/[0.05] border-l-2 border-[#0F3D43] rounded-r px-2.5 py-2 mb-2">
                   <div>
                     <span className="text-[9px] font-semibold text-[#0F3D43] block">Key Point</span>
@@ -174,7 +238,6 @@ export default function Home() {
                     </span>
                   </div>
                 </div>
-                {/* Definition */}
                 <div className="bg-emerald-500/[0.05] border-l-2 border-emerald-500 rounded-r px-2.5 py-2">
                   <span className="text-[9px] font-semibold text-emerald-600 block">Definition: Derived Unit</span>
                   <span className="text-[10px] text-[#4a4540]">
@@ -200,11 +263,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─── Problem + Solution — Single flowing section ─── */}
+      {/* ─── Problem + Solution ─── */}
       <section className="py-14 sm:py-16 px-5 sm:px-8 bg-[#FDFCF9]">
         <div className="max-w-[800px] mx-auto">
           <div className="flex flex-col md:flex-row gap-10 md:gap-16">
-            {/* Problem — Left */}
             <div className="flex-1">
               <span className="text-[11px] font-bold text-[#b5ad9e] uppercase tracking-widest mb-3 block">
                 The problem
@@ -228,10 +290,8 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Divider */}
             <div className="hidden md:block w-px bg-[rgba(217,185,130,0.25)]" />
 
-            {/* Solution — Right */}
             <div className="flex-1">
               <span className="text-[11px] font-bold text-[#0F3D43] uppercase tracking-widest mb-3 block">
                 The fix
@@ -267,29 +327,13 @@ export default function Home() {
           </h2>
 
           <div className="relative">
-            {/* Connecting line — desktop only */}
             <div className="hidden md:block absolute top-6 left-[16.5%] right-[16.5%] h-px bg-[rgba(217,185,130,0.3)]" />
 
             <div className="grid md:grid-cols-3 gap-8">
               {[
-                {
-                  num: "01",
-                  icon: Upload,
-                  title: "Upload",
-                  desc: "Drop your audio file. MP3, M4A, WAV — up to 500MB. Background noise is cleaned automatically.",
-                },
-                {
-                  num: "02",
-                  icon: FileText,
-                  title: "Get Notes",
-                  desc: "Your lecture is transcribed and organized into sections with key points, definitions, and summaries.",
-                },
-                {
-                  num: "03",
-                  icon: GraduationCap,
-                  title: "Learn",
-                  desc: "Pick any section. Get it explained at your level with analogies, solved examples, and quiz questions.",
-                },
+                { num: "01", icon: Upload, title: "Upload", desc: "Drop your audio file. MP3, M4A, WAV — up to 500MB. Background noise is cleaned automatically." },
+                { num: "02", icon: FileText, title: "Get Notes", desc: "Your lecture is transcribed and organized into sections with key points, definitions, and summaries." },
+                { num: "03", icon: GraduationCap, title: "Learn", desc: "Pick any section. Get it explained at your level with analogies, solved examples, and quiz questions." },
               ].map((item) => (
                 <div key={item.num} className="text-center relative">
                   <div className="w-12 h-12 rounded-full bg-[#FDFCF9] border border-[rgba(217,185,130,0.3)] flex items-center justify-center mx-auto mb-4 relative z-10 shadow-sm">
@@ -312,7 +356,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─── Features — Alternating Layout ─── */}
+      {/* ─── Features ─── */}
       <section id="features" className="py-14 sm:py-16 px-5 sm:px-8 bg-[#FDFCF9]">
         <div className="max-w-[900px] mx-auto">
           <span className="text-[11px] font-bold text-[#b5ad9e] uppercase tracking-widest mb-2 block text-center">
@@ -325,17 +369,14 @@ export default function Home() {
             What you get
           </h2>
 
-          {/* Feature Row 1 — Text left, Visual right */}
+          {/* Feature Row 1 */}
           <div className="flex flex-col md:flex-row items-start gap-8 mb-12">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-9 h-9 rounded-lg bg-[#1a5c65]/8 flex items-center justify-center">
                   <FileText className="w-4 h-4 text-[#0F3D43]" />
                 </div>
-                <h3
-                  className="text-[15px] font-semibold text-[#1a1815]"
-                  style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
-                >
+                <h3 className="text-[15px] font-semibold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   Smart Notes
                 </h3>
               </div>
@@ -348,10 +389,7 @@ export default function Home() {
                 <div className="w-9 h-9 rounded-lg bg-amber-500/8 flex items-center justify-center">
                   <Sparkles className="w-4 h-4 text-amber-600" />
                 </div>
-                <h3
-                  className="text-[15px] font-semibold text-[#1a1815]"
-                  style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
-                >
+                <h3 className="text-[15px] font-semibold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   Explain This
                 </h3>
               </div>
@@ -361,7 +399,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Visual — Mock notes card */}
             <div className="flex-shrink-0 w-full md:w-[340px] bg-[#F7F4EE] border border-[rgba(217,185,130,0.25)] rounded-2xl p-4">
               <div className="space-y-2.5">
                 <div className="bg-[#1a5c65]/[0.05] border-l-2 border-[#0F3D43] rounded-r px-3 py-2">
@@ -386,16 +423,12 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Feature Row 2 — Visual left, Text right */}
+          {/* Feature Row 2 */}
           <div className="flex flex-col-reverse md:flex-row items-start gap-8">
-            {/* Visual — Mock quiz card */}
             <div className="flex-shrink-0 w-full md:w-[340px] bg-[#F7F4EE] border border-[rgba(217,185,130,0.25)] rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-3">
                 <GraduationCap className="w-4 h-4 text-[#0F3D43]" />
-                <span
-                  className="text-[11px] font-semibold text-[#1a1815]"
-                  style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
-                >
+                <span className="text-[11px] font-semibold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   Learn Mode — Quiz
                 </span>
               </div>
@@ -427,10 +460,7 @@ export default function Home() {
                 <div className="w-9 h-9 rounded-lg bg-emerald-500/8 flex items-center justify-center">
                   <GraduationCap className="w-4 h-4 text-emerald-600" />
                 </div>
-                <h3
-                  className="text-[15px] font-semibold text-[#1a1815]"
-                  style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
-                >
+                <h3 className="text-[15px] font-semibold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   Learn Mode
                 </h3>
               </div>
@@ -443,10 +473,7 @@ export default function Home() {
                 <div className="w-9 h-9 rounded-lg bg-[#1a5c65]/8 flex items-center justify-center">
                   <Download className="w-4 h-4 text-[#0F3D43]" />
                 </div>
-                <h3
-                  className="text-[15px] font-semibold text-[#1a1815]"
-                  style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
-                >
+                <h3 className="text-[15px] font-semibold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   Download & Share
                 </h3>
               </div>
@@ -502,17 +529,11 @@ export default function Home() {
           <div className="grid sm:grid-cols-3 gap-4">
             {/* Free Trial */}
             <div className="rounded-2xl border border-[rgba(217,185,130,0.25)] bg-[#F7F4EE] p-5">
-              <h3
-                className="text-sm font-semibold text-[#1a1815] mb-0.5"
-                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
-              >
+              <h3 className="text-sm font-semibold text-[#1a1815] mb-0.5" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                 Free Trial
               </h3>
               <p className="text-[11px] text-[#b5ad9e] mb-3">Try Lectly out</p>
-              <div
-                className="text-2xl font-bold text-[#1a1815] mb-4"
-                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
-              >
+              <div className="text-2xl font-bold text-[#1a1815] mb-4" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                 &#8358;0
               </div>
               <ul className="space-y-2 text-[13px] text-[#8a7f6f] mb-5">
@@ -525,11 +546,7 @@ export default function Home() {
                   "No permanent storage",
                 ].map((f, i) => (
                   <li key={f} className="flex items-start gap-2">
-                    <Check
-                      className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${
-                        i >= 4 ? "text-[#d4cec3]" : "text-emerald-500"
-                      }`}
-                    />
+                    <Check className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${i >= 4 ? "text-[#d4cec3]" : "text-emerald-500"}`} />
                     <span className={i >= 4 ? "text-[#b5ad9e]" : ""}>{f}</span>
                   </li>
                 ))}
@@ -547,17 +564,11 @@ export default function Home() {
               <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#0F3D43] text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                 Popular
               </div>
-              <h3
-                className="text-sm font-semibold text-white mb-0.5"
-                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
-              >
+              <h3 className="text-sm font-semibold text-white mb-0.5" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                 Basic
               </h3>
               <p className="text-[11px] text-white/50 mb-3">For regular use</p>
-              <div
-                className="text-2xl font-bold text-white mb-1"
-                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
-              >
+              <div className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                 &#8358;3,500<span className="text-xs font-normal text-white/40">/mo</span>
               </div>
               <p className="text-[10px] text-white/40 mb-4">~$2.33/month</p>
@@ -586,17 +597,11 @@ export default function Home() {
 
             {/* Pro */}
             <div className="rounded-2xl border border-[rgba(217,185,130,0.25)] bg-[#F7F4EE] p-5">
-              <h3
-                className="text-sm font-semibold text-[#1a1815] mb-0.5"
-                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
-              >
+              <h3 className="text-sm font-semibold text-[#1a1815] mb-0.5" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                 Pro
               </h3>
               <p className="text-[11px] text-[#b5ad9e] mb-3">For serious students</p>
-              <div
-                className="text-2xl font-bold text-[#1a1815] mb-1"
-                style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
-              >
+              <div className="text-2xl font-bold text-[#1a1815] mb-1" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                 &#8358;8,500<span className="text-xs font-normal text-[#b5ad9e]">/mo</span>
               </div>
               <p className="text-[10px] text-[#b5ad9e] mb-4">~$5.67/month</p>
@@ -624,10 +629,9 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Group/Campus note */}
           <p className="text-center text-[11px] text-[#b5ad9e] mt-6">
             Need group or campus-wide access?{" "}
-            <a href="#" className="text-[#0F3D43] hover:underline">
+            <a href="mailto:lectlyapp@gmail.com" className="text-[#0F3D43] hover:underline">
               Contact us
             </a>
             {" "}for Group (₦15,000/mo for 5 students) and Campus plans.
@@ -655,7 +659,7 @@ export default function Home() {
             <ArrowRight className="w-4 h-4" />
           </Link>
           <p className="text-[11px] text-[#b5ad9e] mt-3">
-            No account required. No credit card.
+            Free to start. No credit card needed.
           </p>
         </div>
       </section>
@@ -673,7 +677,7 @@ export default function Home() {
             </span>
           </div>
           <p className="text-[11px] text-[#b5ad9e]">
-            &copy; {new Date().getFullYear()} Lectly. Built for students, by students.
+            &copy; 2026 Lectly. Built for students, by students.
           </p>
           <div className="flex gap-5 text-[11px] text-[#8a7f6f]">
             <a href="/privacy" className="hover:text-[#1a1815] transition-colors">Privacy</a>

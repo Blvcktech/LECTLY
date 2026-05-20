@@ -1,5 +1,3 @@
-"use client";
-
 interface StratumLogoProps {
   size?: number;
   className?: string;
