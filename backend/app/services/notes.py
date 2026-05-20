@@ -1315,7 +1315,7 @@ async def learn_mode(request: LearnModeRequest) -> LearnModeResponse:
     try:
         # Get the specific section or full notes
         sections = notes.get("sections", [])
-        if request.section_index is not None and request.section_index < len(sections):
+        if request.section_index is not None and request.section_index >= 0 and request.section_index < len(sections):
             section = sections[request.section_index]
             content = f"Topic: {section['heading']}\n\nContent: {section['content']}\n\nKey Points: {', '.join(section.get('key_points', []))}"
         else:
@@ -1441,7 +1441,7 @@ async def ask_tutor(
 
     # Add position context
     position_note = ""
-    if current_section_index is not None and notes:
+    if current_section_index is not None and current_section_index >= 0 and notes:
         sections = notes.get("sections", [])
         if current_section_index < len(sections):
             current_heading = sections[current_section_index].get("heading", "")
@@ -1534,7 +1534,7 @@ async def solve_problem(request: SolveModeRequest) -> SolveModeResponse:
 
     # Build lecture context
     sections = notes.get("sections", [])
-    if request.section_index is not None and request.section_index < len(sections):
+    if request.section_index is not None and request.section_index >= 0 and request.section_index < len(sections):
         section = sections[request.section_index]
         lecture_context = f"Topic: {section['heading']}\n\nContent: {section['content']}\n\nKey Points: {', '.join(section.get('key_points', []))}"
     else:
