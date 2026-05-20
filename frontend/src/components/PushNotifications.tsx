@@ -44,6 +44,13 @@ export default function PushNotifications() {
       if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
       if (!VAPID_PUBLIC_KEY) return;
 
+      // Check if sw.js exists before trying to register (avoids 404 console errors)
+      const swCheck = await fetch("/sw.js", { method: "HEAD" }).catch(() => null);
+      if (!swCheck || !swCheck.ok) {
+        console.info("[Lectly] Service worker not available yet — skipping push setup");
+        return;
+      }
+
       // Register service worker
       const registration = await navigator.serviceWorker.register("/sw.js");
       await navigator.serviceWorker.ready;

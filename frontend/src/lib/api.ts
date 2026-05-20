@@ -42,7 +42,19 @@ async function checkResponse(res: Response, fallbackMsg: string): Promise<void> 
   }
   // For other errors, try to get detail from response body
   const err = await res.json().catch(() => ({ detail: fallbackMsg }));
-  throw new Error(err.detail || fallbackMsg);
+  const detail = err.detail;
+  let message: string;
+  if (typeof detail === "string") {
+    message = detail;
+  } else if (Array.isArray(detail)) {
+    // Pydantic validation errors return detail as an array of objects
+    message = detail
+      .map((d: { msg?: string; message?: string }) => d.msg || d.message || "Validation error")
+      .join("; ");
+  } else {
+    message = fallbackMsg;
+  }
+  throw new Error(message || fallbackMsg);
 }
 
 // ── Types ──────────────────────────────────────
