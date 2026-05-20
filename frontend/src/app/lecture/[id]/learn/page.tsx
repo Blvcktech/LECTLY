@@ -469,8 +469,9 @@ export default function LearnModePage({
         const resumeIdx = Math.min(existing.last_card_index, flow.length - 1);
         setCardIndex(resumeIdx);
       }
-    } catch {
-      setError("Learn Mode failed. Please try again.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Learn Mode failed. Please try again.";
+      setError(msg);
     } finally {
       setLearnLoading(false);
     }

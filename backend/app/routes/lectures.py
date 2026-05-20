@@ -365,7 +365,13 @@ async def activate_learn_mode(body: LearnModeRequest, request: Request, user_id:
     if lecture.get("user_id") and lecture["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    return await learn_mode(body)
+    try:
+        return await learn_mode(body)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        print(f"[Lectly] Learn Mode route error: {e}")
+        raise HTTPException(status_code=502, detail="AI service temporarily unavailable. Please try again.")
 
 
 @router.post("/tutor/ask", response_model=TutorAskResponse)

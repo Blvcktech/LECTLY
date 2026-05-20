@@ -74,7 +74,7 @@ class ExplainResponse(BaseModel):
 
 class LearnModeRequest(BaseModel):
     lecture_id: str = Field(..., min_length=1, max_length=100)
-    section_index: Optional[int] = Field(None, ge=0, le=100)
+    section_index: Optional[int] = Field(None, ge=-1, le=100)  # -1 = full lecture overview
     level: str = Field("intermediate", pattern="^(beginner|intermediate|advanced)$")
     card_style: str = Field("mixed", pattern="^(mixed|explanations|quizzes)$")
 
@@ -138,7 +138,7 @@ class TutorAskRequest(BaseModel):
     lecture_id: str = Field(..., min_length=1, max_length=100)
     question: str = Field(..., min_length=1, max_length=2000)
     conversation_history: list[TutorMessage] = Field(default=[], max_length=50)
-    current_section_index: Optional[int] = Field(None, ge=0, le=100)
+    current_section_index: Optional[int] = Field(None, ge=-1, le=100)  # -1 = full lecture
     card_context: Optional[CardContext] = None
 
 
@@ -160,7 +160,7 @@ class SolveModeRequest(BaseModel):
     lecture_id: str = Field(..., min_length=1, max_length=100)
     problem: str = Field(..., min_length=1, max_length=3000)
     student_attempt: Optional[str] = Field(None, max_length=3000)
-    section_index: Optional[int] = Field(None, ge=0, le=100)
+    section_index: Optional[int] = Field(None, ge=-1, le=100)  # -1 = full lecture
 
 
 class SolveStep(BaseModel):
