@@ -1,41 +1,73 @@
 @import "tailwindcss";
 
+/* ── Lectly Design System ──
+ * All colors are defined as CSS variables here.
+ * To change any color across the entire app, edit it in ONE place below.
+ *
+ * Naming convention:
+ *   cream    = main background (#F7F4EE)
+ *   cream-d  = darker cream, used for pills/toggles (#EDE8DF)
+ *   paper    = card/surface background (#FDFCF9)
+ *   ink      = primary text (#1a1815)
+ *   ink-l    = secondary text, slightly lighter (#2C2A25)
+ *   ink-m    = muted text, labels (#8a7f6f)
+ *   ink-f    = faintest text, placeholders (#b5ad9e)
+ *   accent   = brand teal (#0F3D43)
+ *   accent-l = lighter teal for hover states (#1a5c65)
+ *   accent-d = dark teal for deep contrast (#0a2e33)
+ *   ink-h    = hover state for ink (#2a2520)
+ *   sub      = sub-body text (#4a4540)
+ *   border   = default border
+ *   border-s = strong/visible border
+ */
 :root {
-  --background: #F7F4EE;
-  --foreground: #1a1815;
+  --cream: #F7F4EE;
+  --cream-d: #EDE8DF;
+  --paper: #FDFCF9;
+  --ink: #1a1815;
+  --ink-l: #2C2A25;
+  --ink-m: #8a7f6f;
+  --ink-f: #b5ad9e;
+  --ink-h: #2a2520;
+  --sub: #4a4540;
+  --accent: #0F3D43;
+  --accent-l: #1a5c65;
+  --accent-d: #0a2e33;
+  --muted-bg: #d4cec3;
+  --border: rgba(217, 185, 130, 0.25);
+  --border-s: rgba(217, 185, 130, 0.35);
+  --border-xs: rgba(217, 185, 130, 0.2);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-cream: var(--cream);
+  --color-cream-d: var(--cream-d);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-ink-l: var(--ink-l);
+  --color-ink-m: var(--ink-m);
+  --color-ink-f: var(--ink-f);
+  --color-ink-h: var(--ink-h);
+  --color-sub: var(--sub);
+  --color-accent: var(--accent);
+  --color-accent-l: var(--accent-l);
+  --color-accent-d: var(--accent-d);
+  --color-muted-bg: var(--muted-bg);
+  --color-background: var(--cream);
+  --color-foreground: var(--ink);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--cream);
+  color: var(--ink);
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
 }
 
 /* Used sparingly — only for key emphasis text */
 .gradient-text {
-  color: #0F3D43;
-}
-
-/* Direction A — warm paper palette */
-.dir-a {
-  --cream: #F7F4EE;
-  --cream-dark: #EDE8DF;
-  --paper: #FDFCF9;
-  --ink: #1a1815;
-  --ink-light: #2C2A25;
-  --ink-muted: #8a7f6f;
-  --accent: #0F3D43;
-  --accent-light: #1a5c65;
-  --amber-warm: #a07d3a;
-  --border: rgba(217, 185, 130, 0.25);
-  --border-strong: rgba(217, 185, 130, 0.45);
+  color: var(--accent);
 }
 
 /* Smooth scroll for anchor links */
@@ -119,4 +151,27 @@ html {
 /* Tap highlight removal for mobile buttons */
 button, a {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Modal animations */
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

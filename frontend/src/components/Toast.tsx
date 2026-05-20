@@ -53,7 +53,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const iconMap = {
     success: <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />,
     error: <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />,
-    info: <Info className="w-4 h-4 text-[#0F3D43] flex-shrink-0" />,
+    info: <Info className="w-4 h-4 text-accent flex-shrink-0" />,
   };
 
   const borderMap = {
@@ -71,13 +71,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`pointer-events-auto flex items-start gap-2.5 bg-[#FDFCF9] border ${borderMap[t.type]} rounded-xl px-4 py-3 shadow-lg shadow-black/8 max-w-sm animate-[slideIn_0.25s_ease-out]`}
+            className={`pointer-events-auto flex items-start gap-2.5 bg-paper border ${borderMap[t.type]} rounded-xl px-4 py-3 shadow-lg shadow-black/8 max-w-sm animate-[slideIn_0.25s_ease-out]`}
           >
             {iconMap[t.type]}
-            <p className="text-sm text-[#1a1815] leading-snug flex-1">{t.message}</p>
+            <p className="text-sm text-ink leading-snug flex-1">{t.message}</p>
             <button
               onClick={() => removeToast(t.id)}
-              className="text-[#8a7f6f] hover:text-[#1a1815] transition-colors flex-shrink-0"
+              className="text-ink-m hover:text-ink transition-colors flex-shrink-0"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -88,20 +88,20 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {/* Confirm dialog */}
       {confirmState && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/30 backdrop-blur-sm px-4">
-          <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.35)] rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+          <div className="bg-paper border border-[rgba(217,185,130,0.35)] rounded-2xl p-6 max-w-sm w-full shadow-2xl">
             <div className="flex items-start gap-3 mb-5">
               <div className="w-10 h-10 rounded-xl bg-red-500/8 flex items-center justify-center flex-shrink-0">
                 <AlertCircle className="w-5 h-5 text-red-500" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-[#1a1815] mb-1">Are you sure?</p>
-                <p className="text-xs text-[#8a7f6f] leading-relaxed">{confirmState.message}</p>
+                <p className="text-sm font-semibold text-ink mb-1">Are you sure?</p>
+                <p className="text-xs text-ink-m leading-relaxed">{confirmState.message}</p>
               </div>
             </div>
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setConfirmState(null)}
-                className="text-sm text-[#8a7f6f] hover:text-[#1a1815] px-4 py-2 rounded-lg border border-[rgba(217,185,130,0.35)] transition-colors"
+                className="text-sm text-ink-m hover:text-ink px-4 py-2 rounded-lg border border-[rgba(217,185,130,0.35)] transition-colors"
               >
                 Cancel
               </button>

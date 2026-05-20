@@ -103,20 +103,20 @@ export default function InstallPrompt() {
 
   return (
     <div className="fixed bottom-20 lg:bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-sm z-[80] animate-[slideIn_0.3s_ease-out]">
-      <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.35)] rounded-2xl p-4 shadow-xl shadow-black/10">
+      <div className="bg-paper border border-[rgba(217,185,130,0.35)] rounded-2xl p-4 shadow-xl shadow-black/10">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#0F3D43]/10 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
             {isIOS ? (
-              <Share className="w-5 h-5 text-[#0F3D43]" />
+              <Share className="w-5 h-5 text-accent" />
             ) : (
-              <Download className="w-5 h-5 text-[#0F3D43]" />
+              <Download className="w-5 h-5 text-accent" />
             )}
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-[#1a1815] mb-1">
+            <p className="text-sm font-semibold text-ink mb-1">
               Install Lectly
             </p>
-            <p className="text-xs text-[#8a7f6f] leading-relaxed mb-3">
+            <p className="text-xs text-ink-m leading-relaxed mb-3">
               {isIOS
                 ? "Tap the share button, then \"Add to Home Screen\" for the full app experience."
                 : "Add Lectly to your home screen for quick access and an app-like experience."}
@@ -125,13 +125,13 @@ export default function InstallPrompt() {
               <div className="flex gap-2">
                 <button
                   onClick={handleInstall}
-                  className="text-xs font-semibold text-white bg-[#0F3D43] hover:bg-[#1a5c64] px-4 py-1.5 rounded-lg transition-colors"
+                  className="text-xs font-semibold text-white bg-accent hover:bg-accent-l px-4 py-1.5 rounded-lg transition-colors"
                 >
                   Install
                 </button>
                 <button
                   onClick={handleDismiss}
-                  className="text-xs text-[#8a7f6f] hover:text-[#1a1815] px-3 py-1.5 transition-colors"
+                  className="text-xs text-ink-m hover:text-ink px-3 py-1.5 transition-colors"
                 >
                   Not now
                 </button>
@@ -140,7 +140,7 @@ export default function InstallPrompt() {
             {isIOS && (
               <button
                 onClick={handleDismiss}
-                className="text-xs text-[#8a7f6f] hover:text-[#1a1815] transition-colors"
+                className="text-xs text-ink-m hover:text-ink transition-colors"
               >
                 Got it
               </button>
@@ -148,7 +148,7 @@ export default function InstallPrompt() {
           </div>
           <button
             onClick={handleDismiss}
-            className="text-[#8a7f6f] hover:text-[#1a1815] transition-colors flex-shrink-0"
+            className="text-ink-m hover:text-ink transition-colors flex-shrink-0"
           >
             <X className="w-3.5 h-3.5" />
           </button>

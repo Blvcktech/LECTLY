@@ -47,7 +47,7 @@ export const QuizCard = React.memo(function QuizCard({
   return (
     <div
       key={`quiz-${cardIndex}`}
-      className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl shadow-sm overflow-hidden"
+      className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-2xl shadow-sm overflow-hidden"
       style={{ animation: "fadeSlideIn 0.3s ease-out" }}
     >
       {/* Quiz label */}
@@ -56,7 +56,7 @@ export const QuizCard = React.memo(function QuizCard({
       </div>
 
       <div className="p-6 sm:p-8 pt-4">
-        <div className="text-lg font-bold text-[#1a1815] leading-snug mb-5" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+        <div className="text-lg font-bold text-ink leading-snug mb-5" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
           <RenderBody text={q.question} />
         </div>
 
@@ -66,17 +66,17 @@ export const QuizCard = React.memo(function QuizCard({
             const isSelected = selectedAnswer === oi;
             const isCorrectOpt = oi === q.correct_index;
 
-            let style = "border-[rgba(217,185,130,0.3)] text-[#2C2A25] hover:border-[rgba(217,185,130,0.5)] hover:bg-[#EDE8DF]/50";
+            let style = "border-[rgba(217,185,130,0.3)] text-ink-l hover:border-[rgba(217,185,130,0.5)] hover:bg-cream-d/50";
             if (isRevealed) {
               if (isCorrectOpt) {
                 style = "border-green-400/50 bg-green-50 text-green-800";
               } else if (isSelected && !isCorrectOpt) {
                 style = "border-red-400/50 bg-red-50 text-red-700";
               } else {
-                style = "border-[rgba(217,185,130,0.15)] text-[#8a7f6f]";
+                style = "border-[rgba(217,185,130,0.15)] text-ink-m";
               }
             } else if (isSelected) {
-              style = "border-[#1a1815]/30 bg-[#EDE8DF] text-[#1a1815]";
+              style = "border-ink/30 bg-cream-d text-ink";
             }
 
             return (
@@ -89,7 +89,7 @@ export const QuizCard = React.memo(function QuizCard({
                 <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 text-xs font-bold ${
                   isRevealed && isCorrectOpt ? "border-green-500 bg-green-500 text-white" :
                   isRevealed && isSelected ? "border-red-400 bg-red-400 text-white" :
-                  isSelected ? "border-[#1a1815] bg-[#1a1815] text-white" : "border-[#8a7f6f]/40 text-[#8a7f6f]"
+                  isSelected ? "border-ink bg-ink text-white" : "border-ink-m/40 text-ink-m"
                 }`}>
                   {isRevealed && isCorrectOpt ? <CheckCircle2 className="w-4 h-4" /> :
                    isRevealed && isSelected && !isCorrectOpt ? <XCircle className="w-4 h-4" /> :
@@ -122,7 +122,7 @@ export const QuizCard = React.memo(function QuizCard({
 
                 {/* Reteach */}
                 {reteachIndex === qi && (reteachLoading || reteachText) ? (
-                  <div className="mt-3 rounded-xl overflow-hidden border border-amber-300/40 bg-[#FDFCF9]">
+                  <div className="mt-3 rounded-xl overflow-hidden border border-amber-300/40 bg-paper">
                     <div className="px-4 py-2 flex items-center gap-2 border-b border-amber-200/30">
                       <Sparkles className="w-3.5 h-3.5 text-amber-600" />
                       <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">
@@ -161,7 +161,7 @@ export const QuizCard = React.memo(function QuizCard({
           onClick={onPrev}
           disabled={isFirst}
           className={`flex items-center gap-1.5 text-sm font-medium px-4 py-2.5 rounded-xl transition-all ${
-            isFirst ? "text-[#8a7f6f]/40 cursor-not-allowed" : "text-[#8a7f6f] hover:bg-[#EDE8DF] active:scale-95"
+            isFirst ? "text-ink-m/40 cursor-not-allowed" : "text-ink-m hover:bg-cream-d active:scale-95"
           }`}
         >
           <ChevronLeft className="w-4 h-4" />
@@ -172,7 +172,7 @@ export const QuizCard = React.memo(function QuizCard({
             if (isLast) onViewNotes();
             else onNext();
           }}
-          className="flex items-center gap-1.5 text-sm font-semibold px-5 py-2.5 rounded-xl bg-[#1a1815] text-white shadow-sm hover:shadow-md active:scale-95 transition-all"
+          className="flex items-center gap-1.5 text-sm font-semibold px-5 py-2.5 rounded-xl bg-ink text-white shadow-sm hover:shadow-md active:scale-95 transition-all"
         >
           {isLast ? <>View Notes <ChevronRight className="w-4 h-4" /></> : <>Next card <ChevronRight className="w-4 h-4" /></>}
         </button>

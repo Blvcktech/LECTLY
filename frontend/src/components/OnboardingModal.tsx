@@ -59,12 +59,12 @@ export default function OnboardingModal() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-      <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl shadow-xl max-w-sm w-full p-6 animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-2xl shadow-xl max-w-sm w-full p-6 animate-in fade-in zoom-in-95 duration-200">
         {/* Logo */}
         <div className="flex items-center justify-center gap-2.5 mb-5">
           <StratumLogo size={40} />
           <span
-            className="text-xl font-bold text-[#1a1815] tracking-tight"
+            className="text-xl font-bold text-ink tracking-tight"
             style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
           >
             Lectly
@@ -72,18 +72,18 @@ export default function OnboardingModal() {
         </div>
 
         <h2
-          className="text-lg font-bold text-[#1a1815] text-center mb-1"
+          className="text-lg font-bold text-ink text-center mb-1"
           style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
         >
           Welcome to Lectly!
         </h2>
-        <p className="text-sm text-[#8a7f6f] text-center mb-5">
+        <p className="text-sm text-ink-m text-center mb-5">
           What should we call you?
         </p>
 
         <div className="space-y-3 mb-5">
           <div>
-            <label className="block text-xs font-medium text-[#8a7f6f] mb-1.5">
+            <label className="block text-xs font-medium text-ink-m mb-1.5">
               First name
             </label>
             <input
@@ -92,22 +92,22 @@ export default function OnboardingModal() {
               onChange={(e) => setFirstName(e.target.value)}
               placeholder="e.g. Chioma"
               autoFocus
-              className="w-full px-3 py-2.5 bg-[#F7F4EE] border border-[rgba(217,185,130,0.3)] rounded-lg text-sm text-[#1a1815] placeholder:text-[#b5ad9e] focus:outline-none focus:border-[#0F3D43] focus:ring-1 focus:ring-[#0F3D43]/20"
+              className="w-full px-3 py-2.5 bg-cream border border-[rgba(217,185,130,0.3)] rounded-lg text-sm text-ink placeholder:text-ink-f focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20"
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleSave();
               }}
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#8a7f6f] mb-1.5">
-              Last name <span className="text-[#b5ad9e]">(optional)</span>
+            <label className="block text-xs font-medium text-ink-m mb-1.5">
+              Last name <span className="text-ink-f">(optional)</span>
             </label>
             <input
               type="text"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               placeholder="e.g. Okafor"
-              className="w-full px-3 py-2.5 bg-[#F7F4EE] border border-[rgba(217,185,130,0.3)] rounded-lg text-sm text-[#1a1815] placeholder:text-[#b5ad9e] focus:outline-none focus:border-[#0F3D43] focus:ring-1 focus:ring-[#0F3D43]/20"
+              className="w-full px-3 py-2.5 bg-cream border border-[rgba(217,185,130,0.3)] rounded-lg text-sm text-ink placeholder:text-ink-f focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20"
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleSave();
               }}
@@ -118,7 +118,7 @@ export default function OnboardingModal() {
         <button
           onClick={handleSave}
           disabled={!firstName.trim() || saving}
-          className="w-full py-2.5 bg-[#1a1815] hover:bg-[#2a2520] disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+          className="w-full py-2.5 bg-ink hover:bg-ink-h disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
         >
           {saving ? (
             <>
@@ -135,7 +135,7 @@ export default function OnboardingModal() {
 
         <button
           onClick={handleSkip}
-          className="w-full mt-2 py-2 text-xs text-[#b5ad9e] hover:text-[#8a7f6f] transition-colors"
+          className="w-full mt-2 py-2 text-xs text-ink-f hover:text-ink-m transition-colors"
         >
           Skip for now
         </button>

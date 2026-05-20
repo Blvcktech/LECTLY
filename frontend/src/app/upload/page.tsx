@@ -227,17 +227,17 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F7F4EE]">
+    <div className="flex flex-col min-h-screen bg-cream">
       {/* Nav */}
-      <nav className="border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/80 backdrop-blur-md">
+      <nav className="border-b border-[rgba(217,185,130,0.25)] bg-paper/80 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <StratumLogo size={32} />
-            <span className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>Lectly</span>
+            <span className="text-xl font-bold text-ink" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>Lectly</span>
           </Link>
           <Link
             href="/dashboard"
-            className="text-sm text-[#8a7f6f] hover:text-[#1a1815] transition-colors"
+            className="text-sm text-ink-m hover:text-ink transition-colors"
           >
             My Lectures
           </Link>
@@ -248,17 +248,17 @@ export default function UploadPage() {
       <main className="flex-1 px-4 py-10 sm:py-12 pb-24">
         <div className="w-full max-w-4xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-[#1a1815] mb-1.5" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+            <h1 className="text-2xl font-bold text-ink mb-1.5" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
               Upload Lecture
             </h1>
-            <p className="text-sm text-[#8a7f6f]">
+            <p className="text-sm text-ink-m">
               Upload your audio file and we&apos;ll generate smart notes.
             </p>
           </div>
 
           {/* Lecture limit info */}
           {limits && limits.can_upload && (
-            <div className="mb-4 flex items-center gap-2 text-xs text-[#8a7f6f]">
+            <div className="mb-4 flex items-center gap-2 text-xs text-ink-m">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
               {limits.lectures_remaining} of {limits.lectures_limit} free lectures remaining
             </div>
@@ -266,29 +266,29 @@ export default function UploadPage() {
 
           {/* Limit reached — upgrade prompt */}
           {limits && !limits.can_upload && (
-            <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl p-8 text-center">
+            <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-2xl p-8 text-center">
               <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-amber-500/10 flex items-center justify-center">
                 <AlertCircle className="w-7 h-7 text-amber-600" />
               </div>
               <h2
-                className="text-lg font-bold text-[#1a1815] mb-2"
+                className="text-lg font-bold text-ink mb-2"
                 style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 Free tier limit reached
               </h2>
-              <p className="text-sm text-[#8a7f6f] mb-5 max-w-sm mx-auto">
+              <p className="text-sm text-ink-m mb-5 max-w-sm mx-auto">
                 You&apos;ve used all {limits.lectures_limit} free lectures. Upgrade to Basic for {limits.lectures_limit === 3 ? "8" : "more"} lectures per month.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
                   href="/profile/subscription"
-                  className="inline-flex items-center justify-center bg-[#1a1815] hover:bg-[#2a2520] text-white px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors"
+                  className="inline-flex items-center justify-center bg-ink hover:bg-ink-h text-white px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors"
                 >
                   View plans
                 </Link>
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center justify-center border border-[rgba(217,185,130,0.35)] text-[#1a1815] px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-[#F7F4EE] transition-colors"
+                  className="inline-flex items-center justify-center border border-[rgba(217,185,130,0.35)] text-ink px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-cream transition-colors"
                 >
                   Back to lectures
                 </Link>
@@ -312,18 +312,18 @@ export default function UploadPage() {
                     dragOver ? "dragover" : ""
                   }`}
                 >
-                  <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-[#EDE8DF] flex items-center justify-center">
-                    <Upload className="w-7 h-7 text-[#0F3D43]" />
+                  <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-cream-d flex items-center justify-center">
+                    <Upload className="w-7 h-7 text-accent" />
                   </div>
-                  <p className="text-base text-[#1a1815] font-semibold mb-1">
+                  <p className="text-base text-ink font-semibold mb-1">
                     Tap below to upload your lecture
                   </p>
-                  <p className="text-sm text-[#8a7f6f] mb-4">
+                  <p className="text-sm text-ink-m mb-4">
                     MP3, M4A, WAV up to {MAX_SIZE_MB}MB
                   </p>
                   <label
                     htmlFor="audio-upload"
-                    className="inline-block bg-[#0F3D43] hover:bg-[#1a5c64] text-white px-6 py-3 rounded-[10px] text-base font-medium shadow-md shadow-black/10 cursor-pointer active:scale-95 transition-transform"
+                    className="inline-block bg-accent hover:bg-accent-l text-white px-6 py-3 rounded-[10px] text-base font-medium shadow-md shadow-black/10 cursor-pointer active:scale-95 transition-transform"
                   >
                     Choose File
                   </label>
@@ -341,18 +341,18 @@ export default function UploadPage() {
               {/* Form fields */}
               <div className="w-full lg:w-72 flex-shrink-0 space-y-4">
                 {/* Auto-detect info */}
-                <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4">
+                <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-1.5">
-                    <div className="w-2 h-2 rounded-full bg-[#0F3D43]" />
-                    <p className="text-xs font-semibold text-[#1a1815] uppercase tracking-wider">Subject</p>
+                    <div className="w-2 h-2 rounded-full bg-accent" />
+                    <p className="text-xs font-semibold text-ink uppercase tracking-wider">Subject</p>
                   </div>
-                  <p className="text-sm text-[#8a7f6f]">
+                  <p className="text-sm text-ink-m">
                     Auto-detected from your lecture content. No need to pick manually.
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#8a7f6f] uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-semibold text-ink-m uppercase tracking-wider mb-1.5">
                     Course Code (Optional)
                   </label>
                   <input
@@ -360,16 +360,16 @@ export default function UploadPage() {
                     value={courseCode}
                     onChange={(e) => setCourseCode(e.target.value)}
                     placeholder="e.g. CSC 301"
-                    className="w-full bg-[#FDFCF9] border border-[rgba(217,185,130,0.3)] rounded-[10px] px-3.5 py-2.5 text-sm text-[#1a1815] placeholder:text-[#8a7f6f] focus:border-[#0F3D43] focus:outline-none"
+                    className="w-full bg-paper border border-[rgba(217,185,130,0.3)] rounded-[10px] px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-m focus:border-accent focus:outline-none"
                   />
                 </div>
 
                 {/* Record Live card */}
-                <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
-                  <Mic className="w-7 h-7 text-[#0F3D43] mx-auto mb-2" />
-                  <p className="text-sm font-semibold text-[#1a1815]">Record Live</p>
-                  <p className="text-xs text-[#8a7f6f]">Start recording a lecture</p>
-                  <p className="text-[10px] text-[#8a7f6f] mt-1">Coming soon</p>
+                <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
+                  <Mic className="w-7 h-7 text-accent mx-auto mb-2" />
+                  <p className="text-sm font-semibold text-ink">Record Live</p>
+                  <p className="text-xs text-ink-m">Start recording a lecture</p>
+                  <p className="text-[10px] text-ink-m mt-1">Coming soon</p>
                 </div>
               </div>
             </div>
@@ -404,7 +404,7 @@ export default function UploadPage() {
                       ) : (
                         <div className="w-3.5 h-3.5 rounded-full border border-[rgba(217,185,130,0.4)]" />
                       )}
-                      <span className={step.done ? "text-green-700" : i === failedStep ? "text-red-700 font-medium" : "text-[#8a7f6f]"}>
+                      <span className={step.done ? "text-green-700" : i === failedStep ? "text-red-700 font-medium" : "text-ink-m"}>
                         {step.label}
                         {i === failedStep && " — failed"}
                       </span>
@@ -440,18 +440,18 @@ export default function UploadPage() {
 
           {/* File Selected */}
           {state === "selected" && file && (
-            <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.3)] rounded-2xl p-6 max-w-2xl">
+            <div className="bg-paper border border-[rgba(217,185,130,0.3)] rounded-2xl p-6 max-w-2xl">
               <div className="flex items-center gap-4 mb-5">
-                <div className="w-11 h-11 rounded-xl bg-[#0F3D43]/8 flex items-center justify-center">
-                  <FileAudio className="w-5 h-5 text-[#0F3D43]" />
+                <div className="w-11 h-11 rounded-xl bg-accent/8 flex items-center justify-center">
+                  <FileAudio className="w-5 h-5 text-accent" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[#1a1815] font-medium truncate text-sm">{file.name}</p>
-                  <p className="text-xs text-[#8a7f6f]">{formatSize(file.size)}</p>
+                  <p className="text-ink font-medium truncate text-sm">{file.name}</p>
+                  <p className="text-xs text-ink-m">{formatSize(file.size)}</p>
                 </div>
                 <button
                   onClick={removeFile}
-                  className="p-2 text-[#8a7f6f] hover:text-[#1a1815] transition-colors"
+                  className="p-2 text-ink-m hover:text-ink transition-colors"
                   aria-label="Remove file"
                 >
                   <X className="w-4 h-4" />
@@ -461,7 +461,7 @@ export default function UploadPage() {
               {/* Course Code + Auto-detect hint */}
               <div className="flex items-center gap-4 mb-5">
                 <div className="flex-1">
-                  <label className="block text-xs font-semibold text-[#8a7f6f] uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-semibold text-ink-m uppercase tracking-wider mb-1.5">
                     Course Code (Optional)
                   </label>
                   <input
@@ -469,18 +469,18 @@ export default function UploadPage() {
                     value={courseCode}
                     onChange={(e) => setCourseCode(e.target.value)}
                     placeholder="e.g. CSC 301"
-                    className="w-full bg-[#F7F4EE] border border-[rgba(217,185,130,0.3)] rounded-[10px] px-3.5 py-2.5 text-sm text-[#1a1815] placeholder:text-[#8a7f6f] focus:border-[#0F3D43] focus:outline-none"
+                    className="w-full bg-cream border border-[rgba(217,185,130,0.3)] rounded-[10px] px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-m focus:border-accent focus:outline-none"
                   />
                 </div>
                 <div className="flex items-center gap-1.5 pt-5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#0F3D43]" />
-                  <span className="text-xs text-[#8a7f6f]">Subject auto-detected</span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-accent" />
+                  <span className="text-xs text-ink-m">Subject auto-detected</span>
                 </div>
               </div>
 
               <button
                 onClick={() => processFile()}
-                className="w-full flex items-center justify-center gap-2 bg-[#0F3D43] hover:bg-[#1a5c64] text-white py-3 rounded-xl font-semibold transition-all shadow-md shadow-black/10"
+                className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-accent-l text-white py-3 rounded-xl font-semibold transition-all shadow-md shadow-black/10"
               >
                 <Upload className="w-5 h-5" />
                 Process Lecture
@@ -493,13 +493,13 @@ export default function UploadPage() {
             <div className="max-w-lg mx-auto text-center py-8">
               {/* Spinner */}
               <div className="relative w-20 h-20 mx-auto mb-6">
-                <div className="absolute inset-0 rounded-full border-[3px] border-[#EDE8DF] border-t-[#0F3D43] animate-spin" />
-                <div className="absolute inset-[8px] rounded-full border-[3px] border-transparent border-t-[#1a5c64] animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
+                <div className="absolute inset-0 rounded-full border-[3px] border-cream-d border-t-accent animate-spin" />
+                <div className="absolute inset-[8px] rounded-full border-[3px] border-transparent border-t-accent-l animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
               </div>
-              <h3 className="text-lg font-bold text-[#1a1815] mb-1" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+              <h3 className="text-lg font-bold text-ink mb-1" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                 Processing your lecture
               </h3>
-              <p className="text-sm text-[#8a7f6f] mb-7">
+              <p className="text-sm text-ink-m mb-7">
                 This usually takes 1–3 minutes
               </p>
               <div className="space-y-2 text-left max-w-sm mx-auto mb-6">
@@ -510,18 +510,18 @@ export default function UploadPage() {
                       {step.done ? (
                         <CheckCircle2 className="w-[18px] h-[18px] text-green-600 flex-shrink-0" />
                       ) : step.active ? (
-                        <Loader2 className="w-[18px] h-[18px] text-[#0F3D43] animate-spin flex-shrink-0" />
+                        <Loader2 className="w-[18px] h-[18px] text-accent animate-spin flex-shrink-0" />
                       ) : (
                         <div className="w-[18px] h-[18px] rounded-full border-2 border-[rgba(217,185,130,0.4)] flex-shrink-0" />
                       )}
-                      <span className={`flex-1 ${step.done ? "text-green-700" : step.active ? "text-[#1a1815] font-semibold" : "text-[#8a7f6f]"}`}>
+                      <span className={`flex-1 ${step.done ? "text-green-700" : step.active ? "text-ink font-semibold" : "text-ink-m"}`}>
                         {step.label}
                       </span>
                       {step.done && (
                         <span className="text-[11px] text-green-600 font-medium">Done</span>
                       )}
                       {step.active && (
-                        <span className="text-[11px] text-[#0F3D43] font-medium">{timeEstimates[i]}</span>
+                        <span className="text-[11px] text-accent font-medium">{timeEstimates[i]}</span>
                       )}
                     </div>
                   );
@@ -530,17 +530,17 @@ export default function UploadPage() {
               {/* Progress bar */}
               <div className="max-w-sm mx-auto">
                 <div className="flex justify-between mb-1.5">
-                  <span className="text-xs text-[#8a7f6f]">Progress</span>
-                  <span className="text-xs text-[#0F3D43] font-semibold">
+                  <span className="text-xs text-ink-m">Progress</span>
+                  <span className="text-xs text-accent font-semibold">
                     {steps.filter(s => s.done).length === 0 && steps.some(s => s.active) ? "15%" :
                      steps.filter(s => s.done).length === 1 ? "40%" :
                      steps.filter(s => s.done).length === 2 ? "80%" :
                      steps.filter(s => s.done).length === 3 ? "100%" : "0%"}
                   </span>
                 </div>
-                <div className="w-full h-1.5 bg-[#EDE8DF] rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-cream-d rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#0F3D43] rounded-full transition-all duration-500"
+                    className="h-full bg-accent rounded-full transition-all duration-500"
                     style={{
                       width: steps.filter(s => s.done).length === 0 && steps.some(s => s.active) ? "15%" :
                              steps.filter(s => s.done).length === 1 ? "40%" :
@@ -555,24 +555,24 @@ export default function UploadPage() {
 
           {/* Done */}
           {state === "done" && (
-            <div className="max-w-lg mx-auto bg-[#FDFCF9] border border-green-300/50 rounded-2xl p-8 text-center">
+            <div className="max-w-lg mx-auto bg-paper border border-green-300/50 rounded-2xl p-8 text-center">
               <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto mb-4" />
-              <p className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+              <p className="text-xl font-bold text-ink mb-2" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                 Your notes are ready!
               </p>
-              <p className="text-sm text-[#8a7f6f] mb-7">
+              <p className="text-sm text-ink-m mb-7">
                 Lecture processed successfully. View your structured notes or start Learn Mode.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Link
                   href={`/lecture/${lectureId}`}
-                  className="flex items-center gap-2 bg-[#0F3D43] hover:bg-[#1a5c64] text-white px-6 py-2.5 rounded-xl font-semibold transition-all shadow-md shadow-black/10"
+                  className="flex items-center gap-2 bg-accent hover:bg-accent-l text-white px-6 py-2.5 rounded-xl font-semibold transition-all shadow-md shadow-black/10"
                 >
                   View Notes
                 </Link>
                 <button
                   onClick={removeFile}
-                  className="flex items-center gap-2 text-[#2C2A25] px-6 py-2.5 rounded-xl font-medium border border-[rgba(217,185,130,0.35)] hover:border-[rgba(217,185,130,0.6)] transition-all"
+                  className="flex items-center gap-2 text-ink-l px-6 py-2.5 rounded-xl font-medium border border-[rgba(217,185,130,0.35)] hover:border-[rgba(217,185,130,0.6)] transition-all"
                 >
                   Upload Another
                 </button>
@@ -583,21 +583,21 @@ export default function UploadPage() {
       </main>
 
       {/* Mobile Bottom Nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#FDFCF9] border-t border-[rgba(217,185,130,0.25)] backdrop-blur-xl safe-bottom pwa-standalone-bottom">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-paper border-t border-[rgba(217,185,130,0.25)] backdrop-blur-xl safe-bottom pwa-standalone-bottom">
         <div className="flex items-center justify-around h-14">
-          <Link href="/dashboard" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+          <Link href="/dashboard" className="flex flex-col items-center gap-0.5 text-ink-m hover:text-ink">
             <Home className="w-5 h-5" />
             <span className="text-[10px] font-medium">Home</span>
           </Link>
-          <Link href="/lectures" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+          <Link href="/lectures" className="flex flex-col items-center gap-0.5 text-ink-m hover:text-ink">
             <FileText className="w-5 h-5" />
             <span className="text-[10px] font-medium">Lectures</span>
           </Link>
-          <Link href="/upload" className="flex flex-col items-center gap-0.5 text-[#0F3D43]">
+          <Link href="/upload" className="flex flex-col items-center gap-0.5 text-accent">
             <Upload className="w-5 h-5" />
             <span className="text-[10px] font-medium">Upload</span>
           </Link>
-          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-ink-m hover:text-ink">
             <User className="w-5 h-5" />
             <span className="text-[10px] font-medium">You</span>
           </Link>

@@ -25,12 +25,12 @@ export function SectionSidebar({
   return (
     <div className="w-72 flex-shrink-0 hidden lg:block">
       <div className="sticky top-20">
-        <h2 className="text-[11px] font-bold text-[#8a7f6f] uppercase tracking-wider mb-3">
+        <h2 className="text-[11px] font-bold text-ink-m uppercase tracking-wider mb-3">
           Topics
         </h2>
 
         {/* Level selector */}
-        <div className="flex gap-1 mb-4 bg-[#EDE8DF] rounded-xl p-1">
+        <div className="flex gap-1 mb-4 bg-cream-d rounded-xl p-1">
           {["beginner", "intermediate", "advanced"].map((level) => (
             <button
               key={level}
@@ -38,8 +38,8 @@ export function SectionSidebar({
               disabled={learnLoading}
               className={`flex-1 text-[11px] font-semibold py-2 rounded-lg transition-all capitalize ${
                 learnLevel === level
-                  ? "bg-[#1a1815] text-white shadow-md"
-                  : "text-[#8a7f6f] hover:text-[#1a1815]"
+                  ? "bg-ink text-white shadow-md"
+                  : "text-ink-m hover:text-ink"
               } ${learnLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {level}
@@ -58,33 +58,33 @@ export function SectionSidebar({
                 disabled={learnLoading}
                 className={`w-full text-left p-3 rounded-xl border transition-all group ${
                   selectedSection === i
-                    ? "bg-[#FDFCF9] border-[#1a1815]/20 shadow-sm"
-                    : "bg-transparent border-transparent hover:bg-[#FDFCF9] hover:border-[rgba(217,185,130,0.25)]"
+                    ? "bg-paper border-ink/20 shadow-sm"
+                    : "bg-transparent border-transparent hover:bg-paper hover:border-[rgba(217,185,130,0.25)]"
                 } ${learnLoading ? "opacity-60 cursor-not-allowed" : ""}`}
               >
                 <div className="flex items-center justify-between">
                   <span className={`text-sm font-medium ${
-                    selectedSection === i ? "text-[#1a1815]" : "text-[#2C2A25] group-hover:text-[#1a1815]"
+                    selectedSection === i ? "text-ink" : "text-ink-l group-hover:text-ink"
                   }`}>
                     {section.heading}
                   </span>
                   {learnLoading && selectedSection === i ? (
-                    <Loader2 className="w-4 h-4 text-[#8a7f6f] animate-spin flex-shrink-0" />
+                    <Loader2 className="w-4 h-4 text-ink-m animate-spin flex-shrink-0" />
                   ) : (
                     <ChevronRight className={`w-3.5 h-3.5 flex-shrink-0 ${
-                      selectedSection === i ? "text-[#1a1815]" : "text-[#8a7f6f] sm:opacity-0 sm:group-hover:opacity-100"
+                      selectedSection === i ? "text-ink" : "text-ink-m sm:opacity-0 sm:group-hover:opacity-100"
                     } transition-opacity`} />
                   )}
                 </div>
                 {sectionProgress && (
                   <div className="flex items-center gap-2 mt-1.5">
-                    <div className="flex-1 h-1 bg-[#EDE8DF] rounded-full overflow-hidden">
+                    <div className="flex-1 h-1 bg-cream-d rounded-full overflow-hidden">
                       <div
                         className="h-full bg-green-500 rounded-full transition-all"
                         style={{ width: `${sectionProgress.mastery_pct}%` }}
                       />
                     </div>
-                    <span className="text-[10px] font-medium text-[#8a7f6f]">
+                    <span className="text-[10px] font-medium text-ink-m">
                       {sectionProgress.mastery_pct}%
                     </span>
                   </div>
@@ -99,17 +99,17 @@ export function SectionSidebar({
             disabled={learnLoading}
             className={`w-full text-left p-3 rounded-xl border transition-all group ${
               selectedSection === -1
-                ? "bg-[#FDFCF9] border-[#1a1815]/20 shadow-sm"
-                : "bg-transparent border-transparent hover:bg-[#FDFCF9] hover:border-[rgba(217,185,130,0.25)]"
+                ? "bg-paper border-ink/20 shadow-sm"
+                : "bg-transparent border-transparent hover:bg-paper hover:border-[rgba(217,185,130,0.25)]"
             } ${learnLoading ? "opacity-60 cursor-not-allowed" : ""}`}
           >
             <div className="flex items-center justify-between">
               <span className={`text-sm font-medium ${
-                selectedSection === -1 ? "text-[#1a1815]" : "text-[#2C2A25]"
+                selectedSection === -1 ? "text-ink" : "text-ink-l"
               }`}>
                 Full Lecture Overview
               </span>
-              <BookOpen className="w-3.5 h-3.5 text-[#8a7f6f]" />
+              <BookOpen className="w-3.5 h-3.5 text-ink-m" />
             </div>
           </button>
         </div>

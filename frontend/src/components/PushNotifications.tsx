@@ -133,28 +133,28 @@ export default function PushNotifications() {
 
   return (
     <div className="fixed bottom-24 lg:bottom-8 left-4 sm:left-6 z-[90] max-w-sm animate-[slideIn_0.3s_ease-out]">
-      <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.35)] rounded-2xl p-4 shadow-xl shadow-black/10">
+      <div className="bg-paper border border-[rgba(217,185,130,0.35)] rounded-2xl p-4 shadow-xl shadow-black/10">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#0F3D43]/10 flex items-center justify-center flex-shrink-0">
-            <Bell className="w-5 h-5 text-[#0F3D43]" />
+          <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
+            <Bell className="w-5 h-5 text-accent" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-[#1a1815] mb-1">
+            <p className="text-sm font-semibold text-ink mb-1">
               Enable notifications?
             </p>
-            <p className="text-xs text-[#8a7f6f] leading-relaxed mb-3">
+            <p className="text-xs text-ink-m leading-relaxed mb-3">
               Get notified when your lectures finish processing — even if you close the tab.
             </p>
             <div className="flex gap-2">
               <button
                 onClick={handleEnable}
-                className="text-xs font-semibold text-white bg-[#0F3D43] hover:bg-[#1a5c64] px-4 py-1.5 rounded-lg transition-colors"
+                className="text-xs font-semibold text-white bg-accent hover:bg-accent-l px-4 py-1.5 rounded-lg transition-colors"
               >
                 Enable
               </button>
               <button
                 onClick={handleDismiss}
-                className="text-xs text-[#8a7f6f] hover:text-[#1a1815] px-3 py-1.5 transition-colors"
+                className="text-xs text-ink-m hover:text-ink px-3 py-1.5 transition-colors"
               >
                 Not now
               </button>
@@ -162,7 +162,7 @@ export default function PushNotifications() {
           </div>
           <button
             onClick={handleDismiss}
-            className="text-[#8a7f6f] hover:text-[#1a1815] transition-colors flex-shrink-0"
+            className="text-ink-m hover:text-ink transition-colors flex-shrink-0"
           >
             <X className="w-3.5 h-3.5" />
           </button>

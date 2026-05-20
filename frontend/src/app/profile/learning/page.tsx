@@ -72,25 +72,25 @@ export default function LearningPreferencesPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F7F4EE]">
+    <div className="min-h-screen bg-cream">
       {/* Nav */}
-      <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-paper/92 backdrop-blur-xl">
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.push("/profile")}
-              className="text-[#8a7f6f] hover:text-[#1a1815] transition-colors"
+              className="text-ink-m hover:text-ink transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <span className="text-sm font-semibold text-[#1a1815]">Learning Preferences</span>
+            <span className="text-sm font-semibold text-ink">Learning Preferences</span>
           </div>
           <button
             onClick={handleSave}
             className={`text-xs font-semibold px-4 py-1.5 rounded-lg transition-all ${
               saved
                 ? "bg-emerald-500/10 text-emerald-600"
-                : "bg-[#1a1815] text-white hover:bg-[#2a2520]"
+                : "bg-ink text-white hover:bg-ink-h"
             }`}
           >
             {saved ? (
@@ -106,14 +106,14 @@ export default function LearningPreferencesPage() {
 
       <main className="max-w-lg mx-auto px-4 py-6 pb-24">
         {/* Difficulty Level */}
-        <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl overflow-hidden mb-4">
+        <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl overflow-hidden mb-4">
           <div className="px-4 pt-4 pb-2 flex items-center gap-2">
-            <GraduationCap className="w-4 h-4 text-[#0F3D43]" />
-            <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest">
+            <GraduationCap className="w-4 h-4 text-accent" />
+            <p className="text-[10px] font-bold text-ink-m uppercase tracking-widest">
               Difficulty Level
             </p>
           </div>
-          <p className="text-[11px] text-[#b5ad9e] px-4 mb-3">
+          <p className="text-[11px] text-ink-f px-4 mb-3">
             Controls how Learn Mode explains concepts to you
           </p>
           <div className="px-4 pb-4 space-y-2">
@@ -123,18 +123,18 @@ export default function LearningPreferencesPage() {
                 onClick={() => setDifficulty(opt.value)}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border transition-all text-left ${
                   difficulty === opt.value
-                    ? "border-[#0F3D43]/40 bg-[#1a5c65]/[0.05]"
+                    ? "border-accent/40 bg-accent-l/[0.05]"
                     : "border-[rgba(217,185,130,0.2)] hover:border-[rgba(217,185,130,0.4)]"
                 }`}
               >
                 <div>
-                  <p className={`text-sm font-medium ${difficulty === opt.value ? "text-[#0a2e33]" : "text-[#1a1815]"}`}>
+                  <p className={`text-sm font-medium ${difficulty === opt.value ? "text-accent-d" : "text-ink"}`}>
                     {opt.label}
                   </p>
-                  <p className="text-[10px] text-[#b5ad9e]">{opt.desc}</p>
+                  <p className="text-[10px] text-ink-f">{opt.desc}</p>
                 </div>
                 {difficulty === opt.value && (
-                  <div className="w-5 h-5 rounded-full bg-[#0F3D43] flex items-center justify-center flex-shrink-0">
+                  <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
                     <Check className="w-3 h-3 text-white" />
                   </div>
                 )}
@@ -144,14 +144,14 @@ export default function LearningPreferencesPage() {
         </div>
 
         {/* Daily Goal */}
-        <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl overflow-hidden mb-4">
+        <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl overflow-hidden mb-4">
           <div className="px-4 pt-4 pb-2 flex items-center gap-2">
             <Target className="w-4 h-4 text-amber-600" />
-            <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest">
+            <p className="text-[10px] font-bold text-ink-m uppercase tracking-widest">
               Daily Goal
             </p>
           </div>
-          <p className="text-[11px] text-[#b5ad9e] px-4 mb-3">
+          <p className="text-[11px] text-ink-f px-4 mb-3">
             How many cards you aim to complete each day
           </p>
           <div className="px-4 pb-4 flex gap-2">
@@ -162,7 +162,7 @@ export default function LearningPreferencesPage() {
                 className={`flex-1 text-center px-2 py-2.5 rounded-lg border text-sm font-medium transition-all ${
                   dailyGoal === opt.value
                     ? "border-amber-500/40 bg-amber-500/[0.06] text-amber-700"
-                    : "border-[rgba(217,185,130,0.2)] text-[#8a7f6f] hover:border-[rgba(217,185,130,0.4)]"
+                    : "border-[rgba(217,185,130,0.2)] text-ink-m hover:border-[rgba(217,185,130,0.4)]"
                 }`}
               >
                 {opt.label}
@@ -172,14 +172,14 @@ export default function LearningPreferencesPage() {
         </div>
 
         {/* Card Style */}
-        <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl overflow-hidden mb-4">
+        <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl overflow-hidden mb-4">
           <div className="px-4 pt-4 pb-2 flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-[#0F3D43]" />
-            <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest">
+            <BookOpen className="w-4 h-4 text-accent" />
+            <p className="text-[10px] font-bold text-ink-m uppercase tracking-widest">
               Learn Mode Style
             </p>
           </div>
-          <p className="text-[11px] text-[#b5ad9e] px-4 mb-3">
+          <p className="text-[11px] text-ink-f px-4 mb-3">
             What kind of cards you prefer in Learn Mode
           </p>
           <div className="px-4 pb-4 space-y-2">
@@ -189,18 +189,18 @@ export default function LearningPreferencesPage() {
                 onClick={() => setCardStyle(opt.value)}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border transition-all text-left ${
                   cardStyle === opt.value
-                    ? "border-[#0F3D43]/40 bg-[#1a5c65]/[0.05]"
+                    ? "border-accent/40 bg-accent-l/[0.05]"
                     : "border-[rgba(217,185,130,0.2)] hover:border-[rgba(217,185,130,0.4)]"
                 }`}
               >
                 <div>
-                  <p className={`text-sm font-medium ${cardStyle === opt.value ? "text-[#0a2e33]" : "text-[#1a1815]"}`}>
+                  <p className={`text-sm font-medium ${cardStyle === opt.value ? "text-accent-d" : "text-ink"}`}>
                     {opt.label}
                   </p>
-                  <p className="text-[10px] text-[#b5ad9e]">{opt.desc}</p>
+                  <p className="text-[10px] text-ink-f">{opt.desc}</p>
                 </div>
                 {cardStyle === opt.value && (
-                  <div className="w-5 h-5 rounded-full bg-[#0F3D43] flex items-center justify-center flex-shrink-0">
+                  <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
                     <Check className="w-3 h-3 text-white" />
                   </div>
                 )}
@@ -210,13 +210,13 @@ export default function LearningPreferencesPage() {
         </div>
 
         {/* Auto-advance toggle */}
-        <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl overflow-hidden mb-4">
+        <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl overflow-hidden mb-4">
           <div className="px-4 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Zap className="w-4 h-4 text-emerald-600" />
               <div>
-                <p className="text-sm text-[#1a1815] font-medium">Auto-advance cards</p>
-                <p className="text-[10px] text-[#b5ad9e]">
+                <p className="text-sm text-ink font-medium">Auto-advance cards</p>
+                <p className="text-[10px] text-ink-f">
                   Automatically move to the next card after answering
                 </p>
               </div>
@@ -224,7 +224,7 @@ export default function LearningPreferencesPage() {
             <button
               onClick={() => setAutoPlay(!autoPlay)}
               className={`w-10 h-6 rounded-full transition-colors relative ${
-                autoPlay ? "bg-emerald-500" : "bg-[#d4cec3]"
+                autoPlay ? "bg-emerald-500" : "bg-muted-bg"
               }`}
             >
               <div
@@ -236,27 +236,27 @@ export default function LearningPreferencesPage() {
           </div>
         </div>
 
-        <p className="text-[11px] text-[#b5ad9e] text-center px-4">
+        <p className="text-[11px] text-ink-f text-center px-4">
           These preferences are saved locally and apply to all your lectures.
         </p>
       </main>
 
       {/* Mobile Bottom Nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#FDFCF9] border-t border-[rgba(217,185,130,0.25)] backdrop-blur-xl safe-bottom pwa-standalone-bottom">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-paper border-t border-[rgba(217,185,130,0.25)] backdrop-blur-xl safe-bottom pwa-standalone-bottom">
         <div className="flex items-center justify-around h-14">
-          <Link href="/dashboard" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+          <Link href="/dashboard" className="flex flex-col items-center gap-0.5 text-ink-m hover:text-ink">
             <Home className="w-5 h-5" />
             <span className="text-[10px] font-medium">Home</span>
           </Link>
-          <Link href="/lectures" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+          <Link href="/lectures" className="flex flex-col items-center gap-0.5 text-ink-m hover:text-ink">
             <FileText className="w-5 h-5" />
             <span className="text-[10px] font-medium">Lectures</span>
           </Link>
-          <Link href="/upload" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+          <Link href="/upload" className="flex flex-col items-center gap-0.5 text-ink-m hover:text-ink">
             <Upload className="w-5 h-5" />
             <span className="text-[10px] font-medium">Upload</span>
           </Link>
-          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-[#0F3D43]">
+          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-accent">
             <User className="w-5 h-5" />
             <span className="text-[10px] font-medium">You</span>
           </Link>

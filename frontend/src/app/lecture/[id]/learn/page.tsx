@@ -496,15 +496,15 @@ export default function LearnModePage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F7F4EE] flex flex-col">
+      <div className="min-h-screen bg-cream flex flex-col">
         {/* Nav skeleton */}
-        <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
+        <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-paper/92 backdrop-blur-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-            <div className="w-5 h-5 bg-[#EDE8DF] rounded" />
-            <div className="h-5 w-44 bg-[#EDE8DF] rounded" />
+            <div className="w-5 h-5 bg-cream-d rounded" />
+            <div className="h-5 w-44 bg-cream-d rounded" />
             <div className="flex gap-2">
-              <div className="w-8 h-8 bg-[#EDE8DF] rounded-lg" />
-              <div className="w-8 h-8 bg-[#EDE8DF] rounded-lg" />
+              <div className="w-8 h-8 bg-cream-d rounded-lg" />
+              <div className="w-8 h-8 bg-cream-d rounded-lg" />
             </div>
           </div>
         </nav>
@@ -512,13 +512,13 @@ export default function LearnModePage({
         <div className="flex-1 flex max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 gap-6 animate-pulse">
           {/* Sidebar skeleton */}
           <div className="w-72 flex-shrink-0 hidden lg:block">
-            <div className="h-2.5 w-14 bg-[#EDE8DF] rounded mb-3" />
-            <div className="flex gap-1 mb-4 bg-[#EDE8DF] rounded-xl p-1 h-10" />
+            <div className="h-2.5 w-14 bg-cream-d rounded mb-3" />
+            <div className="flex gap-1 mb-4 bg-cream-d rounded-xl p-1 h-10" />
             <div className="space-y-1.5">
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="p-3 rounded-xl border border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]">
-                  <div className="h-3.5 w-full bg-[#EDE8DF] rounded mb-1.5" />
-                  <div className="h-3 w-2/3 bg-[#EDE8DF]/50 rounded" />
+                <div key={i} className="p-3 rounded-xl border border-[rgba(217,185,130,0.25)] bg-paper">
+                  <div className="h-3.5 w-full bg-cream-d rounded mb-1.5" />
+                  <div className="h-3 w-2/3 bg-cream-d/50 rounded" />
                 </div>
               ))}
             </div>
@@ -528,29 +528,29 @@ export default function LearnModePage({
           <div className="flex-1 flex flex-col items-center">
             <div className="w-full max-w-2xl">
               {/* Card skeleton */}
-              <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl p-6 sm:p-8 min-h-[400px]">
-                <div className="h-5 w-3/4 bg-[#EDE8DF] rounded mb-4" />
+              <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-2xl p-6 sm:p-8 min-h-[400px]">
+                <div className="h-5 w-3/4 bg-cream-d rounded mb-4" />
                 <div className="space-y-2.5">
-                  <div className="h-3.5 w-full bg-[#EDE8DF]/50 rounded" />
-                  <div className="h-3.5 w-full bg-[#EDE8DF]/50 rounded" />
-                  <div className="h-3.5 w-5/6 bg-[#EDE8DF]/50 rounded" />
-                  <div className="h-3.5 w-full bg-[#EDE8DF]/50 rounded" />
-                  <div className="h-3.5 w-4/5 bg-[#EDE8DF]/50 rounded" />
-                  <div className="h-3.5 w-full bg-[#EDE8DF]/50 rounded" />
-                  <div className="h-3.5 w-2/3 bg-[#EDE8DF]/50 rounded" />
+                  <div className="h-3.5 w-full bg-cream-d/50 rounded" />
+                  <div className="h-3.5 w-full bg-cream-d/50 rounded" />
+                  <div className="h-3.5 w-5/6 bg-cream-d/50 rounded" />
+                  <div className="h-3.5 w-full bg-cream-d/50 rounded" />
+                  <div className="h-3.5 w-4/5 bg-cream-d/50 rounded" />
+                  <div className="h-3.5 w-full bg-cream-d/50 rounded" />
+                  <div className="h-3.5 w-2/3 bg-cream-d/50 rounded" />
                 </div>
                 {/* Nav buttons skeleton */}
                 <div className="flex items-center justify-between mt-8">
-                  <div className="h-9 w-20 bg-[#EDE8DF]/40 rounded-xl" />
-                  <div className="h-9 w-24 bg-[#EDE8DF] rounded-xl" />
+                  <div className="h-9 w-20 bg-cream-d/40 rounded-xl" />
+                  <div className="h-9 w-24 bg-cream-d rounded-xl" />
                 </div>
               </div>
               {/* Tutor bar skeleton */}
               <div className="mt-4 flex gap-2">
-                <div className="h-7 w-24 bg-[#EDE8DF]/50 rounded-full" />
-                <div className="h-7 w-32 bg-[#EDE8DF]/50 rounded-full" />
+                <div className="h-7 w-24 bg-cream-d/50 rounded-full" />
+                <div className="h-7 w-32 bg-cream-d/50 rounded-full" />
               </div>
-              <div className="mt-2 h-11 w-full bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl" />
+              <div className="mt-2 h-11 w-full bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl" />
             </div>
           </div>
         </div>
@@ -560,15 +560,15 @@ export default function LearnModePage({
 
   if (error && !lecture) {
     return (
-      <div className="min-h-screen bg-[#F7F4EE] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-cream flex items-center justify-center px-4">
         <div className="text-center max-w-sm">
           <div className="w-14 h-14 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-7 h-7 text-red-500" />
           </div>
-          <p className="text-[#1a1815] font-semibold mb-1" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+          <p className="text-ink font-semibold mb-1" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
             Something went wrong
           </p>
-          <p className="text-[#8a7f6f] text-sm mb-5">
+          <p className="text-ink-m text-sm mb-5">
             {error.includes("fetch") || error.includes("NetworkError")
               ? "Can't reach the server. Check your internet connection."
               : error}
@@ -576,11 +576,11 @@ export default function LearnModePage({
           <div className="flex items-center justify-center gap-3">
             <button
               onClick={() => window.location.reload()}
-              className="flex items-center gap-2 text-sm font-semibold bg-[#1a1815] hover:bg-[#2a2520] text-white px-5 py-2.5 rounded-xl transition-colors"
+              className="flex items-center gap-2 text-sm font-semibold bg-ink hover:bg-ink-h text-white px-5 py-2.5 rounded-xl transition-colors"
             >
               Try again
             </button>
-            <Link href={`/lecture/${id}`} className="text-sm text-[#8a7f6f] hover:text-[#1a1815] transition-colors">
+            <Link href={`/lecture/${id}`} className="text-sm text-ink-m hover:text-ink transition-colors">
               Back to notes
             </Link>
           </div>
@@ -590,22 +590,22 @@ export default function LearnModePage({
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F4EE] flex flex-col">
+    <div className="min-h-screen bg-cream flex flex-col">
       {/* ── Nav ── */}
-      <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-paper/92 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href={`/lecture/${id}`} className="text-[#8a7f6f] hover:text-[#1a1815] transition-colors" aria-label="Back to lecture notes">
+            <Link href={`/lecture/${id}`} className="text-ink-m hover:text-ink transition-colors" aria-label="Back to lecture notes">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             {lecture?.subject && (
-              <span className="text-[11px] font-bold text-[#8a7f6f] uppercase tracking-wider hidden sm:inline">
+              <span className="text-[11px] font-bold text-ink-m uppercase tracking-wider hidden sm:inline">
                 {lecture.subject}
               </span>
             )}
           </div>
           <div className="flex items-center gap-2">
-            <h1 className="text-base font-bold text-[#1a1815] truncate max-w-[200px] sm:max-w-none" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+            <h1 className="text-base font-bold text-ink truncate max-w-[200px] sm:max-w-none" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
               {learnResult?.topic || lecture?.notes?.title || "Learn Mode"}
             </h1>
           </div>
@@ -644,13 +644,13 @@ export default function LearnModePage({
             {/* No section selected */}
             {selectedSection === null && !learnLoading && (
               <div className="flex-1 flex flex-col items-center justify-center py-24 text-center">
-                <div className="w-20 h-20 rounded-2xl bg-[#EDE8DF] flex items-center justify-center mb-6">
-                  <GraduationCap className="w-10 h-10 text-[#8a7f6f]" />
+                <div className="w-20 h-20 rounded-2xl bg-cream-d flex items-center justify-center mb-6">
+                  <GraduationCap className="w-10 h-10 text-ink-m" />
                 </div>
-                <h2 className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+                <h2 className="text-xl font-bold text-ink mb-2" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   Ready to Learn?
                 </h2>
-                <p className="text-sm text-[#8a7f6f] max-w-md">
+                <p className="text-sm text-ink-m max-w-md">
                   Pick a topic from the list and your AI tutor will teach it to you with bite-sized cards, quizzes, and examples.
                 </p>
               </div>
@@ -660,15 +660,15 @@ export default function LearnModePage({
             {learnLoading && (
               <div className="flex-1 flex flex-col items-center justify-center py-24">
                 <div className="relative mb-6">
-                  <div className="w-16 h-16 rounded-2xl bg-[#1a1815] flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-2xl bg-ink flex items-center justify-center">
                     <GraduationCap className="w-8 h-8 text-white" />
                   </div>
-                  <Loader2 className="w-6 h-6 text-[#8a7f6f] animate-spin absolute -bottom-1 -right-1" />
+                  <Loader2 className="w-6 h-6 text-ink-m animate-spin absolute -bottom-1 -right-1" />
                 </div>
-                <h3 className="text-lg font-semibold text-[#1a1815] mb-1" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+                <h3 className="text-lg font-semibold text-ink mb-1" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   Preparing your lesson...
                 </h3>
-                <p className="text-sm text-[#8a7f6f]">
+                <p className="text-sm text-ink-m">
                   Building cards, examples, and quiz questions
                 </p>
               </div>
@@ -678,11 +678,11 @@ export default function LearnModePage({
             {error && !learnLoading && selectedSection !== null && (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <AlertCircle className="w-10 h-10 text-red-400 mb-4" />
-                <p className="text-[#1a1815] font-medium mb-2">Something went wrong</p>
-                <p className="text-sm text-[#8a7f6f] mb-4">{error}</p>
+                <p className="text-ink font-medium mb-2">Something went wrong</p>
+                <p className="text-sm text-ink-m mb-4">{error}</p>
                 <button
                   onClick={() => handleStartLearn(selectedSection)}
-                  className="text-sm text-[#0F3D43] hover:text-[#1a5c64] font-medium"
+                  className="text-sm text-accent hover:text-accent-l font-medium"
                 >
                   Try again
                 </button>
@@ -696,17 +696,17 @@ export default function LearnModePage({
                 <div className="mb-6">
                   {/* Progress info line */}
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest">
+                    <span className="text-[10px] font-bold text-ink-m uppercase tracking-widest">
                       {learnResult.topic}
                     </span>
-                    <span className="text-[10px] text-[#8a7f6f]">·</span>
-                    <span className="text-[10px] font-medium text-[#8a7f6f]">
+                    <span className="text-[10px] text-ink-m">·</span>
+                    <span className="text-[10px] font-medium text-ink-m">
                       {conceptCardsDone} of {completedCards}
                     </span>
                   </div>
 
                   {/* Mode switcher: CARDS | PRACTICE | NOTES */}
-                  <div className="flex gap-1 bg-[#EDE8DF] rounded-xl p-1">
+                  <div className="flex gap-1 bg-cream-d rounded-xl p-1">
                     {modeLabels.map((label, i) => {
                       const Icon = modeIcons[i];
                       return (
@@ -715,8 +715,8 @@ export default function LearnModePage({
                           onClick={() => setActiveMode(i)}
                           className={`flex items-center justify-center gap-1.5 text-xs font-bold px-5 py-2.5 rounded-lg transition-all flex-1 uppercase tracking-wider ${
                             activeMode === i
-                              ? "bg-[#1a1815] text-white shadow-md"
-                              : "text-[#8a7f6f] hover:text-[#1a1815] hover:bg-[#FDFCF9]"
+                              ? "bg-ink text-white shadow-md"
+                              : "text-ink-m hover:text-ink hover:bg-paper"
                           }`}
                         >
                           <Icon className="w-3.5 h-3.5" />
@@ -801,11 +801,11 @@ export default function LearnModePage({
                       )}
 
                       {/* Keyboard hint — desktop only */}
-                      <p className="text-center text-[11px] text-[#8a7f6f] mt-4 hidden sm:block">
+                      <p className="text-center text-[11px] text-ink-m mt-4 hidden sm:block">
                         Use arrow keys to navigate cards
                       </p>
                       {/* Swipe hint — mobile only */}
-                      <p className="text-center text-[11px] text-[#8a7f6f] mt-4 sm:hidden">
+                      <p className="text-center text-[11px] text-ink-m mt-4 sm:hidden">
                         Swipe left/right or tap buttons to navigate
                       </p>
                     </div>
@@ -818,18 +818,18 @@ export default function LearnModePage({
                   if (quizCards.length === 0) {
                     return (
                       <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
-                        <div className="w-16 h-16 rounded-2xl bg-[#EDE8DF] flex items-center justify-center mb-5">
-                          <PenTool className="w-8 h-8 text-[#8a7f6f]" />
+                        <div className="w-16 h-16 rounded-2xl bg-cream-d flex items-center justify-center mb-5">
+                          <PenTool className="w-8 h-8 text-ink-m" />
                         </div>
-                        <h2 className="text-lg font-bold text-[#1a1815] mb-2" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+                        <h2 className="text-lg font-bold text-ink mb-2" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                           No practice questions yet
                         </h2>
-                        <p className="text-sm text-[#8a7f6f] max-w-sm">
+                        <p className="text-sm text-ink-m max-w-sm">
                           Go through the Cards first — quizzes will appear here for focused practice.
                         </p>
                         <button
                           onClick={() => setActiveMode(0)}
-                          className="mt-6 text-sm font-medium text-[#1a1815] px-5 py-2.5 rounded-xl border border-[rgba(217,185,130,0.3)] hover:bg-[#FDFCF9] transition-colors"
+                          className="mt-6 text-sm font-medium text-ink px-5 py-2.5 rounded-xl border border-[rgba(217,185,130,0.3)] hover:bg-paper transition-colors"
                         >
                           Back to Cards
                         </button>
@@ -846,10 +846,10 @@ export default function LearnModePage({
                       {/* Practice header */}
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <span className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest">
+                          <span className="text-[10px] font-bold text-ink-m uppercase tracking-widest">
                             Practice Quiz
                           </span>
-                          <span className="text-[10px] text-[#8a7f6f]">
+                          <span className="text-[10px] text-ink-m">
                             {answeredCount}/{quizCards.length} answered
                           </span>
                         </div>
@@ -899,20 +899,20 @@ export default function LearnModePage({
 
                       {/* Summary when all answered */}
                       {answeredCount === quizCards.length && (
-                        <div className="mt-6 p-5 bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl text-center">
-                          <p className="text-lg font-bold text-[#1a1815] mb-1" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+                        <div className="mt-6 p-5 bg-paper border border-[rgba(217,185,130,0.25)] rounded-2xl text-center">
+                          <p className="text-lg font-bold text-ink mb-1" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                             {correctCount === quizCards.length
                               ? "Perfect score!"
                               : correctCount >= quizCards.length * 0.7
                               ? "Good job!"
                               : "Keep practicing!"}
                           </p>
-                          <p className="text-sm text-[#8a7f6f] mb-4">
+                          <p className="text-sm text-ink-m mb-4">
                             You got {correctCount} out of {quizCards.length} correct
                           </p>
                           <button
                             onClick={() => setActiveMode(0)}
-                            className="text-sm font-medium text-[#1a1815] px-5 py-2.5 rounded-xl border border-[rgba(217,185,130,0.3)] hover:bg-[#EDE8DF] transition-colors"
+                            className="text-sm font-medium text-ink px-5 py-2.5 rounded-xl border border-[rgba(217,185,130,0.3)] hover:bg-cream-d transition-colors"
                           >
                             Back to Cards
                           </button>

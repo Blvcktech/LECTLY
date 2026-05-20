@@ -32,21 +32,21 @@ export const ProgressDots = React.memo(function ProgressDots({
                     ? "w-8 h-2.5 bg-gradient-to-r from-green-500 to-emerald-500"
                     : isAnalogy
                     ? "w-8 h-2.5 bg-gradient-to-r from-amber-500 to-orange-500"
-                    : "w-8 h-2.5 bg-[#1a1815]"
+                    : "w-8 h-2.5 bg-ink"
                   : i < cardIndex
                   ? isQuiz
                     ? "w-2.5 h-2.5 bg-green-400/50"
-                    : "w-2.5 h-2.5 bg-[#1a1815]/40"
+                    : "w-2.5 h-2.5 bg-ink/40"
                   : isQuiz
                   ? "w-2.5 h-2.5 bg-green-300/30"
-                  : "w-2.5 h-2.5 bg-[#8a7f6f]/30"
+                  : "w-2.5 h-2.5 bg-ink-m/30"
               }`}
               aria-label={`Go to card ${i + 1}`}
             />
           );
         })}
       </div>
-      <span className="ml-3 text-[11px] font-medium text-[#8a7f6f] flex-shrink-0">
+      <span className="ml-3 text-[11px] font-medium text-ink-m flex-shrink-0">
         {cardIndex + 1} / {totalCards}
       </span>
     </div>

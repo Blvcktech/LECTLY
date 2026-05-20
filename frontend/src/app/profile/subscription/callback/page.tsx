@@ -65,17 +65,17 @@ function CallbackContent() {
   }, [isSignedIn, searchParams, getToken]);
 
   return (
-    <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl p-8 max-w-sm w-full text-center">
+    <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-2xl p-8 max-w-sm w-full text-center">
       {status === "loading" && (
         <>
-          <Loader2 className="w-12 h-12 text-[#0F3D43] animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-accent animate-spin mx-auto mb-4" />
           <p
-            className="text-lg font-bold text-[#1a1815] mb-2"
+            className="text-lg font-bold text-ink mb-2"
             style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
           >
             Verifying payment...
           </p>
-          <p className="text-sm text-[#8a7f6f]">Hold tight, we&apos;re confirming with Paystack.</p>
+          <p className="text-sm text-ink-m">Hold tight, we&apos;re confirming with Paystack.</p>
         </>
       )}
 
@@ -85,17 +85,17 @@ function CallbackContent() {
             <CheckCircle className="w-8 h-8 text-emerald-500" />
           </div>
           <p
-            className="text-lg font-bold text-[#1a1815] mb-2"
+            className="text-lg font-bold text-ink mb-2"
             style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
           >
             You&apos;re upgraded!
           </p>
-          <p className="text-sm text-[#8a7f6f] mb-6">
+          <p className="text-sm text-ink-m mb-6">
             {message || `Welcome to the ${plan.charAt(0).toUpperCase() + plan.slice(1)} plan.`}
           </p>
           <button
             onClick={() => router.push("/upload")}
-            className="w-full py-2.5 bg-[#0F3D43] text-white rounded-lg text-sm font-semibold hover:bg-[#1a5c64] transition-colors"
+            className="w-full py-2.5 bg-accent text-white rounded-lg text-sm font-semibold hover:bg-accent-l transition-colors"
           >
             Start uploading
           </button>
@@ -108,15 +108,15 @@ function CallbackContent() {
             <XCircle className="w-8 h-8 text-red-500" />
           </div>
           <p
-            className="text-lg font-bold text-[#1a1815] mb-2"
+            className="text-lg font-bold text-ink mb-2"
             style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
           >
             Payment not verified
           </p>
-          <p className="text-sm text-[#8a7f6f] mb-6">{message}</p>
+          <p className="text-sm text-ink-m mb-6">{message}</p>
           <button
             onClick={() => router.push("/profile/subscription")}
-            className="w-full py-2.5 border border-[rgba(217,185,130,0.35)] text-[#1a1815] rounded-lg text-sm font-medium hover:bg-[#F7F4EE] transition-colors"
+            className="w-full py-2.5 border border-[rgba(217,185,130,0.35)] text-ink rounded-lg text-sm font-medium hover:bg-cream transition-colors"
           >
             Try again
           </button>
@@ -128,12 +128,12 @@ function CallbackContent() {
 
 export default function PaymentCallbackPage() {
   return (
-    <div className="min-h-screen bg-[#F7F4EE] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-cream flex items-center justify-center px-4">
       <Suspense
         fallback={
-          <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl p-8 max-w-sm w-full text-center">
-            <Loader2 className="w-12 h-12 text-[#0F3D43] animate-spin mx-auto mb-4" />
-            <p className="text-lg font-bold text-[#1a1815] mb-2">Loading...</p>
+          <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-2xl p-8 max-w-sm w-full text-center">
+            <Loader2 className="w-12 h-12 text-accent animate-spin mx-auto mb-4" />
+            <p className="text-lg font-bold text-ink mb-2">Loading...</p>
           </div>
         }
       >

@@ -4,14 +4,14 @@ import StratumLogo from "@/components/StratumLogo";
 
 export default function SignInPage() {
   return (
-    <div className="min-h-screen bg-[#F7F4EE] flex flex-col items-center justify-center px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-4 relative overflow-hidden">
       {/* Subtle decorative circle */}
       <div className="absolute top-[-120px] left-1/2 -translate-x-1/2 w-[400px] h-[400px] rounded-full bg-[radial-gradient(ellipse,rgba(15,61,67,0.06)_0%,transparent_70%)] pointer-events-none" />
 
       <Link href="/" className="flex items-center gap-2.5 mb-7 relative">
         <StratumLogo size={36} />
         <span
-          className="text-xl font-bold text-[#1a1815] tracking-tight"
+          className="text-xl font-bold text-ink tracking-tight"
           style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
         >
           Lectly
@@ -22,24 +22,24 @@ export default function SignInPage() {
         appearance={{
           elements: {
             rootBox: "w-full max-w-sm",
-            card: "bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl shadow-lg shadow-[rgba(217,185,130,0.08)]",
-            headerTitle: "text-[#1a1815]",
-            headerSubtitle: "text-[#8a7f6f]",
+            card: "bg-paper border border-[rgba(217,185,130,0.25)] rounded-2xl shadow-lg shadow-[rgba(217,185,130,0.08)]",
+            headerTitle: "text-ink",
+            headerSubtitle: "text-ink-m",
             socialButtonsBlockButton:
-              "bg-[#F7F4EE] border-[rgba(217,185,130,0.3)] text-[#1a1815] hover:bg-[#EDE8DF]",
-            socialButtonsBlockButtonText: "text-[#1a1815]",
-            formFieldLabel: "text-[#8a7f6f]",
+              "bg-cream border-[rgba(217,185,130,0.3)] text-ink hover:bg-cream-d",
+            socialButtonsBlockButtonText: "text-ink",
+            formFieldLabel: "text-ink-m",
             formFieldInput:
-              "bg-[#F7F4EE] border-[rgba(217,185,130,0.3)] text-[#1a1815] placeholder:text-[#b5ad9e] focus:border-[#1a5c65] focus:ring-[#1a5c65]/20",
+              "bg-cream border-[rgba(217,185,130,0.3)] text-ink placeholder:text-ink-f focus:border-accent-l focus:ring-accent-l/20",
             formButtonPrimary:
-              "bg-[#1a1815] hover:bg-[#2a2520] shadow-none text-white",
-            footerActionLink: "text-[#0F3D43] hover:text-[#0a2f34]",
+              "bg-ink hover:bg-ink-h shadow-none text-white",
+            footerActionLink: "text-accent hover:text-[#0a2f34]",
             dividerLine: "bg-[rgba(217,185,130,0.25)]",
-            dividerText: "text-[#b5ad9e]",
-            identityPreviewEditButton: "text-[#0F3D43]",
-            formFieldAction: "text-[#0F3D43]",
+            dividerText: "text-ink-f",
+            identityPreviewEditButton: "text-accent",
+            formFieldAction: "text-accent",
             otpCodeFieldInput:
-              "bg-[#F7F4EE] border-[rgba(217,185,130,0.3)] text-[#1a1815]",
+              "bg-cream border-[rgba(217,185,130,0.3)] text-ink",
           },
         }}
       />

@@ -132,13 +132,13 @@ export default function DashboardPage() {
       // No progress — check how new it is
       const ageHours = (Date.now() - new Date(lecture.created_at).getTime()) / 3600000;
       if (ageHours < 24) return { text: `New · ${formatDuration(lecture.duration_seconds)}`, color: "text-green-700" };
-      return { text: `Not started · ${formatDuration(lecture.duration_seconds)}`, color: "text-[#8a7f6f]" };
+      return { text: `Not started · ${formatDuration(lecture.duration_seconds)}`, color: "text-ink-m" };
     }
 
     if (stats.isComplete && stats.avgMastery >= 90) return { text: `Mastered · ${stats.avgMastery}%`, color: "text-green-700" };
     if (stats.isComplete) return { text: `Completed · ${stats.avgMastery}% mastery`, color: "text-green-700" };
     if (stats.quizFailed > 0) return { text: `Quiz failed ${stats.quizFailed}× · re-teach ready`, color: "text-amber-700" };
-    return { text: `${stats.completedCards} of ${stats.totalCards} cards · ${formatRelativeTime(stats.lastStudiedAt)}`, color: "text-[#8a7f6f]" };
+    return { text: `${stats.completedCards} of ${stats.totalCards} cards · ${formatRelativeTime(stats.lastStudiedAt)}`, color: "text-ink-m" };
   };
 
   // Format relative time
@@ -209,41 +209,41 @@ export default function DashboardPage() {
   const usagePercent = Math.min((lectures.length / 3) * 100, 100);
 
   return (
-    <div className="flex min-h-screen bg-[#F7F4EE]">
+    <div className="flex min-h-screen bg-cream">
       {/* Onboarding modal for email sign-ups without a name */}
       <OnboardingModal />
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-60 border-r border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]">
+      <aside className="hidden lg:flex flex-col w-60 border-r border-[rgba(217,185,130,0.25)] bg-paper">
         <div className="px-5 py-4 flex items-center gap-2.5">
           <StratumLogo size={32} />
-          <span className="text-lg font-bold text-[#1a1815] tracking-tight" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>Lectly</span>
+          <span className="text-lg font-bold text-ink tracking-tight" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>Lectly</span>
         </div>
         <nav className="flex-1 mt-2 px-3">
           <Link
             href="/dashboard"
-            className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-[#0a2e33] bg-[#1a5c65]/8 border-r-2 border-[#0F3D43] rounded-l-lg mb-0.5"
+            className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-accent-d bg-accent-l/8 border-r-2 border-accent rounded-l-lg mb-0.5"
           >
-            <Home className="w-4 h-4 text-[#0F3D43]" />
+            <Home className="w-4 h-4 text-accent" />
             Dashboard
           </Link>
           <Link
             href="/upload"
-            className="flex items-center gap-3 px-3 py-2.5 text-sm text-[#8a7f6f] hover:text-[#1a1815] rounded-lg transition-colors mb-0.5"
+            className="flex items-center gap-3 px-3 py-2.5 text-sm text-ink-m hover:text-ink rounded-lg transition-colors mb-0.5"
           >
             <Upload className="w-4 h-4" />
             Upload
           </Link>
           <Link
             href="/lectures"
-            className="flex items-center gap-3 px-3 py-2.5 text-sm text-[#8a7f6f] hover:text-[#1a1815] rounded-lg transition-colors mb-0.5"
+            className="flex items-center gap-3 px-3 py-2.5 text-sm text-ink-m hover:text-ink rounded-lg transition-colors mb-0.5"
           >
             <FileText className="w-4 h-4" />
             Lectures
           </Link>
           <Link
             href="/profile"
-            className="flex items-center gap-3 px-3 py-2.5 text-sm text-[#8a7f6f] hover:text-[#1a1815] rounded-lg transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 text-sm text-ink-m hover:text-ink rounded-lg transition-colors"
           >
             <User className="w-4 h-4" />
             Profile
@@ -252,18 +252,18 @@ export default function DashboardPage() {
 
         {/* Usage meter */}
         <div className="px-5 pb-5">
-          <div className="bg-[#F7F4EE] border border-[rgba(217,185,130,0.25)] rounded-xl p-3.5">
+          <div className="bg-cream border border-[rgba(217,185,130,0.25)] rounded-xl p-3.5">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-xs text-[#8a7f6f] font-medium">Free Plan</span>
-              <span className="text-xs text-[#0F3D43] font-semibold">{lectures.length}/3</span>
+              <span className="text-xs text-ink-m font-medium">Free Plan</span>
+              <span className="text-xs text-accent font-semibold">{lectures.length}/3</span>
             </div>
-            <div className="w-full h-2 bg-[#EDE8DF] rounded-full overflow-hidden">
+            <div className="w-full h-2 bg-cream-d rounded-full overflow-hidden">
               <div
-                className="h-full rounded-full bg-[#0F3D43] transition-all duration-500"
+                className="h-full rounded-full bg-accent transition-all duration-500"
                 style={{ width: `${usagePercent}%` }}
               />
             </div>
-            <p className="text-[10px] text-[#8a7f6f] mt-1.5">Lectures this month</p>
+            <p className="text-[10px] text-ink-m mt-1.5">Lectures this month</p>
           </div>
         </div>
       </aside>
@@ -271,30 +271,30 @@ export default function DashboardPage() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
-        <header className="sticky top-0 z-40 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
+        <header className="sticky top-0 z-40 border-b border-[rgba(217,185,130,0.25)] bg-paper/92 backdrop-blur-xl">
           <div className="flex items-center justify-between h-14 px-4 sm:px-6 lg:px-8">
             {/* Mobile logo */}
             <div className="flex items-center gap-2 lg:hidden">
               <StratumLogo size={28} />
-              <span className="text-lg font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>Lectly</span>
+              <span className="text-lg font-bold text-ink" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>Lectly</span>
             </div>
 
             {/* Search */}
-            <div className="hidden sm:flex items-center gap-2 bg-[#F7F4EE] border border-[rgba(217,185,130,0.25)] rounded-[10px] px-3 py-2 w-64">
-              <Search className="w-4 h-4 text-[#8a7f6f]" />
+            <div className="hidden sm:flex items-center gap-2 bg-cream border border-[rgba(217,185,130,0.25)] rounded-[10px] px-3 py-2 w-64">
+              <Search className="w-4 h-4 text-ink-m" />
               <input
                 type="text"
                 placeholder="Search lectures..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="bg-transparent text-sm text-[#1a1815] placeholder:text-[#8a7f6f] focus:outline-none w-full"
+                className="bg-transparent text-sm text-ink placeholder:text-ink-m focus:outline-none w-full"
               />
             </div>
 
             <div className="flex items-center gap-3">
               <Link
                 href="/upload"
-                className="flex items-center gap-2 text-sm bg-[#0F3D43] hover:bg-[#1a5c65] text-white px-4 py-2 rounded-[10px] font-medium shadow-md shadow-[#0F3D43]/15 transition-all hover:shadow-lg"
+                className="flex items-center gap-2 text-sm bg-accent hover:bg-accent-l text-white px-4 py-2 rounded-[10px] font-medium shadow-md shadow-accent/15 transition-all hover:shadow-lg"
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">New Lecture</span>
@@ -302,7 +302,7 @@ export default function DashboardPage() {
               <Link
                 href="/profile"
                 title="Profile & settings"
-                className="w-8 h-8 rounded-full bg-[#0F3D43] flex items-center justify-center text-xs text-white font-bold hover:opacity-80 transition-opacity cursor-pointer"
+                className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-xs text-white font-bold hover:opacity-80 transition-opacity cursor-pointer"
               >
                 {user?.firstName?.charAt(0).toUpperCase() || "U"}
               </Link>
@@ -313,25 +313,25 @@ export default function DashboardPage() {
         <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 pb-20 lg:pb-6">
           {/* Mobile search */}
           <div className="sm:hidden mb-5">
-            <div className="flex items-center gap-2 bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-[10px] px-3 py-2.5">
-              <Search className="w-4 h-4 text-[#8a7f6f]" />
+            <div className="flex items-center gap-2 bg-paper border border-[rgba(217,185,130,0.25)] rounded-[10px] px-3 py-2.5">
+              <Search className="w-4 h-4 text-ink-m" />
               <input
                 type="text"
                 placeholder="Search lectures..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="bg-transparent text-sm text-[#1a1815] placeholder:text-[#8a7f6f] focus:outline-none w-full"
+                className="bg-transparent text-sm text-ink placeholder:text-ink-m focus:outline-none w-full"
               />
             </div>
           </div>
 
           {/* Header with greeting */}
           <div className="mb-5">
-            <h1 className="text-xl font-bold text-[#1a1815] leading-snug" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+            <h1 className="text-xl font-bold text-ink leading-snug" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
               {!loading && user?.firstName ? `Good ${new Date().getHours() < 12 ? "morning" : new Date().getHours() < 17 ? "afternoon" : "evening"}, ${user.firstName}` : "Your dashboard"}
             </h1>
             {!loading && lectures.length > 0 && (
-              <p className="text-sm text-[#8a7f6f] mt-1">
+              <p className="text-sm text-ink-m mt-1">
                 {lectures.length} lecture{lectures.length !== 1 ? "s" : ""} uploaded. {Math.max(0, 3 - lectures.length)} remaining on free plan.
               </p>
             )}
@@ -340,22 +340,22 @@ export default function DashboardPage() {
           {/* Quick stats row */}
           {!loading && lectures.length > 0 && (
             <div className="grid grid-cols-3 gap-2 mb-5">
-              <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-3 text-center">
-                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+              <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl p-3 text-center">
+                <p className="text-xl font-bold text-ink" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {lectures.length}
                 </p>
-                <p className="text-[11px] text-[#8a7f6f] mt-0.5">Lectures</p>
+                <p className="text-[11px] text-ink-m mt-0.5">Lectures</p>
               </div>
-              <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-3 text-center">
-                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+              <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl p-3 text-center">
+                <p className="text-xl font-bold text-ink" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {allProgress.length > 0
                     ? `${Math.round(allProgress.filter(p => p.mastery_pct > 0).reduce((s, p) => s + p.mastery_pct, 0) / Math.max(1, allProgress.filter(p => p.mastery_pct > 0).length))}%`
                     : "—"}
                 </p>
-                <p className="text-[11px] text-[#8a7f6f] mt-0.5">Avg mastery</p>
+                <p className="text-[11px] text-ink-m mt-0.5">Avg mastery</p>
               </div>
-              <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-3 text-center">
-                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+              <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl p-3 text-center">
+                <p className="text-xl font-bold text-ink" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {(() => {
                     const studyDates = new Set<string>();
                     allProgress.forEach(p => {
@@ -372,7 +372,7 @@ export default function DashboardPage() {
                     return streak;
                   })()}
                 </p>
-                <p className="text-[11px] text-[#8a7f6f] mt-0.5">Day streak</p>
+                <p className="text-[11px] text-ink-m mt-0.5">Day streak</p>
               </div>
             </div>
           )}
@@ -391,7 +391,7 @@ export default function DashboardPage() {
             return (
               <Link
                 href={`/lecture/${lecture.id}/learn?section=${lastStudied.section_index}`}
-                className="block mb-6 bg-[#1a1815] text-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all group"
+                className="block mb-6 bg-ink text-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all group"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
@@ -430,11 +430,11 @@ export default function DashboardPage() {
 
           {/* Section header */}
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[11px] font-bold text-[#8a7f6f] uppercase tracking-widest">
+            <h2 className="text-[11px] font-bold text-ink-m uppercase tracking-widest">
               Recent Lectures
             </h2>
             {lectures.length > 0 && (
-              <Link href="/lectures" className="text-[11px] font-semibold text-[#0F3D43] hover:text-[#0a2e33] transition-colors">
+              <Link href="/lectures" className="text-[11px] font-semibold text-accent hover:text-accent-d transition-colors">
                 View all
               </Link>
             )}
@@ -444,7 +444,7 @@ export default function DashboardPage() {
           {loading && (
             <div className="animate-pulse">
               {/* Continuity card skeleton */}
-              <div className="mb-6 bg-[#1a1815]/80 rounded-2xl p-5">
+              <div className="mb-6 bg-ink/80 rounded-2xl p-5">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="h-2.5 w-28 bg-white/10 rounded mb-3" />
@@ -460,24 +460,24 @@ export default function DashboardPage() {
 
               {/* Section header skeleton */}
               <div className="flex items-center justify-between mb-3">
-                <div className="h-2.5 w-28 bg-[#EDE8DF] rounded" />
-                <div className="h-2.5 w-12 bg-[#EDE8DF] rounded" />
+                <div className="h-2.5 w-28 bg-cream-d rounded" />
+                <div className="h-2.5 w-12 bg-cream-d rounded" />
               </div>
 
               {/* Lecture card skeletons */}
               <div className="space-y-2">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl px-4 py-3.5">
+                  <div key={i} className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl px-4 py-3.5">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#EDE8DF] flex-shrink-0" />
+                      <div className="w-10 h-10 rounded-xl bg-cream-d flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <div className="h-4 bg-[#EDE8DF] rounded w-3/4 mb-2" />
-                        <div className="h-2.5 bg-[#EDE8DF]/60 rounded w-1/3" />
+                        <div className="h-4 bg-cream-d rounded w-3/4 mb-2" />
+                        <div className="h-2.5 bg-cream-d/60 rounded w-1/3" />
                       </div>
-                      <div className="w-10 h-10 rounded-full bg-[#EDE8DF]/50 flex-shrink-0" />
+                      <div className="w-10 h-10 rounded-full bg-cream-d/50 flex-shrink-0" />
                     </div>
                     <div className="flex items-center gap-2 mt-2 pl-[52px]">
-                      <div className="h-7 w-28 bg-[#EDE8DF]/50 rounded-lg" />
+                      <div className="h-7 w-28 bg-cream-d/50 rounded-lg" />
                     </div>
                   </div>
                 ))}
@@ -491,17 +491,17 @@ export default function DashboardPage() {
               <div className="w-14 h-14 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center mx-auto mb-4">
                 <AlertCircle className="w-7 h-7 text-red-500" />
               </div>
-              <p className="text-[#1a1815] font-semibold mb-1" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+              <p className="text-ink font-semibold mb-1" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                 Something went wrong
               </p>
-              <p className="text-sm text-[#8a7f6f] mb-5">
+              <p className="text-sm text-ink-m mb-5">
                 {error.includes("fetch") || error.includes("NetworkError")
                   ? "Can't reach the server. Check your internet connection."
                   : error}
               </p>
               <button
                 onClick={() => window.location.reload()}
-                className="flex items-center gap-2 text-sm font-semibold bg-[#1a1815] hover:bg-[#2a2520] text-white px-5 py-2.5 rounded-xl transition-colors mx-auto"
+                className="flex items-center gap-2 text-sm font-semibold bg-ink hover:bg-ink-h text-white px-5 py-2.5 rounded-xl transition-colors mx-auto"
               >
                 Try again
               </button>
@@ -519,37 +519,37 @@ export default function DashboardPage() {
 
                 // Color-coded subject dot
                 const subjectColors: Record<string, string> = {
-                  "Computer Science & Media": "bg-[#0F3D43]",
+                  "Computer Science & Media": "bg-accent",
                   "Engineering": "bg-orange-500",
                   "Sciences": "bg-green-500",
                   "Medicine & Pharmacy": "bg-red-500",
-                  "Law": "bg-[#1a5c65]",
+                  "Law": "bg-accent-l",
                   "Business & Economics": "bg-amber-500",
                   "Arts & Humanities": "bg-pink-500",
                 };
-                const dotColor = lecture.subject ? (subjectColors[lecture.subject] || "bg-[#8a7f6f]") : "";
+                const dotColor = lecture.subject ? (subjectColors[lecture.subject] || "bg-ink-m") : "";
 
                 return (
                   <Link
                     key={lecture.id}
                     href={isReady ? `/lecture/${lecture.id}` : "#"}
-                    className={`block bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl px-4 py-3.5 hover:border-[rgba(217,185,130,0.5)] hover:shadow-sm transition-all group ${!isReady ? "opacity-75" : ""}`}
+                    className={`block bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl px-4 py-3.5 hover:border-[rgba(217,185,130,0.5)] hover:shadow-sm transition-all group ${!isReady ? "opacity-75" : ""}`}
                   >
                     <div className="flex items-center gap-3">
                       {/* Subject badge with colored dot */}
                       <div className="flex-shrink-0">
                         {lecture.subject ? (
                           <div className="relative">
-                            <div className="w-10 h-10 rounded-xl bg-[#EDE8DF] flex items-center justify-center">
-                              <span className="text-[9px] font-bold text-[#2C2A25] uppercase leading-none text-center px-0.5">
+                            <div className="w-10 h-10 rounded-xl bg-cream-d flex items-center justify-center">
+                              <span className="text-[9px] font-bold text-ink-l uppercase leading-none text-center px-0.5">
                                 {lecture.subject.length > 6 ? lecture.subject.substring(0, 6) : lecture.subject}
                               </span>
                             </div>
-                            <div className={`absolute -top-0.5 -left-0.5 w-3 h-3 rounded-full ${dotColor} border-2 border-[#FDFCF9]`} />
+                            <div className={`absolute -top-0.5 -left-0.5 w-3 h-3 rounded-full ${dotColor} border-2 border-paper`} />
                           </div>
                         ) : (
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isReady ? "bg-[#0F3D43]/8" : "bg-amber-500/10"}`}>
-                            {isReady ? <FileText className="w-5 h-5 text-[#0F3D43]" /> : <Clock className="w-5 h-5 text-amber-600 animate-pulse" />}
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isReady ? "bg-accent/8" : "bg-amber-500/10"}`}>
+                            {isReady ? <FileText className="w-5 h-5 text-accent" /> : <Clock className="w-5 h-5 text-amber-600 animate-pulse" />}
                           </div>
                         )}
                       </div>
@@ -563,19 +563,19 @@ export default function DashboardPage() {
                               value={renameValue}
                               onChange={(e) => setRenameValue(e.target.value)}
                               onKeyDown={(e) => { if (e.key === "Enter") handleRename(lecture.id); if (e.key === "Escape") setRenamingId(null); }}
-                              className="text-sm font-semibold text-[#1a1815] bg-white border border-[#0F3D43]/30 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-[#0F3D43]/20 flex-1 min-w-0"
+                              className="text-sm font-semibold text-ink bg-white border border-accent/30 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-accent/20 flex-1 min-w-0"
                               autoFocus
                               disabled={renameLoading}
                             />
-                            <button onClick={() => handleRename(lecture.id)} disabled={renameLoading} className="p-1 rounded-md bg-[#0F3D43] text-white hover:bg-[#1a5c64] transition-colors disabled:opacity-40" aria-label="Confirm rename">
+                            <button onClick={() => handleRename(lecture.id)} disabled={renameLoading} className="p-1 rounded-md bg-accent text-white hover:bg-accent-l transition-colors disabled:opacity-40" aria-label="Confirm rename">
                               {renameLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                             </button>
-                            <button onClick={() => setRenamingId(null)} className="p-1 rounded-md text-[#8a7f6f] hover:text-[#1a1815] transition-colors" aria-label="Cancel rename">
+                            <button onClick={() => setRenamingId(null)} className="p-1 rounded-md text-ink-m hover:text-ink transition-colors" aria-label="Cancel rename">
                               <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         ) : (
-                          <p className="text-sm font-semibold text-[#1a1815] truncate">
+                          <p className="text-sm font-semibold text-ink truncate">
                             {title}
                           </p>
                         )}
@@ -598,10 +598,10 @@ export default function DashboardPage() {
                                 strokeLinecap="round"
                               />
                             </svg>
-                            <span className="text-[9px] font-bold text-[#1a1815] z-10">{stats.avgMastery}%</span>
+                            <span className="text-[9px] font-bold text-ink z-10">{stats.avgMastery}%</span>
                           </div>
                         )}
-                        <ChevronRight className="w-4 h-4 text-[#8a7f6f] sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" />
+                        <ChevronRight className="w-4 h-4 text-ink-m sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" />
                       </div>
                     </div>
 
@@ -610,20 +610,20 @@ export default function DashboardPage() {
                       {isReady && (
                         <button
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/lecture/${lecture.id}/learn`); }}
-                          className="flex items-center gap-1.5 text-[11px] font-semibold text-[#0F3D43] bg-[#0F3D43]/8 hover:bg-[#0F3D43]/15 px-3 py-1.5 rounded-lg transition-colors"
+                          className="flex items-center gap-1.5 text-[11px] font-semibold text-accent bg-accent/8 hover:bg-accent/15 px-3 py-1.5 rounded-lg transition-colors"
                         >
                           <GraduationCap className="w-3.5 h-3.5" />
                           {stats?.isComplete ? "Review" : stats ? "Continue learning" : "Start learning"}
                         </button>
                       )}
                       {stats && !stats.isComplete && (
-                        <span className="text-[10px] text-[#8a7f6f] font-medium">
+                        <span className="text-[10px] text-ink-m font-medium">
                           ~{stats.estimatedMinLeft} min left
                         </span>
                       )}
                       <button
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); startRename(lecture.id, title); }}
-                        className="flex items-center text-[#8a7f6f] hover:text-[#0F3D43] p-1.5 rounded-lg transition-colors ml-auto"
+                        className="flex items-center text-ink-m hover:text-accent p-1.5 rounded-lg transition-colors ml-auto"
                         title="Rename lecture"
                         aria-label="Rename lecture"
                       >
@@ -632,7 +632,7 @@ export default function DashboardPage() {
                       <button
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(lecture.id, title); }}
                         disabled={deletingId === lecture.id}
-                        className="flex items-center text-[#8a7f6f] hover:text-red-500 p-1.5 rounded-lg transition-colors disabled:opacity-40"
+                        className="flex items-center text-ink-m hover:text-red-500 p-1.5 rounded-lg transition-colors disabled:opacity-40"
                         title="Delete lecture"
                         aria-label="Delete lecture"
                       >
@@ -647,7 +647,7 @@ export default function DashboardPage() {
               {filtered.length > 4 && (
                 <Link
                   href="/lectures"
-                  className="block text-center py-3 text-sm font-semibold text-[#0F3D43] hover:text-[#1a5c64] bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl hover:border-[rgba(217,185,130,0.5)] transition-all"
+                  className="block text-center py-3 text-sm font-semibold text-accent hover:text-accent-l bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl hover:border-[rgba(217,185,130,0.5)] transition-all"
                 >
                   View all {filtered.length} lectures →
                 </Link>
@@ -658,16 +658,16 @@ export default function DashboardPage() {
           {/* Empty State — search returned nothing */}
           {!loading && !error && filtered.length === 0 && search && (
             <div className="text-center py-14">
-              <div className="w-14 h-14 rounded-2xl bg-[#EDE8DF] flex items-center justify-center mx-auto mb-4">
-                <Search className="w-7 h-7 text-[#8a7f6f]" />
+              <div className="w-14 h-14 rounded-2xl bg-cream-d flex items-center justify-center mx-auto mb-4">
+                <Search className="w-7 h-7 text-ink-m" />
               </div>
-              <p className="text-[#1a1815] font-medium mb-1.5 text-sm">No results for &ldquo;{search}&rdquo;</p>
-              <p className="text-xs text-[#8a7f6f] mb-4">
+              <p className="text-ink font-medium mb-1.5 text-sm">No results for &ldquo;{search}&rdquo;</p>
+              <p className="text-xs text-ink-m mb-4">
                 Try a different search term or check the spelling
               </p>
               <button
                 onClick={() => setSearch("")}
-                className="text-sm text-[#0F3D43] hover:text-[#1a5c64] font-medium transition-colors"
+                className="text-sm text-accent hover:text-accent-l font-medium transition-colors"
               >
                 Clear search
               </button>
@@ -678,39 +678,39 @@ export default function DashboardPage() {
           {!loading && !error && lectures.length === 0 && !search && (
             <div className="py-10">
               <div className="text-center mb-8">
-                <div className="w-20 h-20 rounded-3xl bg-[#0F3D43]/10 border border-[#0F3D43]/15 flex items-center justify-center mx-auto mb-5">
-                  <GraduationCap className="w-10 h-10 text-[#0F3D43]" />
+                <div className="w-20 h-20 rounded-3xl bg-accent/10 border border-accent/15 flex items-center justify-center mx-auto mb-5">
+                  <GraduationCap className="w-10 h-10 text-accent" />
                 </div>
-                <h2 className="text-xl font-bold text-[#1a1815] mb-2" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+                <h2 className="text-xl font-bold text-ink mb-2" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   Welcome to Lectly{user?.firstName ? `, ${user.firstName}` : ""}
                 </h2>
-                <p className="text-sm text-[#8a7f6f] max-w-sm mx-auto leading-relaxed">
+                <p className="text-sm text-ink-m max-w-sm mx-auto leading-relaxed">
                   Upload a lecture recording and Lectly will turn it into structured notes, flashcards, and quizzes — with an AI tutor to help you study.
                 </p>
               </div>
 
               {/* How it works */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8 max-w-lg mx-auto">
-                <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
-                  <div className="w-9 h-9 rounded-xl bg-[#0F3D43]/8 flex items-center justify-center mx-auto mb-2">
-                    <Upload className="w-4.5 h-4.5 text-[#0F3D43]" />
+                <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
+                  <div className="w-9 h-9 rounded-xl bg-accent/8 flex items-center justify-center mx-auto mb-2">
+                    <Upload className="w-4.5 h-4.5 text-accent" />
                   </div>
-                  <p className="text-xs font-semibold text-[#1a1815] mb-0.5">Upload</p>
-                  <p className="text-[11px] text-[#8a7f6f] leading-relaxed">Drop an audio or video lecture file</p>
+                  <p className="text-xs font-semibold text-ink mb-0.5">Upload</p>
+                  <p className="text-[11px] text-ink-m leading-relaxed">Drop an audio or video lecture file</p>
                 </div>
-                <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
+                <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
                   <div className="w-9 h-9 rounded-xl bg-amber-500/8 flex items-center justify-center mx-auto mb-2">
                     <FileText className="w-4.5 h-4.5 text-amber-600" />
                   </div>
-                  <p className="text-xs font-semibold text-[#1a1815] mb-0.5">Get Notes</p>
-                  <p className="text-[11px] text-[#8a7f6f] leading-relaxed">AI generates structured study notes</p>
+                  <p className="text-xs font-semibold text-ink mb-0.5">Get Notes</p>
+                  <p className="text-[11px] text-ink-m leading-relaxed">AI generates structured study notes</p>
                 </div>
-                <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
+                <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
                   <div className="w-9 h-9 rounded-xl bg-green-500/8 flex items-center justify-center mx-auto mb-2">
                     <GraduationCap className="w-4.5 h-4.5 text-green-600" />
                   </div>
-                  <p className="text-xs font-semibold text-[#1a1815] mb-0.5">Learn</p>
-                  <p className="text-[11px] text-[#8a7f6f] leading-relaxed">Study with cards, quizzes & AI tutor</p>
+                  <p className="text-xs font-semibold text-ink mb-0.5">Learn</p>
+                  <p className="text-[11px] text-ink-m leading-relaxed">Study with cards, quizzes & AI tutor</p>
                 </div>
               </div>
 
@@ -718,12 +718,12 @@ export default function DashboardPage() {
               <div className="text-center">
                 <Link
                   href="/upload"
-                  className="inline-flex items-center gap-2 text-sm bg-[#0F3D43] hover:bg-[#1a5c64] text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-black/10 transition-all hover:shadow-xl hover:shadow-black/15"
+                  className="inline-flex items-center gap-2 text-sm bg-accent hover:bg-accent-l text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-black/10 transition-all hover:shadow-xl hover:shadow-black/15"
                 >
                   <Upload className="w-4.5 h-4.5" />
                   Upload Your First Lecture
                 </Link>
-                <p className="text-[11px] text-[#8a7f6f] mt-3">Supports MP3, MP4, WAV, M4A — up to 25MB</p>
+                <p className="text-[11px] text-ink-m mt-3">Supports MP3, MP4, WAV, M4A — up to 25MB</p>
               </div>
             </div>
           )}
@@ -731,27 +731,27 @@ export default function DashboardPage() {
           {/* Empty after filter — has lectures but filtered shows none */}
           {!loading && !error && filtered.length === 0 && lectures.length > 0 && !search && (
             <div className="text-center py-14">
-              <p className="text-[#8a7f6f] text-sm">No lectures match the current filter.</p>
+              <p className="text-ink-m text-sm">No lectures match the current filter.</p>
             </div>
           )}
         </main>
       </div>
       {/* Mobile Bottom Nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#FDFCF9] border-t border-[rgba(217,185,130,0.25)] backdrop-blur-xl safe-bottom pwa-standalone-bottom">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-paper border-t border-[rgba(217,185,130,0.25)] backdrop-blur-xl safe-bottom pwa-standalone-bottom">
         <div className="flex items-center justify-around h-14">
-          <Link href="/dashboard" className="flex flex-col items-center gap-0.5 text-[#0F3D43]">
+          <Link href="/dashboard" className="flex flex-col items-center gap-0.5 text-accent">
             <Home className="w-5 h-5" />
             <span className="text-[10px] font-medium">Home</span>
           </Link>
-          <Link href="/lectures" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+          <Link href="/lectures" className="flex flex-col items-center gap-0.5 text-ink-m hover:text-ink">
             <FileText className="w-5 h-5" />
             <span className="text-[10px] font-medium">Lectures</span>
           </Link>
-          <Link href="/upload" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+          <Link href="/upload" className="flex flex-col items-center gap-0.5 text-ink-m hover:text-ink">
             <Upload className="w-5 h-5" />
             <span className="text-[10px] font-medium">Upload</span>
           </Link>
-          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-ink-m hover:text-ink">
             <User className="w-5 h-5" />
             <span className="text-[10px] font-medium">You</span>
           </Link>

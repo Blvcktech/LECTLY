@@ -132,12 +132,12 @@ export function ErrorFallbackUI({
 
         {/* Message */}
         <h2
-          className="text-lg font-bold text-[#1a1815] mb-2"
+          className="text-lg font-bold text-ink mb-2"
           style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
         >
           {title}
         </h2>
-        <p className="text-sm text-[#8a7f6f] mb-6 leading-relaxed">
+        <p className="text-sm text-ink-m mb-6 leading-relaxed">
           {description}
         </p>
 
@@ -146,7 +146,7 @@ export function ErrorFallbackUI({
           {onReset && (
             <button
               onClick={onReset}
-              className="flex items-center gap-2 text-sm font-semibold bg-[#0F3D43] hover:bg-[#1a5c65] text-white px-5 py-2.5 rounded-xl transition-colors shadow-md shadow-[#0F3D43]/15"
+              className="flex items-center gap-2 text-sm font-semibold bg-accent hover:bg-accent-l text-white px-5 py-2.5 rounded-xl transition-colors shadow-md shadow-accent/15"
             >
               <RotateCcw className="w-4 h-4" />
               Try again
@@ -155,7 +155,7 @@ export function ErrorFallbackUI({
           {onGoHome && (
             <button
               onClick={onGoHome}
-              className="flex items-center gap-2 text-sm font-medium text-[#8a7f6f] hover:text-[#1a1815] px-4 py-2.5 rounded-xl border border-[rgba(217,185,130,0.25)] hover:border-[rgba(217,185,130,0.5)] transition-colors"
+              className="flex items-center gap-2 text-sm font-medium text-ink-m hover:text-ink px-4 py-2.5 rounded-xl border border-[rgba(217,185,130,0.25)] hover:border-[rgba(217,185,130,0.5)] transition-colors"
             >
               <Home className="w-4 h-4" />
               Dashboard
@@ -166,7 +166,7 @@ export function ErrorFallbackUI({
         {/* Debug info — only in development */}
         {process.env.NODE_ENV === "development" && error && (
           <details className="mt-6 text-left">
-            <summary className="text-[11px] text-[#8a7f6f] cursor-pointer hover:text-[#1a1815]">
+            <summary className="text-[11px] text-ink-m cursor-pointer hover:text-ink">
               Error details (dev only)
             </summary>
             <pre className="mt-2 text-[10px] text-red-600 bg-red-50 border border-red-200 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap">

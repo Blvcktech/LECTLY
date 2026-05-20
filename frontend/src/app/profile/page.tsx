@@ -124,15 +124,15 @@ export default function ProfilePage() {
     : "U";
 
   return (
-    <div className="min-h-screen bg-[#F7F4EE]">
+    <div className="min-h-screen bg-cream">
       {/* Nav */}
-      <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-paper/92 backdrop-blur-xl">
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={() => router.push("/dashboard")} className="text-[#8a7f6f] hover:text-[#1a1815] transition-colors">
+            <button onClick={() => router.push("/dashboard")} className="text-ink-m hover:text-ink transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <span className="text-sm font-semibold text-[#1a1815]">You</span>
+            <span className="text-sm font-semibold text-ink">You</span>
           </div>
         </div>
       </nav>
@@ -142,17 +142,17 @@ export default function ProfilePage() {
         {loading && (
           <div className="animate-pulse">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-[#EDE8DF]" />
+              <div className="w-12 h-12 rounded-full bg-cream-d" />
               <div>
-                <div className="h-4 w-28 bg-[#EDE8DF] rounded mb-2" />
-                <div className="h-3 w-16 bg-[#EDE8DF]/60 rounded" />
+                <div className="h-4 w-28 bg-cream-d rounded mb-2" />
+                <div className="h-3 w-16 bg-cream-d/60 rounded" />
               </div>
             </div>
-            <div className="h-32 bg-[#1a1815]/80 rounded-2xl mb-4" />
+            <div className="h-32 bg-ink/80 rounded-2xl mb-4" />
             <div className="grid grid-cols-2 gap-2 mb-4">
-              {[1, 2, 3, 4].map((i) => <div key={i} className="h-20 bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl" />)}
+              {[1, 2, 3, 4].map((i) => <div key={i} className="h-20 bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl" />)}
             </div>
-            <div className="h-44 bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl" />
+            <div className="h-44 bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl" />
           </div>
         )}
 
@@ -160,25 +160,25 @@ export default function ProfilePage() {
           <>
             {/* Profile header */}
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-[#0F3D43] flex items-center justify-center text-white font-semibold text-base shadow-md shadow-[#0F3D43]/15">
+              <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-white font-semibold text-base shadow-md shadow-accent/15">
                 {initials}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-base font-semibold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+                <p className="text-base font-semibold text-ink" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {user?.fullName || "Student"}
                 </p>
-                <p className="text-xs text-[#8a7f6f]">Free Plan</p>
+                <p className="text-xs text-ink-m">Free Plan</p>
               </div>
               <button
                 onClick={() => router.push("/profile/account")}
-                className="text-xs text-[#8a7f6f] border border-[rgba(217,185,130,0.35)] hover:border-[rgba(217,185,130,0.6)] px-3 py-1.5 rounded-lg transition-colors"
+                className="text-xs text-ink-m border border-[rgba(217,185,130,0.35)] hover:border-[rgba(217,185,130,0.6)] px-3 py-1.5 rounded-lg transition-colors"
               >
                 Edit
               </button>
             </div>
 
             {/* Streak card (dark) */}
-            <div className="bg-[#1a1815] rounded-2xl p-5 mb-3 shadow-lg">
+            <div className="bg-ink rounded-2xl p-5 mb-3 shadow-lg">
               <div className="text-center">
                 <p className="text-4xl font-bold text-white" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {stats.streak}
@@ -207,80 +207,80 @@ export default function ProfilePage() {
 
             {/* Stats grid */}
             <div className="grid grid-cols-2 gap-2 mb-4">
-              <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
-                <div className="w-8 h-8 rounded-lg bg-[#1a5c65]/8 flex items-center justify-center mx-auto mb-2">
-                  <Target className="w-4 h-4 text-[#0F3D43]" />
+              <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
+                <div className="w-8 h-8 rounded-lg bg-accent-l/8 flex items-center justify-center mx-auto mb-2">
+                  <Target className="w-4 h-4 text-accent" />
                 </div>
-                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+                <p className="text-xl font-bold text-ink" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {stats.avgMastery}%
                 </p>
-                <p className="text-[11px] text-[#8a7f6f] mt-0.5">Avg mastery</p>
+                <p className="text-[11px] text-ink-m mt-0.5">Avg mastery</p>
               </div>
-              <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
+              <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
                 <div className="w-8 h-8 rounded-lg bg-amber-500/8 flex items-center justify-center mx-auto mb-2">
                   <Zap className="w-4 h-4 text-amber-600" />
                 </div>
-                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+                <p className="text-xl font-bold text-ink" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {stats.totalCards}
                 </p>
-                <p className="text-[11px] text-[#8a7f6f] mt-0.5">Cards learned</p>
+                <p className="text-[11px] text-ink-m mt-0.5">Cards learned</p>
               </div>
-              <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
-                <div className="w-8 h-8 rounded-lg bg-[#1a5c65]/8 flex items-center justify-center mx-auto mb-2">
-                  <BookOpen className="w-4 h-4 text-[#0F3D43]" />
+              <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
+                <div className="w-8 h-8 rounded-lg bg-accent-l/8 flex items-center justify-center mx-auto mb-2">
+                  <BookOpen className="w-4 h-4 text-accent" />
                 </div>
-                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+                <p className="text-xl font-bold text-ink" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {stats.totalLectures}
                 </p>
-                <p className="text-[11px] text-[#8a7f6f] mt-0.5">Lectures</p>
+                <p className="text-[11px] text-ink-m mt-0.5">Lectures</p>
               </div>
-              <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
+              <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl p-4 text-center">
                 <div className="w-8 h-8 rounded-lg bg-green-500/8 flex items-center justify-center mx-auto mb-2">
                   <Clock className="w-4 h-4 text-green-600" />
                 </div>
-                <p className="text-xl font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
+                <p className="text-xl font-bold text-ink" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {stats.studyTimeLabel}
                 </p>
-                <p className="text-[11px] text-[#8a7f6f] mt-0.5">Study time</p>
+                <p className="text-[11px] text-ink-m mt-0.5">Study time</p>
               </div>
             </div>
 
             {/* Settings list */}
-            <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl overflow-hidden mb-4">
-              <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest px-4 pt-4 pb-2">
+            <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl overflow-hidden mb-4">
+              <p className="text-[10px] font-bold text-ink-m uppercase tracking-widest px-4 pt-4 pb-2">
                 Settings
               </p>
 
-              <Link href="/profile/account" className="flex items-center justify-between w-full px-4 py-3 hover:bg-[#F7F4EE] transition-colors">
+              <Link href="/profile/account" className="flex items-center justify-between w-full px-4 py-3 hover:bg-cream transition-colors">
                 <div className="flex items-center gap-3">
-                  <User className="w-4 h-4 text-[#8a7f6f]" />
-                  <span className="text-sm text-[#1a1815]">Account</span>
+                  <User className="w-4 h-4 text-ink-m" />
+                  <span className="text-sm text-ink">Account</span>
                 </div>
-                <ChevronRight className="w-4 h-4 text-[#8a7f6f]" />
+                <ChevronRight className="w-4 h-4 text-ink-m" />
               </Link>
 
               <div className="border-t border-[rgba(217,185,130,0.15)] mx-4" />
 
-              <Link href="/profile/learning" className="flex items-center justify-between w-full px-4 py-3 hover:bg-[#F7F4EE] transition-colors">
+              <Link href="/profile/learning" className="flex items-center justify-between w-full px-4 py-3 hover:bg-cream transition-colors">
                 <div className="flex items-center gap-3">
-                  <GraduationCap className="w-4 h-4 text-[#8a7f6f]" />
-                  <span className="text-sm text-[#1a1815]">Learning preferences</span>
+                  <GraduationCap className="w-4 h-4 text-ink-m" />
+                  <span className="text-sm text-ink">Learning preferences</span>
                 </div>
-                <ChevronRight className="w-4 h-4 text-[#8a7f6f]" />
+                <ChevronRight className="w-4 h-4 text-ink-m" />
               </Link>
 
               <div className="border-t border-[rgba(217,185,130,0.15)] mx-4" />
 
-              <Link href="/profile/subscription" className="flex items-center justify-between w-full px-4 py-3 hover:bg-[#F7F4EE] transition-colors">
+              <Link href="/profile/subscription" className="flex items-center justify-between w-full px-4 py-3 hover:bg-cream transition-colors">
                 <div className="flex items-center gap-3">
-                  <Flame className="w-4 h-4 text-[#8a7f6f]" />
-                  <span className="text-sm text-[#1a1815]">Subscription</span>
+                  <Flame className="w-4 h-4 text-ink-m" />
+                  <span className="text-sm text-ink">Subscription</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-[#0F3D43] bg-[#1a5c65]/8 px-2 py-0.5 rounded font-medium">
+                  <span className="text-[11px] text-accent bg-accent-l/8 px-2 py-0.5 rounded font-medium">
                     Free
                   </span>
-                  <ChevronRight className="w-4 h-4 text-[#8a7f6f]" />
+                  <ChevronRight className="w-4 h-4 text-ink-m" />
                 </div>
               </Link>
             </div>
@@ -298,21 +298,21 @@ export default function ProfilePage() {
       </main>
 
       {/* Mobile Bottom Nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#FDFCF9] border-t border-[rgba(217,185,130,0.25)] backdrop-blur-xl safe-bottom pwa-standalone-bottom">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-paper border-t border-[rgba(217,185,130,0.25)] backdrop-blur-xl safe-bottom pwa-standalone-bottom">
         <div className="flex items-center justify-around h-14">
-          <Link href="/dashboard" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+          <Link href="/dashboard" className="flex flex-col items-center gap-0.5 text-ink-m hover:text-ink">
             <Home className="w-5 h-5" />
             <span className="text-[10px] font-medium">Home</span>
           </Link>
-          <Link href="/lectures" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+          <Link href="/lectures" className="flex flex-col items-center gap-0.5 text-ink-m hover:text-ink">
             <FileText className="w-5 h-5" />
             <span className="text-[10px] font-medium">Lectures</span>
           </Link>
-          <Link href="/upload" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+          <Link href="/upload" className="flex flex-col items-center gap-0.5 text-ink-m hover:text-ink">
             <Upload className="w-5 h-5" />
             <span className="text-[10px] font-medium">Upload</span>
           </Link>
-          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-[#0F3D43]">
+          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-accent">
             <User className="w-5 h-5" />
             <span className="text-[10px] font-medium">You</span>
           </Link>

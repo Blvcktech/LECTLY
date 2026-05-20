@@ -26,15 +26,15 @@ export function NotesView({
     <div className="space-y-8">
       {/* Notes header */}
       <div>
-        <span className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest">Notes · Reference</span>
+        <span className="text-[10px] font-bold text-ink-m uppercase tracking-widest">Notes · Reference</span>
       </div>
 
       {/* Worked Examples */}
       {learnResult.examples.length > 0 && (
         <div>
           <div className="flex items-center gap-2 mb-4">
-            <Beaker className="w-4 h-4 text-[#0F3D43]" />
-            <h2 className="text-base font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>Worked Examples</h2>
+            <Beaker className="w-4 h-4 text-accent" />
+            <h2 className="text-base font-bold text-ink" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>Worked Examples</h2>
           </div>
           <div className="space-y-4">
             {learnResult.examples.map((example, i) => {
@@ -42,16 +42,16 @@ export function NotesView({
               const solutionText = example.solution || "";
 
               return (
-                <div key={i} className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl overflow-hidden">
+                <div key={i} className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl overflow-hidden">
                   <div className="px-5 pt-5 pb-3 flex items-start gap-3">
-                    <span className="w-7 h-7 rounded-lg bg-[#0F3D43]/10 flex items-center justify-center text-sm font-bold text-[#0F3D43] flex-shrink-0">{i + 1}</span>
-                    <h3 className="text-sm font-semibold text-[#1a1815] pt-0.5">{example.title}</h3>
+                    <span className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center text-sm font-bold text-accent flex-shrink-0">{i + 1}</span>
+                    <h3 className="text-sm font-semibold text-ink pt-0.5">{example.title}</h3>
                   </div>
 
                   {problemText && (
                     <div className="mx-5 mb-3 p-4 bg-[rgba(26,24,21,0.04)] border border-[rgba(217,185,130,0.2)] rounded-xl">
-                      <p className="text-[10px] font-bold text-[#0F3D43] uppercase tracking-widest mb-2">Problem</p>
-                      <p className="text-sm text-[#2C2A25] leading-relaxed">{problemText}</p>
+                      <p className="text-[10px] font-bold text-accent uppercase tracking-widest mb-2">Problem</p>
+                      <p className="text-sm text-ink-l leading-relaxed">{problemText}</p>
                     </div>
                   )}
 
@@ -65,13 +65,13 @@ export function NotesView({
                           const isStep = /^(Step \d|Given:|Find:|Formula:|Answer:|Therefore:)/i.test(trimmed);
                           const isCalc = /[=×÷]/.test(trimmed) && /\d/.test(trimmed);
 
-                          if (isStep) return <p key={li} className="text-sm font-semibold text-[#1a1815] mt-1">{trimmed}</p>;
+                          if (isStep) return <p key={li} className="text-sm font-semibold text-ink mt-1">{trimmed}</p>;
                           if (isCalc) return (
                             <div key={li} className="bg-[#1a1a2e] border border-amber-200/20 rounded-lg px-4 py-2 my-1">
                               <code className="text-[13px] text-green-400 font-mono">{trimmed}</code>
                             </div>
                           );
-                          return <p key={li} className="text-sm text-[#2C2A25] leading-relaxed">{trimmed}</p>;
+                          return <p key={li} className="text-sm text-ink-l leading-relaxed">{trimmed}</p>;
                         })}
                       </div>
                     </div>
@@ -97,22 +97,22 @@ export function NotesView({
       {learnResult.resources && learnResult.resources.length > 0 && (
         <div>
           <div className="flex items-center gap-2 mb-4">
-            <ExternalLink className="w-4 h-4 text-[#0F3D43]" />
-            <h2 className="text-base font-bold text-[#1a1815]" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>Further Reading</h2>
+            <ExternalLink className="w-4 h-4 text-accent" />
+            <h2 className="text-base font-bold text-ink" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>Further Reading</h2>
           </div>
           <div className="space-y-2.5">
             {learnResult.resources.map((resource, i) => (
-              <div key={i} className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-4">
-                <h3 className="text-sm font-semibold text-[#1a1815] mb-1">{resource.title}</h3>
+              <div key={i} className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl p-4">
+                <h3 className="text-sm font-semibold text-ink mb-1">{resource.title}</h3>
                 {resource.description && (
-                  <p className="text-[13px] text-[#8a7f6f] leading-relaxed mb-2">{resource.description}</p>
+                  <p className="text-[13px] text-ink-m leading-relaxed mb-2">{resource.description}</p>
                 )}
                 {resource.url && (
                   <a
                     href={resource.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-[#0F3D43] hover:text-[#1a5c64] transition-colors"
+                    className="inline-flex items-center gap-1 text-xs text-accent hover:text-accent-l transition-colors"
                   >
                     <ExternalLink className="w-3 h-3" />
                     {resource.url.length > 60 ? resource.url.substring(0, 60) + "..." : resource.url}
@@ -125,9 +125,9 @@ export function NotesView({
       )}
 
       {/* Need more? prompts */}
-      <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-xl p-5">
-        <p className="text-xs font-bold text-[#8a7f6f] uppercase tracking-widest mb-3">Need more?</p>
-        <p className="text-sm text-[#8a7f6f] mb-3">Ask the tutor to expand on anything you need.</p>
+      <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl p-5">
+        <p className="text-xs font-bold text-ink-m uppercase tracking-widest mb-3">Need more?</p>
+        <p className="text-sm text-ink-m mb-3">Ask the tutor to expand on anything you need.</p>
         <div className="flex flex-wrap gap-2">
           {[
             "Explain this topic in more depth",
@@ -138,7 +138,7 @@ export function NotesView({
             <button
               key={chip}
               onClick={() => onAskTutor(chip)}
-              className="text-xs text-[#0a2e33] bg-[#0F3D43]/8 hover:bg-[#0F3D43]/15 border border-[#0F3D43]/20 px-3 py-1.5 rounded-full transition-colors"
+              className="text-xs text-accent-d bg-accent/8 hover:bg-accent/15 border border-accent/20 px-3 py-1.5 rounded-full transition-colors"
             >
               {chip}
             </button>
@@ -150,13 +150,13 @@ export function NotesView({
       <div className="flex justify-between pt-4 border-t border-[rgba(217,185,130,0.2)]">
         <button
           onClick={onBackToCards}
-          className="flex items-center gap-1.5 text-sm font-medium text-[#8a7f6f] hover:text-[#1a1815] transition-colors"
+          className="flex items-center gap-1.5 text-sm font-medium text-ink-m hover:text-ink transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Cards
         </button>
         <Link
           href={`/lecture/${lectureId}`}
-          className="flex items-center gap-1.5 text-sm font-medium text-[#0F3D43] hover:text-[#1a5c64] transition-colors"
+          className="flex items-center gap-1.5 text-sm font-medium text-accent hover:text-accent-l transition-colors"
         >
           Full Notes <ChevronRight className="w-4 h-4" />
         </Link>

@@ -10,7 +10,7 @@ export function RenderInline({ text }: { text: string }) {
       {parts.map((part, i) => {
         if (part.startsWith("**") && part.endsWith("**")) {
           return (
-            <strong key={i} className="font-semibold text-[#1a1815]">
+            <strong key={i} className="font-semibold text-ink">
               {part.slice(2, -2)}
             </strong>
           );
@@ -44,8 +44,8 @@ export function RenderParagraph({ text, index }: { text: string; index: string }
   if (isStep) {
     return (
       <div key={index} className="flex items-start gap-3 my-2">
-        <div className="w-1.5 h-1.5 rounded-full bg-[#0F3D43] mt-2 flex-shrink-0" />
-        <p className="text-sm font-semibold text-[#1a1815] leading-relaxed">
+        <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+        <p className="text-sm font-semibold text-ink leading-relaxed">
           <RenderInline text={trimmed} />
         </p>
       </div>
@@ -67,7 +67,7 @@ export function RenderParagraph({ text, index }: { text: string; index: string }
     return (
       <div key={index} className="flex items-start gap-2 my-1 ml-2">
         <span className="text-amber-700 mt-0.5 flex-shrink-0">•</span>
-        <p className="text-sm text-[#2C2A25] leading-relaxed">
+        <p className="text-sm text-ink-l leading-relaxed">
           <RenderInline text={bulletText} />
         </p>
       </div>
@@ -81,7 +81,7 @@ export function RenderParagraph({ text, index }: { text: string; index: string }
         <span className="text-amber-700 font-mono text-xs mt-0.5 flex-shrink-0 min-w-[1.2rem]">
           {match?.[1]}
         </span>
-        <p className="text-sm text-[#2C2A25] leading-relaxed">
+        <p className="text-sm text-ink-l leading-relaxed">
           <RenderInline text={match?.[2] || trimmed} />
         </p>
       </div>
@@ -89,7 +89,7 @@ export function RenderParagraph({ text, index }: { text: string; index: string }
   }
 
   return (
-    <p key={index} className="text-sm text-[#2C2A25] leading-[1.85] mb-4 last:mb-0">
+    <p key={index} className="text-sm text-ink-l leading-[1.85] mb-4 last:mb-0">
       <RenderInline text={trimmed} />
     </p>
   );
@@ -111,14 +111,14 @@ export function RenderBody({ text }: { text: string }) {
             <div key={i} className="my-5 rounded-xl overflow-hidden border border-amber-200/30 shadow-sm">
               <div className="bg-[rgba(26,24,21,0.06)] px-4 py-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Code className="w-3.5 h-3.5 text-[#8a7f6f]" />
-                  <span className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-wider">
+                  <Code className="w-3.5 h-3.5 text-ink-m" />
+                  <span className="text-[10px] font-bold text-ink-m uppercase tracking-wider">
                     {lang || "code"}
                   </span>
                 </div>
                 <button
                   onClick={() => navigator.clipboard.writeText(code.trim())}
-                  className="text-[10px] font-medium text-[#8a7f6f] hover:text-[#1a1815] px-2 py-0.5 rounded hover:bg-amber-100/50 transition-colors"
+                  className="text-[10px] font-medium text-ink-m hover:text-ink px-2 py-0.5 rounded hover:bg-amber-100/50 transition-colors"
                 >
                   Copy
                 </button>
@@ -155,12 +155,12 @@ export function RenderBody({ text }: { text: string }) {
               <div key={`${i}-${j}`} className="my-5 rounded-xl overflow-hidden border border-amber-200/30 shadow-sm">
                 <div className="bg-[rgba(26,24,21,0.06)] px-4 py-2 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Code className="w-3.5 h-3.5 text-[#8a7f6f]" />
-                    <span className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-wider">{detectedLang}</span>
+                    <Code className="w-3.5 h-3.5 text-ink-m" />
+                    <span className="text-[10px] font-bold text-ink-m uppercase tracking-wider">{detectedLang}</span>
                   </div>
                   <button
                     onClick={() => navigator.clipboard.writeText(trimmed)}
-                    className="text-[10px] font-medium text-[#8a7f6f] hover:text-[#1a1815] px-2 py-0.5 rounded hover:bg-amber-100/50 transition-colors"
+                    className="text-[10px] font-medium text-ink-m hover:text-ink px-2 py-0.5 rounded hover:bg-amber-100/50 transition-colors"
                   >
                     Copy
                   </button>
@@ -198,7 +198,7 @@ export function TutorMessageContent({ content }: { content: string }) {
   const renderInline = (text: string) => {
     const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
     return parts.map((part, idx) => {
-      if (part.startsWith("**") && part.endsWith("**")) return <strong key={idx} className="font-semibold text-[#1a1815]">{part.slice(2, -2)}</strong>;
+      if (part.startsWith("**") && part.endsWith("**")) return <strong key={idx} className="font-semibold text-ink">{part.slice(2, -2)}</strong>;
       if (part.startsWith("`") && part.endsWith("`")) return <code key={idx} className="px-1 py-0.5 rounded bg-amber-100/60 text-[11px] font-mono text-amber-900">{part.slice(1, -1)}</code>;
       return <span key={idx}>{part}</span>;
     });
@@ -211,7 +211,7 @@ export function TutorMessageContent({ content }: { content: string }) {
 
     // Step headers — bold, with top margin for visual separation
     if (/^(Step \d|Given:|Formula:|Answer:|Solution:)/i.test(trimmed)) {
-      return <p key={key} className="text-sm leading-relaxed font-semibold text-[#1a1815] mt-2 first:mt-0">{renderInline(trimmed)}</p>;
+      return <p key={key} className="text-sm leading-relaxed font-semibold text-ink mt-2 first:mt-0">{renderInline(trimmed)}</p>;
     }
     // Bullet points (-, •, *)
     if (/^[-•*]\s+/.test(trimmed)) {
@@ -222,7 +222,7 @@ export function TutorMessageContent({ content }: { content: string }) {
     if (/^\d+[.)]\s+/.test(trimmed)) {
       const match = trimmed.match(/^(\d+[.)])\s+(.*)/);
       if (match) {
-        return <p key={key} className="text-sm leading-relaxed mb-0.5 flex gap-2 pl-1"><span className="text-[#0F3D43] font-semibold flex-shrink-0 min-w-[1.2rem]">{match[1]}</span><span>{renderInline(match[2])}</span></p>;
+        return <p key={key} className="text-sm leading-relaxed mb-0.5 flex gap-2 pl-1"><span className="text-accent font-semibold flex-shrink-0 min-w-[1.2rem]">{match[1]}</span><span>{renderInline(match[2])}</span></p>;
       }
     }
     // Equations / formulas (X = something)
@@ -234,7 +234,7 @@ export function TutorMessageContent({ content }: { content: string }) {
       return <hr key={key} className="border-[rgba(217,185,130,0.3)] my-2" />;
     }
     // Regular paragraph
-    return <p key={key} className="text-sm leading-relaxed text-[#2C2A25]">{renderInline(trimmed)}</p>;
+    return <p key={key} className="text-sm leading-relaxed text-ink-l">{renderInline(trimmed)}</p>;
   };
 
   return (
@@ -249,8 +249,8 @@ export function TutorMessageContent({ content }: { content: string }) {
             <div key={bi} className="my-2 rounded-lg overflow-hidden border border-amber-200/30">
               {lang && (
                 <div className="bg-[rgba(26,24,21,0.06)] px-3 py-1 flex items-center gap-1.5">
-                  <Code className="w-3 h-3 text-[#8a7f6f]" />
-                  <span className="text-[9px] font-bold text-[#8a7f6f] uppercase">{lang}</span>
+                  <Code className="w-3 h-3 text-ink-m" />
+                  <span className="text-[9px] font-bold text-ink-m uppercase">{lang}</span>
                 </div>
               )}
               <pre className="bg-[#1a1a2e] px-3 py-2.5 overflow-x-auto">

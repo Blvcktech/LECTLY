@@ -54,27 +54,27 @@ export default function SubscriptionPage() {
   const currentTier = subscription?.tier || "free";
 
   return (
-    <div className="min-h-screen bg-[#F7F4EE]">
+    <div className="min-h-screen bg-cream">
       {/* Nav */}
-      <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-[#FDFCF9]/92 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 border-b border-[rgba(217,185,130,0.25)] bg-paper/92 backdrop-blur-xl">
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center gap-3">
           <button
             onClick={() => router.push("/profile")}
-            className="text-[#8a7f6f] hover:text-[#1a1815] transition-colors"
+            className="text-ink-m hover:text-ink transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <span className="text-sm font-semibold text-[#1a1815]">Subscription</span>
+          <span className="text-sm font-semibold text-ink">Subscription</span>
         </div>
       </nav>
 
       <main className="max-w-lg mx-auto px-4 py-6 pb-24">
         {/* Current Plan Banner */}
-        <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl p-5 mb-5">
+        <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-2xl p-5 mb-5">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-[#1a5c65]/8 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-accent-l/8 flex items-center justify-center">
               {currentTier === "free" ? (
-                <Sparkles className="w-5 h-5 text-[#0F3D43]" />
+                <Sparkles className="w-5 h-5 text-accent" />
               ) : currentTier === "basic" ? (
                 <Zap className="w-5 h-5 text-amber-500" />
               ) : (
@@ -83,19 +83,19 @@ export default function SubscriptionPage() {
             </div>
             <div>
               <p
-                className="text-base font-bold text-[#1a1815]"
+                className="text-base font-bold text-ink"
                 style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 {currentTier === "free" ? "Free Plan" : `${currentTier.charAt(0).toUpperCase() + currentTier.slice(1)} Plan`}
               </p>
-              <p className="text-[11px] text-[#b5ad9e]">Your current plan</p>
+              <p className="text-[11px] text-ink-f">Your current plan</p>
             </div>
           </div>
-          <div className="mt-3 flex items-center gap-4 text-[12px] text-[#8a7f6f]">
+          <div className="mt-3 flex items-center gap-4 text-[12px] text-ink-m">
             <span>{subscription?.lectures_limit || 3} lectures {currentTier === "free" ? "total" : "per month"}</span>
-            <span className="text-[#d4cec3]">·</span>
+            <span className="text-muted-bg">·</span>
             <span>{currentTier === "free" ? "No PDF export" : "PDF export"}</span>
-            <span className="text-[#d4cec3]">·</span>
+            <span className="text-muted-bg">·</span>
             <span>{currentTier === "free" ? "No storage" : "Notes saved"}</span>
           </div>
         </div>
@@ -103,14 +103,14 @@ export default function SubscriptionPage() {
         {currentTier !== "pro" && (
           <>
             {/* Upgrade heading */}
-            <p className="text-[10px] font-bold text-[#8a7f6f] uppercase tracking-widest mb-3">
+            <p className="text-[10px] font-bold text-ink-m uppercase tracking-widest mb-3">
               Upgrade your plan
             </p>
 
             {/* Basic Plan */}
             {currentTier === "free" && (
-              <div className="bg-[#1a1815] rounded-2xl p-5 mb-3 relative">
-                <div className="absolute -top-2 right-4 bg-[#0F3D43] text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+              <div className="bg-ink rounded-2xl p-5 mb-3 relative">
+                <div className="absolute -top-2 right-4 bg-accent text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                   Popular
                 </div>
                 <div className="flex items-center gap-3 mb-3">
@@ -154,7 +154,7 @@ export default function SubscriptionPage() {
                 <button
                   onClick={() => handleUpgrade("basic")}
                   disabled={loading !== null}
-                  className="w-full py-2.5 bg-white text-[#1a1815] rounded-lg text-sm font-semibold hover:bg-white/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-2.5 bg-white text-ink rounded-lg text-sm font-semibold hover:bg-white/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {loading === "basic" ? (
                     <>
@@ -169,28 +169,28 @@ export default function SubscriptionPage() {
             )}
 
             {/* Pro Plan */}
-            <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl p-5 mb-3">
+            <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-2xl p-5 mb-3">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-9 h-9 rounded-lg bg-amber-500/8 flex items-center justify-center">
                   <Crown className="w-4 h-4 text-amber-600" />
                 </div>
                 <div>
                   <p
-                    className="text-sm font-bold text-[#1a1815]"
+                    className="text-sm font-bold text-ink"
                     style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
                   >
                     Pro
                   </p>
-                  <p className="text-[10px] text-[#b5ad9e]">For serious students</p>
+                  <p className="text-[10px] text-ink-f">For serious students</p>
                 </div>
                 <div className="ml-auto text-right">
                   <p
-                    className="text-xl font-bold text-[#1a1815]"
+                    className="text-xl font-bold text-ink"
                     style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
                   >
                     &#8358;8,500
                   </p>
-                  <p className="text-[10px] text-[#b5ad9e]">/month · ~$5.67</p>
+                  <p className="text-[10px] text-ink-f">/month · ~$5.67</p>
                 </div>
               </div>
               <ul className="space-y-1.5 mb-4">
@@ -202,7 +202,7 @@ export default function SubscriptionPage() {
                   "Share with up to 3 students",
                   "Notes saved permanently",
                 ].map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-[12px] text-[#8a7f6f]">
+                  <li key={f} className="flex items-center gap-2 text-[12px] text-ink-m">
                     <Check className="w-3 h-3 text-emerald-500 flex-shrink-0" />
                     {f}
                   </li>
@@ -211,7 +211,7 @@ export default function SubscriptionPage() {
               <button
                 onClick={() => handleUpgrade("pro")}
                 disabled={loading !== null}
-                className="w-full py-2.5 border border-[rgba(217,185,130,0.35)] text-[#1a1815] rounded-lg text-sm font-medium hover:bg-[#F7F4EE] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-2.5 border border-[rgba(217,185,130,0.35)] text-ink rounded-lg text-sm font-medium hover:bg-cream transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading === "pro" ? (
                   <>
@@ -227,49 +227,49 @@ export default function SubscriptionPage() {
         )}
 
         {/* Group Plan */}
-        <div className="bg-[#FDFCF9] border border-[rgba(217,185,130,0.25)] rounded-2xl p-5 mb-4">
+        <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-2xl p-5 mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[#1a5c65]/8 flex items-center justify-center">
-              <User className="w-4 h-4 text-[#0F3D43]" />
+            <div className="w-9 h-9 rounded-lg bg-accent-l/8 flex items-center justify-center">
+              <User className="w-4 h-4 text-accent" />
             </div>
             <div className="flex-1">
               <p
-                className="text-sm font-bold text-[#1a1815]"
+                className="text-sm font-bold text-ink"
                 style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
                 Group Plan
               </p>
-              <p className="text-[11px] text-[#8a7f6f]">
+              <p className="text-[11px] text-ink-m">
                 ₦15,000/mo for 5 students. Perfect for study groups.
               </p>
             </div>
           </div>
-          <button className="w-full mt-3 py-2.5 border border-[rgba(217,185,130,0.35)] text-[#1a1815] rounded-lg text-sm font-medium hover:bg-[#F7F4EE] transition-colors">
+          <button className="w-full mt-3 py-2.5 border border-[rgba(217,185,130,0.35)] text-ink rounded-lg text-sm font-medium hover:bg-cream transition-colors">
             Contact Us
           </button>
         </div>
 
-        <p className="text-[11px] text-[#b5ad9e] text-center px-4">
+        <p className="text-[11px] text-ink-f text-center px-4">
           Payments are processed securely via Paystack. Cancel anytime — no questions asked.
         </p>
       </main>
 
       {/* Mobile Bottom Nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#FDFCF9] border-t border-[rgba(217,185,130,0.25)] backdrop-blur-xl safe-bottom pwa-standalone-bottom">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-paper border-t border-[rgba(217,185,130,0.25)] backdrop-blur-xl safe-bottom pwa-standalone-bottom">
         <div className="flex items-center justify-around h-14">
-          <Link href="/dashboard" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+          <Link href="/dashboard" className="flex flex-col items-center gap-0.5 text-ink-m hover:text-ink">
             <Home className="w-5 h-5" />
             <span className="text-[10px] font-medium">Home</span>
           </Link>
-          <Link href="/lectures" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+          <Link href="/lectures" className="flex flex-col items-center gap-0.5 text-ink-m hover:text-ink">
             <FileText className="w-5 h-5" />
             <span className="text-[10px] font-medium">Lectures</span>
           </Link>
-          <Link href="/upload" className="flex flex-col items-center gap-0.5 text-[#8a7f6f] hover:text-[#1a1815]">
+          <Link href="/upload" className="flex flex-col items-center gap-0.5 text-ink-m hover:text-ink">
             <Upload className="w-5 h-5" />
             <span className="text-[10px] font-medium">Upload</span>
           </Link>
-          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-[#0F3D43]">
+          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-accent">
             <User className="w-5 h-5" />
             <span className="text-[10px] font-medium">You</span>
           </Link>
