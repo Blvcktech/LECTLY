@@ -260,7 +260,10 @@ export default function UploadPage() {
           {limits && limits.can_upload && (
             <div className="mb-4 flex items-center gap-2 text-xs text-ink-m">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              {limits.lectures_remaining} of {limits.lectures_limit} free lectures remaining
+              {limits.lectures_remaining} {limits.tier === "free" ? "free " : ""}lecture{limits.lectures_remaining !== 1 ? "s" : ""} remaining
+              {limits.tier !== "free" && (
+                <span className="text-accent font-medium ml-1">({limits.tier.charAt(0).toUpperCase() + limits.tier.slice(1)} plan)</span>
+              )}
             </div>
           )}
 
@@ -274,10 +277,13 @@ export default function UploadPage() {
                 className="text-lg font-bold text-ink mb-2"
                 style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}
               >
-                Free tier limit reached
+                {limits.tier === "free" ? "Free tier" : limits.tier.charAt(0).toUpperCase() + limits.tier.slice(1) + " plan"} limit reached
               </h2>
               <p className="text-sm text-ink-m mb-5 max-w-sm mx-auto">
-                You&apos;ve used all {limits.lectures_limit} free lectures. Upgrade to Basic for {limits.lectures_limit === 3 ? "8" : "more"} lectures per month.
+                {limits.tier === "free"
+                  ? `You’ve used all ${limits.lectures_limit} free lectures. Upgrade to Basic for 8 lectures per month.`
+                  : `You’ve used all your ${limits.tier.charAt(0).toUpperCase() + limits.tier.slice(1)} plan lectures. ${limits.tier === "basic" ? "Upgrade to Pro for 20 lectures per month." : "Delete old lectures to make room or wait for your next billing cycle."}`
+                }
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link

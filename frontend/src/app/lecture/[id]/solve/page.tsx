@@ -15,6 +15,10 @@ import {
   Target,
   Zap,
   BookOpen,
+  Home,
+  FileText,
+  Upload,
+  User,
 } from "lucide-react";
 import {
   getLecture,
@@ -181,10 +185,10 @@ export default function SolveModePage({
         </div>
       </header>
 
-      <main className="max-w-[900px] mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-[900px] mx-auto px-4 sm:px-6 py-8 pb-24">
         {/* Section Context */}
         {currentSection && (
-          <div className="mb-6 px-4 py-3 bg-accent/5 border border-accent/20/30 rounded-xl">
+          <div className="mb-6 px-4 py-3 bg-accent/5 border border-accent/30 rounded-xl">
             <p className="text-xs font-bold uppercase tracking-wider text-accent mb-1">
               Solving from
             </p>
@@ -552,6 +556,28 @@ export default function SolveModePage({
           </div>
         )}
       </main>
+
+      {/* Mobile Bottom Nav */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-paper border-t border-[rgba(217,185,130,0.25)] backdrop-blur-xl safe-bottom pwa-standalone-bottom">
+        <div className="flex items-center justify-around h-14">
+          <Link href="/dashboard" className="flex flex-col items-center gap-0.5 text-ink-m hover:text-ink">
+            <Home className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Home</span>
+          </Link>
+          <Link href="/lectures" className="flex flex-col items-center gap-0.5 text-ink-m hover:text-ink">
+            <FileText className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Lectures</span>
+          </Link>
+          <Link href="/upload" className="flex flex-col items-center gap-0.5 text-ink-m hover:text-ink">
+            <Upload className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Upload</span>
+          </Link>
+          <Link href="/profile" className="flex flex-col items-center gap-0.5 text-ink-m hover:text-ink">
+            <User className="w-5 h-5" />
+            <span className="text-[10px] font-medium">You</span>
+          </Link>
+        </div>
+      </nav>
 
       <style>{`
         @keyframes fadeSlideIn {

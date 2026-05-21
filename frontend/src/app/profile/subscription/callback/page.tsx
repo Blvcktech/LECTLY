@@ -27,6 +27,19 @@ function CallbackContent() {
   const [plan, setPlan] = useState("");
   const verifiedRef = useRef(false);
 
+  // Timeout: if verification takes too long, show a fallback message
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (status === "loading") {
+        setStatus("failed");
+        setMessage(
+          "Verification is taking longer than expected. Your payment may still have gone through — please check your subscription page in a minute or contact support."
+        );
+      }
+    }, 15_000);
+    return () => clearTimeout(timeout);
+  }, [status]);
+
   useEffect(() => {
     // Wait until Clerk has loaded and user is signed in
     if (!isSignedIn) return;

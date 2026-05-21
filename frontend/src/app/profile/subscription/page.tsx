@@ -17,10 +17,12 @@ import {
   Loader2,
 } from "lucide-react";
 import { initializePayment, getSubscriptionStatus } from "@/lib/api";
+import { useToast } from "@/components/Toast";
 
 export default function SubscriptionPage() {
   const router = useRouter();
   const { user } = useUser();
+  const { toast } = useToast();
   const [loading, setLoading] = useState<string | null>(null); // which plan is loading
   const [subscription, setSubscription] = useState<{
     tier: string;
@@ -47,6 +49,7 @@ export default function SubscriptionPage() {
       window.location.href = authorization_url;
     } catch (err) {
       console.error("Payment initialization failed:", err);
+      toast("Payment failed to initialize. Please try again.", "error");
       setLoading(null);
     }
   };
@@ -244,7 +247,10 @@ export default function SubscriptionPage() {
               </p>
             </div>
           </div>
-          <button className="w-full mt-3 py-2.5 border border-[rgba(217,185,130,0.35)] text-ink rounded-lg text-sm font-medium hover:bg-cream transition-colors">
+          <button
+            onClick={() => window.open("mailto:support@lectly.app?subject=Group%20Plan%20Inquiry", "_blank")}
+            className="w-full mt-3 py-2.5 border border-[rgba(217,185,130,0.35)] text-ink rounded-lg text-sm font-medium hover:bg-cream transition-colors"
+          >
             Contact Us
           </button>
         </div>

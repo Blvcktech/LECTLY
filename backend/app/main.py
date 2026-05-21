@@ -101,6 +101,24 @@ async def root():
     }
 
 
+@app.post("/api/errors")
+async def report_frontend_error(request: Request):
+    """Receive frontend error reports. Logs them server-side for monitoring."""
+    import logging
+    logger = logging.getLogger("lectly.frontend_errors")
+    try:
+        body = await request.json()
+        logger.warning(
+            "Frontend error: %s | URL: %s | UA: %s",
+            body.get("error", "unknown"),
+            body.get("url", "unknown"),
+            body.get("userAgent", "unknown")[:200],
+        )
+    except Exception:
+        logger.warning("Frontend error report received but could not be parsed")
+    return {"status": "received"}
+
+
 @app.get("/health")
 async def health():
     """Public health check — only reveals the service is running. No internals."""

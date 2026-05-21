@@ -993,9 +993,28 @@ def get_user_tier(user_id: str) -> str:
 
 
 def get_user_lecture_limit(user_id: str) -> int:
-    """Get the lecture limit based on user's subscription tier."""
-    tier = get_user_tier(user_id)
-    return TIER_LIMITS.get(tier, 3)
+    """Get the effective lecture limit based on user's subscription tier.
+
+    For free users: simple limit (e.g., 3).
+    For paid users: lectures_at_upgrade + plan allowance.
+
+    This means paid users always get the FULL plan allowance from the
+    moment they subscribe, regardless of how many free uploads they used.
+    Example: user had 3 free lectures, upgrades to Basic (8) →
+    effective limit = 3 + 8 = 11, so they can upload 8 more.
+    """
+    sub = get_subscription(user_id)
+    if not sub or sub.get("status") != "active":
+        return TIER_LIMITS.get("free", 3)
+
+    tier = sub.get("tier", "free")
+    if tier == "free":
+        return TIER_LIMITS.get("free", 3)
+
+    # Paid tier: baseline (lectures they had at upgrade) + full plan allowance
+    baseline = sub.get("lectures_at_upgrade", 0) or 0
+    plan_allowance = TIER_LIMITS.get(tier, 3)
+    return baseline + plan_allowance
 
 
 def upsert_subscription(user_id: str, data: dict) -> dict:
@@ -1005,12 +1024,22 @@ def upsert_subscription(user_id: str, data: dict) -> dict:
     data can include: tier, paystack_customer_code, paystack_subscription_code,
     paystack_authorization_code, paystack_email, lectures_limit,
     current_period_start, current_period_end, status
+
+    When activating a paid plan, snapshots the user's current lecture count
+    into lectures_at_upgrade so the paid plan gives a FULL fresh allowance
+    on top of whatever the user already had.
     """
     now = datetime.utcnow().isoformat()
     existing = get_subscription(user_id)
 
     tier = data.get("tier", "basic")
     lectures_limit = data.get("lectures_limit", TIER_LIMITS.get(tier, 3))
+
+    # Snapshot current lecture count when activating a paid plan.
+    # This ensures paid users get their FULL plan allowance fresh.
+    lectures_at_upgrade = data.get("lectures_at_upgrade")
+    if lectures_at_upgrade is None and tier != "free" and data.get("status") == "active":
+        lectures_at_upgrade = count_user_lectures(user_id)
 
     if existing:
         # Update existing subscription
@@ -1025,6 +1054,7 @@ def upsert_subscription(user_id: str, data: dict) -> dict:
                     paystack_email = COALESCE({P}, paystack_email),
                     paystack_reference = COALESCE({P}, paystack_reference),
                     lectures_limit = {P},
+                    lectures_at_upgrade = COALESCE({P}, lectures_at_upgrade),
                     current_period_start = COALESCE({P}, current_period_start),
                     current_period_end = COALESCE({P}, current_period_end),
                     status = {P},
@@ -1038,6 +1068,7 @@ def upsert_subscription(user_id: str, data: dict) -> dict:
                     data.get("paystack_email"),
                     data.get("paystack_reference"),
                     lectures_limit,
+                    lectures_at_upgrade,
                     data.get("current_period_start"),
                     data.get("current_period_end"),
                     data.get("status", "active"),
@@ -1054,9 +1085,9 @@ def upsert_subscription(user_id: str, data: dict) -> dict:
                 f"""INSERT INTO subscriptions
                     (user_id, tier, paystack_customer_code, paystack_subscription_code,
                      paystack_authorization_code, paystack_email, paystack_reference,
-                     lectures_limit, current_period_start, current_period_end,
-                     status, created_at, updated_at)
-                    VALUES ({P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P})""",
+                     lectures_limit, lectures_at_upgrade, current_period_start,
+                     current_period_end, status, created_at, updated_at)
+                    VALUES ({P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P}, {P})""",
                 (
                     user_id,
                     tier,
@@ -1066,6 +1097,7 @@ def upsert_subscription(user_id: str, data: dict) -> dict:
                     data.get("paystack_email"),
                     data.get("paystack_reference"),
                     lectures_limit,
+                    lectures_at_upgrade or 0,
                     data.get("current_period_start"),
                     data.get("current_period_end"),
                     data.get("status", "active"),
@@ -1167,6 +1199,12 @@ MIGRATIONS = [
         "CREATE INDEX IF NOT EXISTS idx_learn_cache_lookup ON learn_mode_cache(lecture_id, section_index, level, card_style); "
         "CREATE INDEX IF NOT EXISTS idx_progress_last_studied ON progress(user_id, last_studied_at);",
     ),
+    (
+        5,
+        "Add lectures_at_upgrade to subscriptions for fair credit reset on plan upgrade",
+        "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS lectures_at_upgrade INTEGER NOT NULL DEFAULT 0;",
+        None,  # SQLite handled in code below
+    ),
 ]
 
 
@@ -1227,6 +1265,11 @@ def run_migrations():
                             pass  # Column already exists
                         _execute(conn, "CREATE INDEX IF NOT EXISTS idx_subs_customer_code ON subscriptions(paystack_customer_code)")
                         _execute(conn, "CREATE INDEX IF NOT EXISTS idx_subs_reference ON subscriptions(paystack_reference)")
+                    elif version == 5:
+                        try:
+                            _execute(conn, "ALTER TABLE subscriptions ADD COLUMN lectures_at_upgrade INTEGER NOT NULL DEFAULT 0")
+                        except Exception:
+                            pass  # Column already exists
 
                 _execute(
                     conn,
