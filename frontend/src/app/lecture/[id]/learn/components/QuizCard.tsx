@@ -84,6 +84,8 @@ export const QuizCard = React.memo(function QuizCard({
                 key={oi}
                 onClick={() => onSelectAnswer(qi, oi)}
                 disabled={isRevealed}
+                aria-pressed={isSelected}
+                aria-label={`Option ${String.fromCharCode(65 + oi)}`}
                 className={`w-full flex items-center gap-3 text-left text-sm p-4 rounded-xl border transition-all ${style}`}
               >
                 <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 text-xs font-bold ${

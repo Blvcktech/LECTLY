@@ -72,7 +72,26 @@ export default function SubscriptionPage() {
       </nav>
 
       <main className="max-w-lg mx-auto px-4 py-6 pb-24">
+        {/* Loading skeleton */}
+        {!subscription && (
+          <div className="animate-pulse space-y-4">
+            <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-2xl p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-cream-d" />
+                <div className="space-y-2">
+                  <div className="h-4 w-24 bg-cream-d rounded" />
+                  <div className="h-3 w-16 bg-cream-d/60 rounded" />
+                </div>
+              </div>
+              <div className="h-3 w-48 bg-cream-d/40 rounded mt-3" />
+            </div>
+            <div className="h-4 w-32 bg-cream-d/40 rounded" />
+            <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-2xl p-5 h-48" />
+          </div>
+        )}
+
         {/* Current Plan Banner */}
+        {subscription && (<>
         <div className="bg-paper border border-[rgba(217,185,130,0.25)] rounded-2xl p-5 mb-5">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-xl bg-accent-l/8 flex items-center justify-center">
@@ -95,7 +114,7 @@ export default function SubscriptionPage() {
             </div>
           </div>
           <div className="mt-3 flex items-center gap-4 text-[12px] text-ink-m">
-            <span>{subscription?.lectures_limit || 3} lectures {currentTier === "free" ? "total" : "per month"}</span>
+            <span>{subscription?.lectures_limit ?? 3} lectures {currentTier === "free" ? "total" : "per month"}</span>
             <span className="text-muted-bg">·</span>
             <span>{currentTier === "free" ? "No PDF export" : "PDF export"}</span>
             <span className="text-muted-bg">·</span>
@@ -258,6 +277,7 @@ export default function SubscriptionPage() {
         <p className="text-[11px] text-ink-f text-center px-4">
           Payments are processed securely via Paystack. Cancel anytime — no questions asked.
         </p>
+        </>)}
       </main>
 
       {/* Mobile Bottom Nav */}

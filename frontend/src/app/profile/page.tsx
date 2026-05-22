@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { useUser, useClerk, useAuth } from "@clerk/nextjs";
 import { setAuthToken } from "@/lib/auth";
-import { getLectures, getAllProgress, type Lecture, type StudyProgress } from "@/lib/api";
+import { getLectures, getAllProgress, getSubscriptionStatus, type Lecture, type StudyProgress } from "@/lib/api";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -30,6 +30,7 @@ export default function ProfilePage() {
 
   const [lectures, setLectures] = useState<Lecture[]>([]);
   const [allProgress, setAllProgress] = useState<StudyProgress[]>([]);
+  const [currentTier, setCurrentTier] = useState("free");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,13 +39,15 @@ export default function ProfilePage() {
       try {
         const token = await getToken();
         setAuthToken(token);
-        const [lectureData, progressData] = await Promise.all([
+        const [lectureData, progressData, subData] = await Promise.all([
           getLectures(),
           getAllProgress().catch(() => ({ progress: [], last_studied: null })),
+          getSubscriptionStatus().catch(() => ({ tier: "free" })),
         ]);
         if (!cancelled) {
           setLectures(lectureData.lectures);
           setAllProgress(progressData.progress);
+          setCurrentTier(subData.tier || "free");
         }
       } catch {
         // silently handle
@@ -167,7 +170,7 @@ export default function ProfilePage() {
                 <p className="text-base font-semibold text-ink" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                   {user?.fullName || "Student"}
                 </p>
-                <p className="text-xs text-ink-m">Free Plan</p>
+                <p className="text-xs text-ink-m">{currentTier === "free" ? "Free Plan" : `${currentTier.charAt(0).toUpperCase() + currentTier.slice(1)} Plan`}</p>
               </div>
               <button
                 onClick={() => router.push("/profile/account")}

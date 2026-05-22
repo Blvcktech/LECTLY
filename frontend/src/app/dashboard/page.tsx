@@ -21,7 +21,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import StratumLogo from "@/components/StratumLogo";
-import { getLectures, deleteLecture, renameLecture, getAllProgress, Lecture, type StudyProgress } from "@/lib/api";
+import { getLectures, deleteLecture, renameLecture, getAllProgress, getUserLimits, Lecture, type StudyProgress } from "@/lib/api";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { setAuthToken } from "@/lib/auth";
 import { useToast } from "@/components/Toast";
@@ -57,6 +57,7 @@ export default function DashboardPage() {
   const [renameLoading, setRenameLoading] = useState(false);
   const [allProgress, setAllProgress] = useState<StudyProgress[]>([]);
   const [lastStudied, setLastStudied] = useState<StudyProgress | null>(null);
+  const [lectureLimit, setLectureLimit] = useState(3);
   const { toast, confirm: showConfirm } = useToast();
 
   useEffect(() => {
@@ -76,15 +77,17 @@ export default function DashboardPage() {
         setAuthToken(token);
 
         // Fetch lectures and progress in parallel
-        const [lectureData, progressData] = await Promise.all([
+        const [lectureData, progressData, limitsData] = await Promise.all([
           getLectures(),
           getAllProgress().catch(() => ({ progress: [], last_studied: null })),
+          getUserLimits().catch(() => ({ lectures_limit: 3, lectures_used: 0, lectures_remaining: 3, tier: "free" })),
         ]);
 
         if (!cancelled) {
           setLectures(lectureData.lectures);
           setAllProgress(progressData.progress);
           setLastStudied(progressData.last_studied);
+          setLectureLimit(limitsData.lectures_limit || 3);
         }
       } catch (err) {
         if (!cancelled) {
@@ -206,7 +209,7 @@ export default function DashboardPage() {
       (l.subject || "").toLowerCase().includes(search.toLowerCase())
   );
 
-  const usagePercent = Math.min((lectures.length / 3) * 100, 100);
+  const usagePercent = Math.min((lectures.length / lectureLimit) * 100, 100);
 
   return (
     <div className="flex min-h-screen bg-cream">
@@ -285,6 +288,7 @@ export default function DashboardPage() {
               <input
                 type="text"
                 placeholder="Search lectures..."
+                aria-label="Search lectures"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="bg-transparent text-sm text-ink placeholder:text-ink-m focus:outline-none w-full"
@@ -318,6 +322,7 @@ export default function DashboardPage() {
               <input
                 type="text"
                 placeholder="Search lectures..."
+                aria-label="Search lectures"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="bg-transparent text-sm text-ink placeholder:text-ink-m focus:outline-none w-full"
@@ -532,7 +537,7 @@ export default function DashboardPage() {
                 return (
                   <Link
                     key={lecture.id}
-                    href={isReady ? `/lecture/${lecture.id}` : "#"}
+                    href={`/lecture/${lecture.id}`}
                     className={`block bg-paper border border-[rgba(217,185,130,0.25)] rounded-xl px-4 py-3.5 hover:border-[rgba(217,185,130,0.5)] hover:shadow-sm transition-all group ${!isReady ? "opacity-75" : ""}`}
                   >
                     <div className="flex items-center gap-3">
@@ -723,7 +728,7 @@ export default function DashboardPage() {
                   <Upload className="w-4.5 h-4.5" />
                   Upload Your First Lecture
                 </Link>
-                <p className="text-[11px] text-ink-m mt-3">Supports MP3, MP4, WAV, M4A — up to 25MB</p>
+                <p className="text-[11px] text-ink-m mt-3">Supports MP3, MP4, WAV, M4A — up to 500MB</p>
               </div>
             </div>
           )}

@@ -218,6 +218,7 @@ export default function SolveModePage({
               value={problem}
               onChange={(e) => setProblem(e.target.value)}
               placeholder="e.g. Calculate the moment of inertia of a solid cylinder rotating about its central axis..."
+              maxLength={2000}
               className="w-full h-36 px-4 py-3 rounded-xl border border-[rgba(217,185,130,0.3)] bg-white text-sm text-ink placeholder:text-ink-f focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-transparent resize-none"
             />
 
@@ -239,6 +240,7 @@ export default function SolveModePage({
                   value={studentAttempt}
                   onChange={(e) => setStudentAttempt(e.target.value)}
                   placeholder="Paste your attempt here and I'll identify where you went wrong..."
+                  maxLength={2000}
                   className="mt-2 w-full h-28 px-4 py-3 rounded-xl border border-[rgba(217,185,130,0.3)] bg-white text-sm text-ink placeholder:text-ink-f focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-transparent resize-none"
                 />
               )}

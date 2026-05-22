@@ -30,12 +30,13 @@ export function SectionSidebar({
         </h2>
 
         {/* Level selector */}
-        <div className="flex gap-1 mb-4 bg-cream-d rounded-xl p-1">
+        <div className="flex gap-1 mb-4 bg-cream-d rounded-xl p-1" role="group" aria-label="Difficulty level">
           {["beginner", "intermediate", "advanced"].map((level) => (
             <button
               key={level}
               onClick={() => onSelectLevel(level)}
               disabled={learnLoading}
+              aria-pressed={learnLevel === level}
               className={`flex-1 text-[11px] font-semibold py-2 rounded-lg transition-all capitalize ${
                 learnLevel === level
                   ? "bg-ink text-white shadow-md"

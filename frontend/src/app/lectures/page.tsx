@@ -425,7 +425,7 @@ export default function LecturesPage() {
                             </button>
                           </div>
                         ) : (
-                          <Link href={isReady ? `/lecture/${lecture.id}` : "#"} className="block">
+                          <Link href={`/lecture/${lecture.id}`} className="block">
                             <p className="text-sm font-semibold text-ink truncate hover:text-accent transition-colors">
                               {title}
                             </p>
@@ -518,7 +518,7 @@ export default function LecturesPage() {
                       <span className={`text-[10px] font-medium px-2 py-0.5 rounded ${sl.bg} ${sl.color}`}>{sl.text}</span>
                     </div>
 
-                    <Link href={isReady ? `/lecture/${lecture.id}` : "#"} className="block mb-2">
+                    <Link href={`/lecture/${lecture.id}`} className="block mb-2">
                       <p className="text-sm font-semibold text-ink line-clamp-2 hover:text-accent transition-colors" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
                         {title}
                       </p>

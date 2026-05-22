@@ -18,6 +18,7 @@ export default function OnboardingModal() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const [dismissed, setDismissed] = useState(false);
 
   // Don't show if:
@@ -38,6 +39,7 @@ export default function OnboardingModal() {
   const handleSave = async () => {
     if (!firstName.trim()) return;
     setSaving(true);
+    setError("");
     try {
       await user.update({
         firstName: firstName.trim(),
@@ -47,6 +49,7 @@ export default function OnboardingModal() {
       setDismissed(true);
     } catch (err) {
       console.error("Failed to update name:", err);
+      setError("Something went wrong. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -91,6 +94,7 @@ export default function OnboardingModal() {
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               placeholder="e.g. Chioma"
+              maxLength={50}
               autoFocus
               className="w-full px-3 py-2.5 bg-cream border border-[rgba(217,185,130,0.3)] rounded-lg text-sm text-ink placeholder:text-ink-f focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20"
               onKeyDown={(e) => {
@@ -107,6 +111,7 @@ export default function OnboardingModal() {
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               placeholder="e.g. Okafor"
+              maxLength={50}
               className="w-full px-3 py-2.5 bg-cream border border-[rgba(217,185,130,0.3)] rounded-lg text-sm text-ink placeholder:text-ink-f focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20"
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleSave();
@@ -114,6 +119,10 @@ export default function OnboardingModal() {
             />
           </div>
         </div>
+
+        {error && (
+          <p className="text-xs text-red-500 text-center mb-3">{error}</p>
+        )}
 
         <button
           onClick={handleSave}

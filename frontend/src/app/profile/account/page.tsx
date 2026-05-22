@@ -17,11 +17,14 @@ import {
   X,
   Loader2,
 } from "lucide-react";
-import { useUser } from "@clerk/nextjs";
+import { useUser, useClerk } from "@clerk/nextjs";
+import { useToast } from "@/components/Toast";
 
 export default function AccountPage() {
   const router = useRouter();
   const { user } = useUser();
+  const { openUserProfile } = useClerk();
+  const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
   // Editing state
@@ -63,6 +66,7 @@ export default function AccountPage() {
       setTimeout(() => setSaveSuccess(false), 2000);
     } catch (err) {
       console.error("Failed to update profile:", err);
+      toast("Failed to save. Please try again.", "error");
     } finally {
       setSaving(false);
     }
@@ -161,6 +165,7 @@ export default function AccountPage() {
                   type="text"
                   value={editFirst}
                   onChange={(e) => setEditFirst(e.target.value)}
+                  maxLength={50}
                   autoFocus
                   className="w-full px-3 py-2 bg-cream border border-[rgba(217,185,130,0.3)] rounded-lg text-sm text-ink placeholder:text-ink-f focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20"
                   onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
@@ -172,6 +177,7 @@ export default function AccountPage() {
                   type="text"
                   value={editLast}
                   onChange={(e) => setEditLast(e.target.value)}
+                  maxLength={50}
                   className="w-full px-3 py-2 bg-cream border border-[rgba(217,185,130,0.3)] rounded-lg text-sm text-ink placeholder:text-ink-f focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20"
                   onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
                 />
@@ -238,7 +244,7 @@ export default function AccountPage() {
           </p>
 
           <button
-            onClick={() => user?.id && window.open("https://accounts.clerk.dev/user", "_blank")}
+            onClick={() => openUserProfile()}
             className="flex items-center justify-between w-full px-4 py-3 hover:bg-cream transition-colors"
           >
             <div className="flex items-center gap-3">

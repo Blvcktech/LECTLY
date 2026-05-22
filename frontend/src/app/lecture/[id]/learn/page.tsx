@@ -398,7 +398,8 @@ export default function LearnModePage({
     if (learnResult && selectedSection !== null && Object.keys(quizRevealed).length > 0) {
       doSaveProgress();
     }
-  }, [quizRevealed]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quizRevealed, learnResult, selectedSection]);
 
   // Get existing progress for a section
   const getProgressForSection = (sectionIdx: number): StudyProgress | undefined => {
@@ -490,8 +491,8 @@ export default function LearnModePage({
   const modeLabels = ["Cards", "Practice", "Notes"];
   const modeIcons = [Layers, PenTool, FileText];
 
-  // Count how many cards are completed (before current index)
-  const completedCards = learnResult ? learnResult.explanation.length : 0;
+  // Count concept card progress
+  const totalConceptCards = cardFlow.filter((c) => c.type === "concept").length;
   const conceptCardsDone = cardFlow.filter((c, i) => i < cardIndex && c.type === "concept").length;
 
   if (loading) {
@@ -701,7 +702,7 @@ export default function LearnModePage({
                     </span>
                     <span className="text-[10px] text-ink-m">·</span>
                     <span className="text-[10px] font-medium text-ink-m">
-                      {conceptCardsDone} of {completedCards}
+                      {conceptCardsDone} of {totalConceptCards}
                     </span>
                   </div>
 

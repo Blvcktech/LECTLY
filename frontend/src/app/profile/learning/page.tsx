@@ -223,6 +223,9 @@ export default function LearningPreferencesPage() {
             </div>
             <button
               onClick={() => setAutoPlay(!autoPlay)}
+              role="switch"
+              aria-checked={autoPlay}
+              aria-label="Auto-advance cards"
               className={`w-10 h-6 rounded-full transition-colors relative ${
                 autoPlay ? "bg-emerald-500" : "bg-muted-bg"
               }`}
