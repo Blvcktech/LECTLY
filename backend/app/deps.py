@@ -29,14 +29,21 @@ def _get_jwks_client():
     """Get or create a cached JWKS client for Clerk token verification."""
     global _jwks_client, _jwks_client_init_time
     settings = get_settings()
-    if not settings.clerk_issuer:
+    issuer = (settings.clerk_issuer or "").strip()
+    if not issuer or not issuer.startswith("http"):
+        if issuer:
+            print(f"[Lectly] WARNING: CLERK_ISSUER is set but invalid: '{issuer}' — falling back to dev mode")
         return None
     # Refresh the client every 6 hours to pick up key rotations
     if _jwks_client is None or (time.time() - _jwks_client_init_time) > 21600:
-        from jwt import PyJWKClient
-        jwks_url = f"{settings.clerk_issuer.rstrip('/')}/.well-known/jwks.json"
-        _jwks_client = PyJWKClient(jwks_url, cache_keys=True)
-        _jwks_client_init_time = time.time()
+        try:
+            from jwt import PyJWKClient
+            jwks_url = f"{issuer.rstrip('/')}/.well-known/jwks.json"
+            _jwks_client = PyJWKClient(jwks_url, cache_keys=True)
+            _jwks_client_init_time = time.time()
+        except Exception as e:
+            print(f"[Lectly] ERROR: Failed to initialize JWKS client: {e}")
+            return None
     return _jwks_client
 
 
