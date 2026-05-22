@@ -1,17 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
-import dynamic from "next/dynamic";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
 import { ToastProvider } from "@/components/Toast";
 import AuthSync from "@/components/AuthSync";
 import ErrorTrackingInit from "@/components/ErrorTrackingInit";
+import ClientExtras from "@/components/ClientExtras";
 import "./globals.css";
-
-// Lazy-load non-critical components — these don't affect initial render
-const NotificationWatcher = dynamic(() => import("@/components/NotificationWatcher"), { ssr: false });
-const PushNotifications = dynamic(() => import("@/components/PushNotifications"), { ssr: false });
-const InstallPrompt = dynamic(() => import("@/components/InstallPrompt"), { ssr: false });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -109,9 +104,7 @@ export default function RootLayout({
         <body className="min-h-full flex flex-col">
           <AuthSync />
           <ToastProvider>
-            <NotificationWatcher />
-            <PushNotifications />
-            <InstallPrompt />
+            <ClientExtras />
             {children}
           </ToastProvider>
           <ErrorTrackingInit />
