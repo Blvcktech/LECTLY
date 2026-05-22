@@ -35,6 +35,34 @@
     }
   ],
   "categories": ["education", "productivity"],
-  "screenshots": [],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Upload Lecture",
+      "short_name": "Upload",
+      "url": "/upload",
+      "description": "Upload a new lecture recording",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Lectures",
+      "short_name": "Lectures",
+      "url": "/lectures",
+      "description": "View all your lecture notes",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "share_target": {
+    "action": "/upload",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [
+        {
+          "name": "file",
+          "accept": ["audio/*", ".mp3", ".m4a", ".wav", ".aac", ".ogg"]
+        }
+      ]
+    }
+  }
 }

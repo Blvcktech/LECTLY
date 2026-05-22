@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import dynamic from "next/dynamic";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
 import { ToastProvider } from "@/components/Toast";
 import AuthSync from "@/components/AuthSync";
-import NotificationWatcher from "@/components/NotificationWatcher";
-import PushNotifications from "@/components/PushNotifications";
-import InstallPrompt from "@/components/InstallPrompt";
 import ErrorTrackingInit from "@/components/ErrorTrackingInit";
 import "./globals.css";
+
+// Lazy-load non-critical components — these don't affect initial render
+const NotificationWatcher = dynamic(() => import("@/components/NotificationWatcher"), { ssr: false });
+const PushNotifications = dynamic(() => import("@/components/PushNotifications"), { ssr: false });
+const InstallPrompt = dynamic(() => import("@/components/InstallPrompt"), { ssr: false });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -56,7 +59,7 @@ export const metadata: Metadata = {
         alt: "Lectly — AI-powered lecture notes, Learn Mode, and AI Tutor",
       },
     ],
-    locale: "en_US",
+    locale: "en_NG",
     type: "website",
   },
   twitter: {
