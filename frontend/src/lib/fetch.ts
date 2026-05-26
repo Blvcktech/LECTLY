@@ -20,7 +20,7 @@ const MAX_RETRIES = 3;
 
 const TIMEOUT_GET = 10_000;      // 10 seconds
 const TIMEOUT_POST = 30_000;     // 30 seconds
-const TIMEOUT_UPLOAD = 300_000;  // 5 minutes
+const TIMEOUT_UPLOAD = 600_000;  // 10 minutes — large files on Nigerian mobile data need this
 
 /** HTTP status codes that should NOT be retried (client errors) */
 const NO_RETRY_STATUSES = new Set([400, 401, 403, 404, 409, 422, 429]);

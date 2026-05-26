@@ -943,14 +943,17 @@ async def _call_groq(system_prompt: str, user_message: str) -> str:
         raise ValueError("No Groq API key")
 
     # Truncate input for Groq free tier (6000 TPM limit).
+    # CRITICAL: Always append JSON format reminder BEFORE truncation so it survives.
     words = user_message.split()
     if len(words) > 400:
         user_message = " ".join(words[:400])
         print(f"[Lectly] Truncated input to 400 words for Groq free tier")
+    # Always remind Groq to output JSON — the system prompt truncation may strip format instructions
+    user_message += "\n\nCRITICAL: Return ONLY valid JSON. No markdown, no code blocks, no commentary. Start with { and end with }."
     sys_words = system_prompt.split()
-    if len(sys_words) > 300:
-        system_prompt = " ".join(sys_words[:300])
-        print(f"[Lectly] Truncated system prompt to 300 words for Groq free tier")
+    if len(sys_words) > 500:
+        system_prompt = " ".join(sys_words[:500])
+        print(f"[Lectly] Truncated system prompt to 500 words for Groq free tier")
 
     api_url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {
@@ -966,6 +969,7 @@ async def _call_groq(system_prompt: str, user_message: str) -> str:
         ],
         "temperature": 0.3,
         "max_tokens": 2048,
+        "response_format": {"type": "json_object"},  # Force JSON output — prevents markdown fallback
     }
 
     print(f"[Lectly] Calling Groq (Llama 3.1 8B)...")

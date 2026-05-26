@@ -216,7 +216,7 @@ export async function uploadLecture(
   const res = await fetchWithRetry(
     `${API_URL}/api/upload`,
     { method: "POST", body: formData },
-    { isUpload: true, maxRetries: 1 } // Uploads: long timeout, minimal retry
+    { isUpload: true, maxRetries: 0 } // Uploads: NO retry — retrying 38MB on slow data wastes minutes
   );
 
   await checkResponse(res, "Upload failed");

@@ -123,7 +123,7 @@ export default function UploadPage() {
     // Timeout
     if (raw.includes("aborted") || raw.includes("timeout") || raw.includes("AbortError")) {
       return step === 0
-        ? "Upload timed out. Your file may be too large — try a shorter recording."
+        ? "Upload timed out — your internet connection may be too slow for this file size. Try connecting to WiFi or uploading a smaller file."
         : "Processing took too long. This can happen with very long lectures — try again.";
     }
 
