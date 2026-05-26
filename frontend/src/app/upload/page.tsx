@@ -43,6 +43,7 @@ export default function UploadPage() {
   const [courseCode, setCourseCode] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [uploadPct, setUploadPct] = useState(0); // Real upload progress from XHR (0-100)
   const [error, setError] = useState("");
   const [lectureId, setLectureId] = useState("");
   const [steps, setSteps] = useState<ProcessStep[]>([
@@ -94,6 +95,7 @@ export default function UploadPage() {
     setState("idle");
     setError("");
     setProgress(0);
+    setUploadPct(0);
     setLectureId("");
     setFailedStep(null);
     setRetryCount(0);
@@ -161,9 +163,15 @@ export default function UploadPage() {
       // Note: freshAuthHeaders() in api.ts handles token refresh automatically
       if (startStep <= 0) {
         updateStep(0, false, true);
-        const uploadResult = await uploadLecture(file, courseCode.trim() || undefined);
+        setUploadPct(0);
+        const uploadResult = await uploadLecture(
+          file,
+          courseCode.trim() || undefined,
+          (pct) => setUploadPct(pct) // Real-time upload progress from XHR
+        );
         currentLectureId = uploadResult.id;
         setLectureId(uploadResult.id);
+        setUploadPct(100);
         updateStep(0, true, false);
       }
 
@@ -522,7 +530,13 @@ export default function UploadPage() {
               </p>
               <div className="space-y-2 text-left max-w-sm mx-auto mb-6">
                 {steps.map((step, i) => {
-                  const timeEstimates = ["a few seconds", "~30 seconds", "depends on length", "~30–60 seconds"];
+                  const timeEstimates = ["", "~30 seconds", "depends on length", "~30–60 seconds"];
+                  // For upload step (i===0), show real progress from XHR
+                  const uploadLabel = i === 0 && step.active && uploadPct > 0
+                    ? `${uploadPct}%${file ? ` — ${Math.round((file.size * uploadPct) / 100 / 1024 / 1024)}MB / ${Math.round(file.size / 1024 / 1024)}MB` : ""}`
+                    : i === 0 && step.active
+                    ? "starting..."
+                    : timeEstimates[i];
                   return (
                     <div key={step.label} className="flex items-center gap-3 text-sm py-1.5">
                       {step.done ? (
@@ -539,32 +553,41 @@ export default function UploadPage() {
                         <span className="text-[11px] text-green-600 font-medium">Done</span>
                       )}
                       {step.active && (
-                        <span className="text-[11px] text-accent font-medium">{timeEstimates[i]}</span>
+                        <span className="text-[11px] text-accent font-medium">{uploadLabel}</span>
                       )}
                     </div>
                   );
                 })}
               </div>
-              {/* Progress bar */}
+              {/* Progress bar — uses real upload % during step 0, then jumps to stage-based % */}
               <div className="max-w-sm mx-auto">
                 <div className="flex justify-between mb-1.5">
                   <span className="text-xs text-ink-m">Progress</span>
                   <span className="text-xs text-accent font-semibold">
-                    {steps.filter(s => s.done).length === 0 && steps.some(s => s.active) ? "10%" :
-                     steps.filter(s => s.done).length === 1 ? "25%" :
-                     steps.filter(s => s.done).length === 2 ? "50%" :
-                     steps.filter(s => s.done).length === 3 ? "85%" :
-                     steps.filter(s => s.done).length === 4 ? "100%" : "0%"}
+                    {(() => {
+                      const doneCount = steps.filter(s => s.done).length;
+                      if (doneCount === 0 && steps[0]?.active) return `${Math.max(1, Math.round(uploadPct * 0.20))}%`;
+                      if (doneCount === 1) return "25%";
+                      if (doneCount === 2) return "50%";
+                      if (doneCount === 3) return "85%";
+                      if (doneCount === 4) return "100%";
+                      return "0%";
+                    })()}
                   </span>
                 </div>
                 <div className="w-full h-1.5 bg-cream-d rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-accent rounded-full transition-all duration-500"
+                    className="h-full bg-accent rounded-full transition-all duration-300"
                     style={{
-                      width: steps.filter(s => s.done).length === 0 && steps.some(s => s.active) ? "15%" :
-                             steps.filter(s => s.done).length === 1 ? "40%" :
-                             steps.filter(s => s.done).length === 2 ? "80%" :
-                             steps.filter(s => s.done).length === 3 ? "100%" : "0%"
+                      width: (() => {
+                        const doneCount = steps.filter(s => s.done).length;
+                        // During upload: map 0-100% upload to 0-20% of overall bar
+                        if (doneCount === 0 && steps[0]?.active) return `${Math.max(2, uploadPct * 0.20)}%`;
+                        if (doneCount === 1) return "40%";
+                        if (doneCount === 2) return "80%";
+                        if (doneCount >= 3) return "100%";
+                        return "0%";
+                      })()
                     }}
                   />
                 </div>

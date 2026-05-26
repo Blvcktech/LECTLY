@@ -10,6 +10,7 @@
  */
 
 import { fetchWithRetry } from "./fetch";
+import { freshAuthHeaders } from "./auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -205,23 +206,93 @@ export interface StudyProgress {
 
 // ── API Functions ──────────────────────────────
 
+/**
+ * Upload a lecture file with real-time progress tracking.
+ *
+ * Uses XMLHttpRequest instead of fetch() because XHR supports
+ * upload.onprogress events — critical for showing actual upload
+ * percentage on slow mobile connections (e.g. Nigerian mobile data
+ * uploading 38MB at 100-500KB/s = 1-6 minutes).
+ *
+ * @param file      - Audio file to upload
+ * @param subject   - Optional course code / subject
+ * @param onProgress - Callback with upload progress (0-100)
+ */
 export async function uploadLecture(
   file: File,
-  subject?: string
+  subject?: string,
+  onProgress?: (pct: number) => void
 ): Promise<LectureUpload> {
   const formData = new FormData();
   formData.append("file", file);
   if (subject) formData.append("subject", subject);
 
-  const res = await fetchWithRetry(
-    `${API_URL}/api/upload`,
-    { method: "POST", body: formData },
-    { isUpload: true, maxRetries: 0 } // Uploads: NO retry — retrying 38MB on slow data wastes minutes
-  );
+  // Get fresh auth token
+  const headers = await freshAuthHeaders();
 
-  await checkResponse(res, "Upload failed");
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const TIMEOUT = 600_000; // 10 minutes — same as TIMEOUT_UPLOAD in fetch.ts
 
-  return res.json();
+    xhr.open("POST", `${API_URL}/api/upload`);
+    xhr.timeout = TIMEOUT;
+
+    // Set auth header
+    if (headers.Authorization) {
+      xhr.setRequestHeader("Authorization", headers.Authorization);
+    }
+
+    // Track upload progress — the key reason we use XHR over fetch
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) {
+        const pct = Math.round((e.loaded / e.total) * 100);
+        onProgress(pct);
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve(JSON.parse(xhr.responseText));
+        } catch {
+          reject(new Error("Invalid response from server"));
+        }
+      } else if (xhr.status === 429) {
+        const retry = parseInt(xhr.getResponseHeader("Retry-After") || "60", 10);
+        reject(new RateLimitError(retry));
+      } else if (xhr.status === 401) {
+        reject(new Error("Session expired. Please sign in again."));
+      } else if (xhr.status === 403) {
+        // Try to extract detail from response
+        try {
+          const err = JSON.parse(xhr.responseText);
+          reject(new Error(err.detail || "You don't have permission to do this."));
+        } catch {
+          reject(new Error("You don't have permission to do this."));
+        }
+      } else {
+        try {
+          const err = JSON.parse(xhr.responseText);
+          reject(new Error(err.detail || "Upload failed"));
+        } catch {
+          reject(new Error(`Upload failed (${xhr.status})`));
+        }
+      }
+    };
+
+    xhr.onerror = () => {
+      reject(new Error("Network error — check your internet connection and try again."));
+    };
+
+    xhr.ontimeout = () => {
+      reject(new Error(
+        `Upload timed out after ${TIMEOUT / 1000 / 60} minutes. ` +
+        "Your connection may be too slow for this file size. Try WiFi or a smaller file."
+      ));
+    };
+
+    xhr.send(formData);
+  });
 }
 
 export async function processLecture(
