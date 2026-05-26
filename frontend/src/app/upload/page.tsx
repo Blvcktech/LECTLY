@@ -19,6 +19,7 @@ import {
   WifiOff,
 } from "lucide-react";
 import { uploadLecture, processLecture, getUserLimits, type UserLimits } from "@/lib/api";
+import { compressAudio } from "@/lib/compress-audio";
 import StratumLogo from "@/components/StratumLogo";
 
 const ACCEPTED_EXTENSIONS = /\.(mp3|wav|m4a|aac|ogg|mp4|wma|flac|webm|opus|caf)$/i;
@@ -46,7 +47,9 @@ export default function UploadPage() {
   const [uploadPct, setUploadPct] = useState(0); // Real upload progress from XHR (0-100)
   const [error, setError] = useState("");
   const [lectureId, setLectureId] = useState("");
+  const [compressInfo, setCompressInfo] = useState("");
   const [steps, setSteps] = useState<ProcessStep[]>([
+    { label: "Compressing audio", done: false, active: false },
     { label: "Uploading audio", done: false, active: false },
     { label: "Sending to transcription service", done: false, active: false },
     { label: "Transcribing with AI", done: false, active: false },
@@ -96,10 +99,12 @@ export default function UploadPage() {
     setError("");
     setProgress(0);
     setUploadPct(0);
+    setCompressInfo("");
     setLectureId("");
     setFailedStep(null);
     setRetryCount(0);
     setSteps([
+      { label: "Compressing audio", done: false, active: false },
       { label: "Uploading audio", done: false, active: false },
       { label: "Sending to transcription service", done: false, active: false },
       { label: "Transcribing with AI", done: false, active: false },
@@ -159,52 +164,72 @@ export default function UploadPage() {
     let currentLectureId = lectureId;
 
     try {
-      // Step 0: Upload (skip if retrying from a later step)
-      // Note: freshAuthHeaders() in api.ts handles token refresh automatically
+      // Step 0: Compress audio (skip if retrying from a later step or file is small)
+      let fileToUpload = file;
       if (startStep <= 0) {
         updateStep(0, false, true);
+        setCompressInfo("");
+        const result = await compressAudio(file, (pct) => {
+          // Show compression progress in the step label
+          setCompressInfo(`${pct}%`);
+        });
+        fileToUpload = result.file;
+        if (result.wasCompressed) {
+          setCompressInfo(
+            `${(result.originalSize / 1024 / 1024).toFixed(0)}MB → ${(result.compressedSize / 1024 / 1024).toFixed(0)}MB`
+          );
+        } else {
+          setCompressInfo("skipped (already small)");
+        }
+        updateStep(0, true, false);
+      }
+
+      // Step 1: Upload (skip if retrying from a later step)
+      if (startStep <= 1) {
+        updateStep(1, false, true);
         setUploadPct(0);
         const uploadResult = await uploadLecture(
-          file,
+          fileToUpload,
           courseCode.trim() || undefined,
           (pct) => setUploadPct(pct) // Real-time upload progress from XHR
         );
         currentLectureId = uploadResult.id;
         setLectureId(uploadResult.id);
         setUploadPct(100);
-        updateStep(0, true, false);
+        updateStep(1, true, false);
       }
 
-      // Step 1-2: Process (transcribe + generate notes) — runs in background, polls for status
-      if (startStep <= 1) {
+      // Step 2-4: Process (transcribe + generate notes) — runs in background, polls for status
+      if (startStep <= 2) {
         if (!currentLectureId) {
           throw new Error("No lecture ID available. Please try uploading again.");
         }
-        updateStep(1, false, true);
+        updateStep(2, false, true);
 
         // Notify the NotificationWatcher so it starts tracking this lecture
         window.dispatchEvent(new CustomEvent("lectly:upload-started"));
 
         await processLecture(currentLectureId, (status) => {
           // Update UI steps based on backend processing_step changes
+          // Steps: 0=compress, 1=upload, 2=send to AI, 3=transcribe, 4=generate notes
           if (status === "uploading_to_ai") {
-            updateStep(1, false, true);
-          } else if (status === "transcribing" || status === "cleaning") {
-            updateStep(1, true, false);
             updateStep(2, false, true);
-          } else if (status === "generating_notes") {
-            updateStep(1, true, false);
+          } else if (status === "transcribing" || status === "cleaning") {
             updateStep(2, true, false);
             updateStep(3, false, true);
-          } else if (status === "ready") {
-            updateStep(1, true, false);
+          } else if (status === "generating_notes") {
             updateStep(2, true, false);
             updateStep(3, true, false);
+            updateStep(4, false, true);
+          } else if (status === "ready") {
+            updateStep(2, true, false);
+            updateStep(3, true, false);
+            updateStep(4, true, false);
           }
         });
-        updateStep(1, true, false);
         updateStep(2, true, false);
         updateStep(3, true, false);
+        updateStep(4, true, false);
       }
 
       setState("done");
@@ -228,12 +253,12 @@ export default function UploadPage() {
   const retryFromFailedStep = () => {
     if (failedStep === null) {
       processFile();
-    } else if (failedStep === 0) {
-      // Upload failed — need to start over
+    } else if (failedStep <= 1) {
+      // Compress or upload failed — start over from compression
       processFile(0);
     } else {
       // Processing failed — retry from processing step (upload already done)
-      processFile(1);
+      processFile(2);
     }
   };
 
@@ -408,14 +433,14 @@ export default function UploadPage() {
                 )}
                 <div>
                   <p className="text-sm font-semibold text-red-800 mb-1">
-                    {failedStep === 0 ? "Upload failed" : "Processing failed"}
+                    {failedStep !== null && failedStep <= 1 ? "Upload failed" : "Processing failed"}
                   </p>
                   <p className="text-sm text-red-700">{error}</p>
                 </div>
               </div>
 
               {/* Show completed steps if any */}
-              {failedStep !== null && failedStep > 0 && (
+              {failedStep !== null && failedStep > 0 && steps.some(s => s.done) && (
                 <div className="mb-4 pl-8">
                   {steps.map((step, i) => (
                     <div key={step.label} className="flex items-center gap-2 text-xs py-0.5">
@@ -442,7 +467,7 @@ export default function UploadPage() {
                     className="flex items-center gap-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors"
                   >
                     <RotateCcw className="w-4 h-4" />
-                    {failedStep === 0 ? "Retry upload" : "Retry processing"}
+                    {failedStep !== null && failedStep <= 1 ? "Retry upload" : "Retry processing"}
                   </button>
                 )}
                 <button
@@ -530,13 +555,22 @@ export default function UploadPage() {
               </p>
               <div className="space-y-2 text-left max-w-sm mx-auto mb-6">
                 {steps.map((step, i) => {
-                  const timeEstimates = ["", "~30 seconds", "depends on length", "~30–60 seconds"];
-                  // For upload step (i===0), show real progress from XHR
-                  const uploadLabel = i === 0 && step.active && uploadPct > 0
-                    ? `${uploadPct}%${file ? ` — ${Math.round((file.size * uploadPct) / 100 / 1024 / 1024)}MB / ${Math.round(file.size / 1024 / 1024)}MB` : ""}`
-                    : i === 0 && step.active
-                    ? "starting..."
-                    : timeEstimates[i];
+                  const timeEstimates = ["", "", "~30 seconds", "depends on length", "~30–60 seconds"];
+                  // For compress step (i===0), show compression progress
+                  // For upload step (i===1), show real upload progress from XHR
+                  const stepLabel =
+                    i === 0 && step.active && compressInfo
+                      ? compressInfo
+                      : i === 0 && step.active
+                      ? "analyzing..."
+                      : i === 0 && step.done && compressInfo
+                      ? compressInfo
+                      : i === 1 && step.active && uploadPct > 0
+                      ? `${uploadPct}%${file ? ` — ${Math.round((file.size * uploadPct) / 100 / 1024 / 1024)}MB / ${Math.round(file.size / 1024 / 1024)}MB` : ""}`
+                      : i === 1 && step.active
+                      ? "starting..."
+                      : timeEstimates[i];
+                  const uploadLabel = stepLabel;
                   return (
                     <div key={step.label} className="flex items-center gap-3 text-sm py-1.5">
                       {step.done ? (
@@ -559,18 +593,21 @@ export default function UploadPage() {
                   );
                 })}
               </div>
-              {/* Progress bar — uses real upload % during step 0, then jumps to stage-based % */}
+              {/* Progress bar — uses real % during compress/upload, then stage-based */}
               <div className="max-w-sm mx-auto">
                 <div className="flex justify-between mb-1.5">
                   <span className="text-xs text-ink-m">Progress</span>
                   <span className="text-xs text-accent font-semibold">
                     {(() => {
                       const doneCount = steps.filter(s => s.done).length;
-                      if (doneCount === 0 && steps[0]?.active) return `${Math.max(1, Math.round(uploadPct * 0.20))}%`;
-                      if (doneCount === 1) return "25%";
-                      if (doneCount === 2) return "50%";
-                      if (doneCount === 3) return "85%";
-                      if (doneCount === 4) return "100%";
+                      // 5 steps: compress(0-10%), upload(10-25%), send(25-40%), transcribe(40-75%), notes(75-100%)
+                      if (doneCount === 0 && steps[0]?.active) return "5%";
+                      if (doneCount === 1 && steps[1]?.active) return `${Math.max(10, Math.round(10 + uploadPct * 0.15))}%`;
+                      if (doneCount === 1) return "10%";
+                      if (doneCount === 2) return "30%";
+                      if (doneCount === 3) return "50%";
+                      if (doneCount === 4) return "85%";
+                      if (doneCount === 5) return "100%";
                       return "0%";
                     })()}
                   </span>
@@ -581,11 +618,13 @@ export default function UploadPage() {
                     style={{
                       width: (() => {
                         const doneCount = steps.filter(s => s.done).length;
-                        // During upload: map 0-100% upload to 0-20% of overall bar
-                        if (doneCount === 0 && steps[0]?.active) return `${Math.max(2, uploadPct * 0.20)}%`;
-                        if (doneCount === 1) return "40%";
-                        if (doneCount === 2) return "80%";
-                        if (doneCount >= 3) return "100%";
+                        if (doneCount === 0 && steps[0]?.active) return "5%";
+                        if (doneCount === 1 && steps[1]?.active) return `${Math.max(10, 10 + uploadPct * 0.15)}%`;
+                        if (doneCount === 1) return "10%";
+                        if (doneCount === 2) return "30%";
+                        if (doneCount === 3) return "50%";
+                        if (doneCount === 4) return "85%";
+                        if (doneCount >= 5) return "100%";
                         return "0%";
                       })()
                     }}
