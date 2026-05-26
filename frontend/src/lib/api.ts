@@ -91,6 +91,7 @@ export interface Lecture {
   filename: string;
   subject?: string;
   status: string;
+  processing_step?: string;
   quality_score?: number;
   duration_seconds?: number;
   error?: string;
@@ -235,8 +236,8 @@ export async function processLecture(
   await checkResponse(res, "Processing failed");
 
   // Step 2: Poll GET /lectures/{id} until status is "ready" or "failed"
-  const maxWait = 900_000; // 15 minutes
-  const pollInterval = 3_000; // check every 3 seconds
+  const maxWait = 3_000_000; // 50 minutes (long lectures can take 20+ min to transcribe)
+  const pollInterval = 4_000; // check every 4 seconds
   let waited = 0;
 
   while (waited < maxWait) {
@@ -246,8 +247,9 @@ export async function processLecture(
     const lecture = await getLecture(lectureId);
     const status = lecture.status;
 
-    // Notify caller of status changes (for UI updates)
-    if (onStatusChange) onStatusChange(status);
+    // Notify caller of status changes — use processing_step for granular UI updates
+    const step = lecture.processing_step || status;
+    if (onStatusChange) onStatusChange(step);
 
     if (status === "ready") {
       return {
@@ -281,8 +283,8 @@ export async function retryLecture(
   await checkResponse(res, "Retry failed");
 
   // Step 2: Poll until ready or failed (same as processLecture)
-  const maxWait = 900_000;
-  const pollInterval = 3_000;
+  const maxWait = 3_000_000; // 50 minutes
+  const pollInterval = 4_000;
   let waited = 0;
 
   while (waited < maxWait) {

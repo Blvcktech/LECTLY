@@ -1,2 +1,2 @@
-web: uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
-# force redeploy
+web: uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2
+# 2 workers so the server stays responsive during long background processing

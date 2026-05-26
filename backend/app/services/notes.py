@@ -12,7 +12,7 @@ from typing import Optional
 
 import json_repair
 
-import requests as http_requests
+import httpx
 
 from app.config import get_settings
 from app.models.lecture import (
@@ -735,9 +735,12 @@ Return JSON:
 # LLM providers — Gemini (primary) + Groq (fallback)
 # ──────────────────────────────────────────────
 
-def _call_gemini(system_prompt: str, user_message: str, json_mode: bool = True, temperature: float = 0.3) -> str:
-    """Call Google Gemini 2.5 Flash with automatic retry on 503/429 errors."""
-    import time as _time
+async def _call_gemini(system_prompt: str, user_message: str, json_mode: bool = True, temperature: float = 0.3) -> str:
+    """Call Google Gemini 2.5 Flash with automatic retry on 503/429 errors.
+
+    Uses async httpx to avoid blocking the FastAPI event loop.
+    """
+    import asyncio as _asyncio
     settings = get_settings()
     key = settings.gemini_api_key
 
@@ -777,18 +780,17 @@ def _call_gemini(system_prompt: str, user_message: str, json_mode: bool = True, 
         print(f"[Lectly] Calling Gemini 2.5 Flash{'(JSON)' if json_mode else ' (text)'}{'...' if attempt == 0 else f' (retry {attempt})...'}")
 
         try:
-            response = http_requests.post(
-                api_url,
-                headers={"Content-Type": "application/json"},
-                json=payload,
-                timeout=180,  # 3 min timeout (long transcripts can take a while)
-            )
-        except (http_requests.exceptions.Timeout, http_requests.exceptions.ConnectionError) as e:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(180.0, connect=30.0)) as client:
+                response = await client.post(
+                    api_url,
+                    headers={"Content-Type": "application/json"},
+                    json=payload,
+                )
+        except (httpx.TimeoutException, httpx.ConnectError) as e:
             if attempt < max_retries - 1:
                 wait = (attempt + 1) * 3
                 print(f"[Lectly] Gemini connection error: {e}, retrying in {wait}s...")
-                import time as _time
-                _time.sleep(wait)
+                await _asyncio.sleep(wait)
                 continue
             raise Exception(f"Gemini connection failed after {max_retries} attempts: {e}")
 
@@ -826,7 +828,7 @@ def _call_gemini(system_prompt: str, user_message: str, json_mode: bool = True, 
         if response.status_code in (429, 503) and attempt < max_retries - 1:
             wait = (attempt + 1) * 3  # 3s, 6s
             print(f"[Lectly] Gemini {response.status_code}, retrying in {wait}s...")
-            _time.sleep(wait)
+            await _asyncio.sleep(wait)
             continue
 
         # Non-retryable error or final attempt
@@ -837,9 +839,12 @@ def _call_gemini(system_prompt: str, user_message: str, json_mode: bool = True, 
     raise Exception("Gemini API failed after all retries")
 
 
-def _call_claude(system_prompt: str, user_message: str, json_mode: bool = True, temperature: float = 0.3) -> str:
-    """Call Anthropic Claude Haiku for high-quality educational responses."""
-    import time as _time
+async def _call_claude(system_prompt: str, user_message: str, json_mode: bool = True, temperature: float = 0.3) -> str:
+    """Call Anthropic Claude Haiku for high-quality educational responses.
+
+    Uses async httpx to avoid blocking the FastAPI event loop.
+    """
+    import asyncio as _asyncio
     settings = get_settings()
     key = settings.anthropic_api_key
 
@@ -869,12 +874,13 @@ def _call_claude(system_prompt: str, user_message: str, json_mode: bool = True, 
         print(f"[Lectly] Calling Claude Haiku{'(JSON)' if json_mode else ' (text)'}{'...' if attempt == 0 else f' (retry {attempt})...'}")
 
         try:
-            response = http_requests.post(api_url, headers=headers, json=payload, timeout=120)
-        except (http_requests.exceptions.Timeout, http_requests.exceptions.ConnectionError) as e:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(120.0, connect=30.0)) as client:
+                response = await client.post(api_url, headers=headers, json=payload)
+        except (httpx.TimeoutException, httpx.ConnectError) as e:
             if attempt < max_retries - 1:
                 wait = (attempt + 1) * 3
                 print(f"[Lectly] Claude connection error: {e}, retrying in {wait}s...")
-                _time.sleep(wait)
+                await _asyncio.sleep(wait)
                 continue
             raise Exception(f"Claude connection failed after {max_retries} attempts: {e}")
 
@@ -893,7 +899,7 @@ def _call_claude(system_prompt: str, user_message: str, json_mode: bool = True, 
         if response.status_code in (429, 529) and attempt < max_retries - 1:
             wait = (attempt + 1) * 3
             print(f"[Lectly] Claude {response.status_code}, retrying in {wait}s...")
-            _time.sleep(wait)
+            await _asyncio.sleep(wait)
             continue
 
         # Non-retryable error or final attempt
@@ -902,30 +908,34 @@ def _call_claude(system_prompt: str, user_message: str, json_mode: bool = True, 
     raise Exception("Claude API failed after all retries")
 
 
-def _call_claude_with_fallback(system_prompt: str, user_message: str, json_mode: bool = True, temperature: float = 0.3) -> str:
+async def _call_claude_with_fallback(system_prompt: str, user_message: str, json_mode: bool = True, temperature: float = 0.3) -> str:
     """
     Call Claude Haiku for educational content, with Gemini fallback.
     Used for tutoring, Learn Mode, and explanations.
     """
     try:
-        return _call_claude(system_prompt, user_message, json_mode=json_mode, temperature=temperature)
+        return await _call_claude(system_prompt, user_message, json_mode=json_mode, temperature=temperature)
     except Exception as e:
         print(f"[Lectly] Claude failed: {e}")
         print(f"[Lectly] Falling back to Gemini for educational content...")
 
     # Fallback to Gemini
     try:
-        return _call_gemini(system_prompt, user_message, json_mode=json_mode, temperature=temperature)
+        return await _call_gemini(system_prompt, user_message, json_mode=json_mode, temperature=temperature)
     except Exception as e:
         print(f"[Lectly] Gemini also failed: {e}")
         print(f"[Lectly] Falling back to Groq...")
 
     # Last resort fallback
-    return _call_groq(system_prompt, user_message)
+    return await _call_groq(system_prompt, user_message)
 
 
-def _call_groq(system_prompt: str, user_message: str) -> str:
-    """Call Groq API with Llama 3.1 8B (fallback)."""
+async def _call_groq(system_prompt: str, user_message: str) -> str:
+    """Call Groq API with Llama 3.1 8B (fallback).
+
+    Uses async httpx to avoid blocking the FastAPI event loop.
+    """
+    import asyncio as _asyncio
     settings = get_settings()
     key = settings.groq_api_key
 
@@ -933,13 +943,10 @@ def _call_groq(system_prompt: str, user_message: str) -> str:
         raise ValueError("No Groq API key")
 
     # Truncate input for Groq free tier (6000 TPM limit).
-    # System prompt + user message + max_tokens must stay under 6000 total.
-    # 400 words ≈ 500 tokens, leaving room for the system prompt + output.
     words = user_message.split()
     if len(words) > 400:
         user_message = " ".join(words[:400])
         print(f"[Lectly] Truncated input to 400 words for Groq free tier")
-    # Also truncate the system prompt if it's very long
     sys_words = system_prompt.split()
     if len(sys_words) > 300:
         system_prompt = " ".join(sys_words[:300])
@@ -958,27 +965,27 @@ def _call_groq(system_prompt: str, user_message: str) -> str:
             {"role": "user", "content": user_message},
         ],
         "temperature": 0.3,
-        "max_tokens": 2048,  # Reduced from 4096 to stay within Groq free tier 6000 TPM
+        "max_tokens": 2048,
     }
 
     print(f"[Lectly] Calling Groq (Llama 3.1 8B)...")
 
-    import time
     for attempt in range(3):
         try:
-            response = http_requests.post(api_url, headers=headers, json=payload, timeout=120)
-        except (http_requests.exceptions.Timeout, http_requests.exceptions.ConnectionError) as e:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(120.0, connect=30.0)) as client:
+                response = await client.post(api_url, headers=headers, json=payload)
+        except (httpx.TimeoutException, httpx.ConnectError) as e:
             if attempt < 2:
                 wait = 10 * (attempt + 1)
                 print(f"[Lectly] Groq connection error: {e}, retrying in {wait}s...")
-                time.sleep(wait)
+                await _asyncio.sleep(wait)
                 continue
             raise Exception(f"Groq connection failed after 3 attempts: {e}")
 
         if response.status_code == 429:
             wait = 10 * (attempt + 1)
             print(f"[Lectly] Groq rate limited, waiting {wait}s ({attempt + 1}/3)...")
-            time.sleep(wait)
+            await _asyncio.sleep(wait)
             continue
 
         if response.status_code != 200:
@@ -995,7 +1002,7 @@ def _call_groq(system_prompt: str, user_message: str) -> str:
     raise Exception("Groq rate limit exceeded after 3 retries.")
 
 
-def _call_llm(system_prompt: str, user_message: str) -> str:
+async def _call_llm(system_prompt: str, user_message: str) -> str:
     """
     Call LLM with automatic fallback.
     Tries Gemini first (better quality, higher limits).
@@ -1003,7 +1010,7 @@ def _call_llm(system_prompt: str, user_message: str) -> str:
     """
     # Try Gemini first
     try:
-        return _call_gemini(system_prompt, user_message)
+        return await _call_gemini(system_prompt, user_message)
     except Exception as e:
         # Log the FULL error so we can diagnose Gemini failures
         print(f"[Lectly] ⚠️ Gemini failed with error: {type(e).__name__}: {e}")
@@ -1011,7 +1018,7 @@ def _call_llm(system_prompt: str, user_message: str) -> str:
         print(f"[Lectly] Falling back to Groq...")
 
     # Fallback to Groq
-    return _call_groq(system_prompt, user_message)
+    return await _call_groq(system_prompt, user_message)
 
 
 def _parse_json_response(text: str) -> dict:
@@ -1090,7 +1097,7 @@ async def generate_notes(lecture_id: str) -> StructuredNotes:
         data = None
         for attempt in range(2):
             print(f"[Lectly] Generating notes for {lecture_id}{'...' if attempt == 0 else f' (retry {attempt})...'}")
-            raw_response = _call_llm(NOTES_SYSTEM_PROMPT, user_message)
+            raw_response = await _call_llm(NOTES_SYSTEM_PROMPT, user_message)
             print(f"[Lectly] LLM response received for {lecture_id} ({len(raw_response)} chars)")
             data = _parse_json_response(raw_response)
 
@@ -1172,7 +1179,7 @@ async def explain_text(request: ExplainRequest) -> ExplainResponse:
     """Explain a highlighted section of notes in simpler terms."""
     try:
         user_message = f"Level: {request.level}\n\nText to explain:\n{request.text}"
-        raw_response = _call_claude_with_fallback(EXPLAIN_SYSTEM_PROMPT, user_message)
+        raw_response = await _call_claude_with_fallback(EXPLAIN_SYSTEM_PROMPT, user_message)
         data = _parse_json_response(raw_response)
 
         return ExplainResponse(
@@ -1336,7 +1343,7 @@ async def learn_mode(request: LearnModeRequest) -> LearnModeResponse:
         # Try up to 2 times — retry if response is incomplete (missing key fields)
         data = None
         for attempt in range(2):
-            raw_response = _call_claude_with_fallback(LEARN_MODE_PROMPT, user_message)
+            raw_response = await _call_claude_with_fallback(LEARN_MODE_PROMPT, user_message)
             data = _parse_json_response(raw_response)
 
             # Validate completeness
@@ -1508,7 +1515,7 @@ async def ask_tutor(
     # Call Claude Haiku — tutor uses plain text response, not JSON
     # Higher temperature (0.5) for more natural, teaching-style responses
     try:
-        response = _call_claude_with_fallback(TUTOR_SYSTEM_PROMPT, user_message, json_mode=False, temperature=0.5)
+        response = await _call_claude_with_fallback(TUTOR_SYSTEM_PROMPT, user_message, json_mode=False, temperature=0.5)
     except Exception as e:
         print(f"[Lectly] All LLMs failed for tutor: {e}")
         response = "I'm having trouble connecting right now. Please try again in a moment."
@@ -1564,7 +1571,7 @@ async def solve_problem(request: SolveModeRequest) -> SolveModeResponse:
         # Try up to 2 times — retry if response is incomplete (missing steps or answer)
         data = None
         for attempt in range(2):
-            raw_response = _call_claude_with_fallback(SOLVE_MODE_PROMPT, user_message, json_mode=True, temperature=0.3)
+            raw_response = await _call_claude_with_fallback(SOLVE_MODE_PROMPT, user_message, json_mode=True, temperature=0.3)
             data = _parse_json_response(raw_response)
 
             # Validate completeness — steps and answer are the critical fields

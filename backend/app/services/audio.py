@@ -17,7 +17,7 @@ from datetime import datetime
 from typing import Optional
 
 import numpy as np
-import requests as http_requests
+import httpx
 from pydub import AudioSegment
 import noisereduce as nr
 
@@ -110,6 +110,49 @@ def clean_audio(filepath: str) -> str:
         # If noise reduction fails, just return the original file
         # — don't block the pipeline
         return filepath
+
+
+async def save_upload_from_file(
+    temp_path: str, filename: str, size_bytes: int,
+    subject: Optional[str] = None, user_id: Optional[str] = None,
+) -> LectureUploadResponse:
+    """Create a lecture record from a file already saved to disk (streaming upload)."""
+    settings = get_settings()
+
+    lecture_id = str(uuid.uuid4())[:8]
+    ext = os.path.splitext(filename)[1].lower()
+    saved_filename = f"{lecture_id}{ext}"
+    filepath = os.path.join(settings.upload_dir, saved_filename)
+
+    # Rename temp file to final path
+    os.rename(temp_path, filepath)
+
+    now = datetime.utcnow()
+    lecture = {
+        "id": lecture_id,
+        "user_id": user_id,
+        "filename": filename,
+        "saved_filename": saved_filename,
+        "filepath": filepath,
+        "subject": subject,
+        "size_bytes": size_bytes,
+        "status": LectureStatus.UPLOADED,
+        "quality_score": None,
+        "duration_seconds": None,
+        "error": None,
+        "created_at": now,
+        "updated_at": now,
+    }
+    create_lecture(lecture)
+
+    return LectureUploadResponse(
+        id=lecture_id,
+        filename=filename,
+        size_bytes=size_bytes,
+        status=LectureStatus.UPLOADED,
+        message="File uploaded successfully. Processing will begin shortly.",
+        created_at=now,
+    )
 
 
 async def save_upload(file_content: bytes, filename: str, subject: Optional[str] = None, user_id: Optional[str] = None) -> LectureUploadResponse:
@@ -205,16 +248,23 @@ async def transcribe_audio(lecture_id: str) -> list[TranscriptSegment]:
             print(f"[Lectly] Skipping noise reduction (disabled in settings)")
 
         # ── Step 1: Upload the audio file to AssemblyAI ──
+        # Uses async httpx to avoid blocking the FastAPI event loop
+        update_lecture(lecture_id, {"processing_step": "uploading_to_ai"})
         print(f"[Lectly] Uploading audio to AssemblyAI...")
         upload_url = "https://api.assemblyai.com/v2/upload"
 
-        with open(filepath, "rb") as audio_file:
-            upload_response = http_requests.post(
-                upload_url,
-                headers=headers,
-                data=audio_file,
-                timeout=600,
-            )
+        file_size = os.path.getsize(filepath)
+        # Scale upload timeout by file size: min 120s, ~30s per 10MB, max 900s
+        upload_timeout = min(900, max(120, int(file_size / (10 * 1024 * 1024) * 30)))
+        print(f"[Lectly] File size: {file_size / (1024*1024):.1f}MB, upload timeout: {upload_timeout}s")
+
+        async with httpx.AsyncClient(timeout=httpx.Timeout(upload_timeout, connect=30.0)) as client:
+            with open(filepath, "rb") as audio_file:
+                upload_response = await client.post(
+                    upload_url,
+                    headers=headers,
+                    content=audio_file.read(),
+                )
 
         if upload_response.status_code != 200:
             raise Exception(f"AssemblyAI upload failed ({upload_response.status_code}): {upload_response.text}")
@@ -232,12 +282,12 @@ async def transcribe_audio(lecture_id: str) -> list[TranscriptSegment]:
             "speech_models": ["universal-2"],
         }
 
-        submit_response = http_requests.post(
-            transcript_url,
-            headers={**headers, "content-type": "application/json"},
-            json=transcript_request,
-            timeout=30,
-        )
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            submit_response = await client.post(
+                transcript_url,
+                headers={**headers, "content-type": "application/json"},
+                json=transcript_request,
+            )
 
         if submit_response.status_code != 200:
             raise Exception(f"AssemblyAI submit failed ({submit_response.status_code}): {submit_response.text}")
@@ -246,29 +296,33 @@ async def transcribe_audio(lecture_id: str) -> list[TranscriptSegment]:
         print(f"[Lectly] Transcription submitted. ID: {transcript_id}")
 
         # ── Step 3: Poll until transcription is complete ──
+        # Uses async httpx — releases the event loop between polls so
+        # other requests (polling, API calls) can be served concurrently
         polling_url = f"https://api.assemblyai.com/v2/transcript/{transcript_id}"
-        max_wait = 900  # 15 minutes max wait
+        max_wait = 2700  # 45 minutes max wait (long lectures can take 20+ min)
         waited = 0
         poll_interval = 5  # check every 5 seconds
 
-        while waited < max_wait:
-            poll_response = http_requests.get(polling_url, headers=headers, timeout=30)
-            result = poll_response.json()
-            status = result.get("status")
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            while waited < max_wait:
+                poll_response = await client.get(polling_url, headers=headers)
+                result = poll_response.json()
+                status = result.get("status")
 
-            if status == "completed":
-                print(f"[Lectly] Transcription completed! (took ~{waited}s)")
-                break
-            elif status == "error":
-                error_msg = result.get("error", "Unknown error")
-                raise Exception(f"AssemblyAI transcription failed: {error_msg}")
+                if status == "completed":
+                    print(f"[Lectly] Transcription completed! (took ~{waited}s)")
+                    break
+                elif status == "error":
+                    error_msg = result.get("error", "Unknown error")
+                    raise Exception(f"AssemblyAI transcription failed: {error_msg}")
+                else:
+                    # status is "queued" or "processing"
+                    if waited % 30 == 0:  # Log every 30s instead of every 5s
+                        print(f"[Lectly] Transcription status: {status} ({waited}s elapsed)...")
+                    await asyncio.sleep(poll_interval)
+                    waited += poll_interval
             else:
-                # status is "queued" or "processing"
-                print(f"[Lectly] Transcription status: {status} ({waited}s elapsed)...")
-                await asyncio.sleep(poll_interval)
-                waited += poll_interval
-        else:
-            raise Exception(f"Transcription timed out after {max_wait} seconds")
+                raise Exception(f"Transcription timed out after {max_wait} seconds")
 
         # ── Step 4: Parse the result ──
         full_text = result.get("text", "")

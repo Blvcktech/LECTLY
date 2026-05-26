@@ -47,6 +47,7 @@ export default function UploadPage() {
   const [lectureId, setLectureId] = useState("");
   const [steps, setSteps] = useState<ProcessStep[]>([
     { label: "Uploading audio", done: false, active: false },
+    { label: "Sending to transcription service", done: false, active: false },
     { label: "Transcribing with AI", done: false, active: false },
     { label: "Generating structured notes", done: false, active: false },
   ]);
@@ -98,6 +99,7 @@ export default function UploadPage() {
     setRetryCount(0);
     setSteps([
       { label: "Uploading audio", done: false, active: false },
+      { label: "Sending to transcription service", done: false, active: false },
       { label: "Transcribing with AI", done: false, active: false },
       { label: "Generating structured notes", done: false, active: false },
     ]);
@@ -176,19 +178,25 @@ export default function UploadPage() {
         window.dispatchEvent(new CustomEvent("lectly:upload-started"));
 
         await processLecture(currentLectureId, (status) => {
-          // Update UI steps based on backend status changes
-          if (status === "transcribing" || status === "cleaning") {
+          // Update UI steps based on backend processing_step changes
+          if (status === "uploading_to_ai") {
             updateStep(1, false, true);
-          } else if (status === "generating_notes") {
+          } else if (status === "transcribing" || status === "cleaning") {
             updateStep(1, true, false);
             updateStep(2, false, true);
+          } else if (status === "generating_notes") {
+            updateStep(1, true, false);
+            updateStep(2, true, false);
+            updateStep(3, false, true);
           } else if (status === "ready") {
             updateStep(1, true, false);
             updateStep(2, true, false);
+            updateStep(3, true, false);
           }
         });
         updateStep(1, true, false);
         updateStep(2, true, false);
+        updateStep(3, true, false);
       }
 
       setState("done");
@@ -506,11 +514,15 @@ export default function UploadPage() {
                 Processing your lecture
               </h3>
               <p className="text-sm text-ink-m mb-7">
-                This usually takes 1–3 minutes
+                {file && file.size > 50 * 1024 * 1024
+                  ? "Large file — this may take 5–15 minutes"
+                  : file && file.size > 20 * 1024 * 1024
+                  ? "This usually takes 3–8 minutes"
+                  : "This usually takes 2–5 minutes"}
               </p>
               <div className="space-y-2 text-left max-w-sm mx-auto mb-6">
                 {steps.map((step, i) => {
-                  const timeEstimates = ["a few seconds", "~30–60 seconds", "~30–60 seconds"];
+                  const timeEstimates = ["a few seconds", "~30 seconds", "depends on length", "~30–60 seconds"];
                   return (
                     <div key={step.label} className="flex items-center gap-3 text-sm py-1.5">
                       {step.done ? (
@@ -538,10 +550,11 @@ export default function UploadPage() {
                 <div className="flex justify-between mb-1.5">
                   <span className="text-xs text-ink-m">Progress</span>
                   <span className="text-xs text-accent font-semibold">
-                    {steps.filter(s => s.done).length === 0 && steps.some(s => s.active) ? "15%" :
-                     steps.filter(s => s.done).length === 1 ? "40%" :
-                     steps.filter(s => s.done).length === 2 ? "80%" :
-                     steps.filter(s => s.done).length === 3 ? "100%" : "0%"}
+                    {steps.filter(s => s.done).length === 0 && steps.some(s => s.active) ? "10%" :
+                     steps.filter(s => s.done).length === 1 ? "25%" :
+                     steps.filter(s => s.done).length === 2 ? "50%" :
+                     steps.filter(s => s.done).length === 3 ? "85%" :
+                     steps.filter(s => s.done).length === 4 ? "100%" : "0%"}
                   </span>
                 </div>
                 <div className="w-full h-1.5 bg-cream-d rounded-full overflow-hidden">

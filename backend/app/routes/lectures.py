@@ -29,7 +29,7 @@ from app.models.lecture import (
     ProgressResponse,
 )
 import os
-from app.services.audio import save_upload, transcribe_audio, get_lecture, list_lectures
+from app.services.audio import save_upload, save_upload_from_file, transcribe_audio, get_lecture, list_lectures
 from app.services.notes import generate_notes, explain_text, learn_mode, ask_tutor, solve_problem
 from app.services.pdf_export import generate_notes_pdf
 from app.database import (
@@ -87,19 +87,48 @@ async def upload_lecture(
             detail=f"Unsupported file type. Allowed: {', '.join(allowed_exts)}",
         )
 
-    # Read file content
-    content = await file.read()
+    # Stream file to disk in chunks to avoid loading entire file into memory.
+    # This prevents OOM on Railway's limited containers for large files (50-500MB).
+    import uuid as _uuid
 
-    # Check file size
     max_bytes = settings.max_file_size_mb * 1024 * 1024
-    if len(content) > max_bytes:
-        raise HTTPException(
-            status_code=400,
-            detail=f"File too large. Maximum size: {settings.max_file_size_mb}MB",
-        )
+    os.makedirs(settings.upload_dir, exist_ok=True)
+
+    temp_id = str(_uuid.uuid4())[:8]
+    ext = os.path.splitext(file.filename or "audio.mp3")[1].lower()
+    temp_path = os.path.join(settings.upload_dir, f"tmp_{temp_id}{ext}")
+
+    total_size = 0
+    header = b""
+    chunk_size = 1024 * 1024  # 1MB chunks
+
+    try:
+        with open(temp_path, "wb") as f:
+            while True:
+                chunk = await file.read(chunk_size)
+                if not chunk:
+                    break
+                total_size += len(chunk)
+                if total_size > max_bytes:
+                    # Clean up temp file before raising
+                    f.close()
+                    os.remove(temp_path)
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"File too large. Maximum size: {settings.max_file_size_mb}MB",
+                    )
+                # Capture header bytes for magic byte validation
+                if len(header) < 12:
+                    header += chunk[:12 - len(header)]
+                f.write(chunk)
+    except HTTPException:
+        raise
+    except Exception as e:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        raise HTTPException(status_code=500, detail=f"Upload error: {str(e)}")
 
     # Validate file content — check magic bytes to prevent disguised uploads
-    # Audio/video files have recognizable headers
     _AUDIO_MAGIC = {
         b"ID3": "mp3",             # MP3 with ID3 tag
         b"\xff\xfb": "mp3",       # MP3 frame sync
@@ -110,28 +139,25 @@ async def upload_lecture(
         b"OggS": "ogg",           # OGG/Opus
         b"\x1aE\xdf\xa3": "webm", # WebM/MKV
     }
-    header = content[:12]
     is_valid_audio = False
-    # Check magic bytes
     for magic in _AUDIO_MAGIC:
         if header.startswith(magic):
             is_valid_audio = True
             break
-    # MP4/M4A/AAC containers use ftyp box (starts at byte 4)
     if not is_valid_audio and len(header) >= 8 and header[4:8] == b"ftyp":
         is_valid_audio = True
-    # CAF (Core Audio Format)
     if not is_valid_audio and header.startswith(b"caff"):
         is_valid_audio = True
 
     if not is_valid_audio:
+        os.remove(temp_path)
         raise HTTPException(
             status_code=400,
             detail="File does not appear to be a valid audio/video file. Please upload an actual recording.",
         )
 
-    # Save and create record
-    result = await save_upload(content, file.filename or "audio.mp3", subject, user_id=user_id)
+    # Save and create record — pass file path instead of content bytes
+    result = await save_upload_from_file(temp_path, file.filename or "audio.mp3", total_size, subject, user_id=user_id)
     return result
 
 
