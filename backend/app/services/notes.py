@@ -910,28 +910,37 @@ async def _call_claude(system_prompt: str, user_message: str, json_mode: bool = 
 
 async def _call_claude_with_fallback(system_prompt: str, user_message: str, json_mode: bool = True, temperature: float = 0.3) -> str:
     """
-    Call Claude Haiku for educational content, with Gemini fallback.
-    Used for tutoring, Learn Mode, and explanations.
+    Call Claude Haiku (primary for tutoring/learn/explain/solve), with Gemini fallback.
+
+    Fallback chain: Claude Haiku → Gemini 2.5 Flash → Groq (emergency only)
+    Both Claude and Gemini are production-grade — no quality cliff on fallback.
+    Groq is emergency-only: truncated input, lower quality, logged as a warning.
     """
     try:
         return await _call_claude(system_prompt, user_message, json_mode=json_mode, temperature=temperature)
     except Exception as e:
         print(f"[Lectly] Claude failed: {e}")
-        print(f"[Lectly] Falling back to Gemini for educational content...")
+        print(f"[Lectly] Falling back to Gemini (production-grade fallback)...")
 
-    # Fallback to Gemini
+    # Fallback to Gemini — same quality tier, full context, reliable JSON
     try:
         return await _call_gemini(system_prompt, user_message, json_mode=json_mode, temperature=temperature)
     except Exception as e:
-        print(f"[Lectly] Gemini also failed: {e}")
-        print(f"[Lectly] Falling back to Groq...")
+        print(f"[Lectly] ⚠️ Gemini also failed: {e}")
+        print(f"[Lectly] ⚠️ EMERGENCY: Both Claude and Gemini down. Falling back to Groq (degraded quality)...")
 
-    # Last resort fallback
+    # Emergency-only last resort
     return await _call_groq(system_prompt, user_message)
 
 
 async def _call_groq(system_prompt: str, user_message: str) -> str:
-    """Call Groq API with Llama 3.1 8B (fallback).
+    """Call Groq API with Llama 3.1 8B — EMERGENCY FALLBACK ONLY.
+
+    This provider is only reached when BOTH Gemini and Claude are down.
+    Quality is significantly lower due to:
+    - Small model (8B params vs 100B+)
+    - Input truncation (Groq free tier token limits)
+    - Limited structured output capability
 
     Uses async httpx to avoid blocking the FastAPI event loop.
     """
@@ -940,10 +949,11 @@ async def _call_groq(system_prompt: str, user_message: str) -> str:
     key = settings.groq_api_key
 
     if not key:
-        raise ValueError("No Groq API key")
+        raise ValueError("No Groq API key — emergency fallback unavailable")
+
+    print(f"[Lectly] ⚠️ EMERGENCY FALLBACK: Using Groq Llama 8B. Output quality will be degraded.")
 
     # Truncate input for Groq free tier (6000 TPM limit).
-    # CRITICAL: Always append JSON format reminder BEFORE truncation so it survives.
     words = user_message.split()
     if len(words) > 400:
         user_message = " ".join(words[:400])
@@ -971,8 +981,6 @@ async def _call_groq(system_prompt: str, user_message: str) -> str:
         "max_tokens": 2048,
         "response_format": {"type": "json_object"},  # Force JSON output — prevents markdown fallback
     }
-
-    print(f"[Lectly] Calling Groq (Llama 3.1 8B)...")
 
     for attempt in range(3):
         try:
@@ -1008,20 +1016,28 @@ async def _call_groq(system_prompt: str, user_message: str) -> str:
 
 async def _call_llm(system_prompt: str, user_message: str) -> str:
     """
-    Call LLM with automatic fallback.
-    Tries Gemini first (better quality, higher limits).
-    Falls back to Groq if Gemini fails.
+    Call LLM for note generation with automatic fallback.
+
+    Fallback chain: Gemini 2.5 Flash → Claude Haiku → Groq (emergency only)
+    Both Gemini and Claude are production-grade — no quality cliff on fallback.
+    Groq is emergency-only: truncated input, lower quality, logged as a warning.
     """
-    # Try Gemini first
+    # Try Gemini first — best for note generation (1M context, native JSON, fast)
     try:
         return await _call_gemini(system_prompt, user_message)
     except Exception as e:
-        # Log the FULL error so we can diagnose Gemini failures
-        print(f"[Lectly] ⚠️ Gemini failed with error: {type(e).__name__}: {e}")
+        print(f"[Lectly] ⚠️ Gemini failed: {type(e).__name__}: {e}")
         print(f"[Lectly] Gemini key present: {bool(get_settings().gemini_api_key)}")
-        print(f"[Lectly] Falling back to Groq...")
+        print(f"[Lectly] Falling back to Claude Haiku (production-grade fallback)...")
 
-    # Fallback to Groq
+    # Fallback to Claude Haiku — same quality tier, 200K context, reliable JSON
+    try:
+        return await _call_claude(system_prompt, user_message, json_mode=True, temperature=0.3)
+    except Exception as e:
+        print(f"[Lectly] ⚠️ Claude also failed: {type(e).__name__}: {e}")
+        print(f"[Lectly] ⚠️ EMERGENCY: Both Gemini and Claude down. Falling back to Groq (degraded quality)...")
+
+    # Emergency-only last resort
     return await _call_groq(system_prompt, user_message)
 
 
