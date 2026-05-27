@@ -218,31 +218,66 @@ export interface StudyProgress {
  * @param subject   - Optional course code / subject
  * @param onProgress - Callback with upload progress (0-100)
  */
+/**
+ * Upload a lecture file using direct-to-R2 presigned URL flow.
+ *
+ * Flow:
+ * 1. Ask backend for a presigned R2 upload URL (tiny request)
+ * 2. Upload file directly to Cloudflare R2 via XHR (with progress)
+ * 3. Notify backend that upload is complete → starts processing
+ *
+ * This bypasses Railway entirely for file transfer. The browser
+ * uploads to Cloudflare's infrastructure which is built for large files.
+ */
 export async function uploadLecture(
   file: File,
   subject?: string,
   onProgress?: (pct: number) => void
 ): Promise<LectureUpload> {
-  const formData = new FormData();
-  formData.append("file", file);
-  if (subject) formData.append("subject", subject);
-
-  // Get fresh auth token
+  // Step 1: Get presigned upload URL from backend
   const headers = await freshAuthHeaders();
 
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    const TIMEOUT = 600_000; // 10 minutes — same as TIMEOUT_UPLOAD in fetch.ts
+  const presignRes = await fetch(`${API_URL}/api/upload/presign`, {
+    method: "POST",
+    headers: {
+      ...headers,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      filename: file.name,
+      size: file.size,
+      content_type: file.type || "audio/mpeg",
+      subject: subject || undefined,
+    }),
+  });
 
-    xhr.open("POST", `${API_URL}/api/upload`);
-    xhr.timeout = TIMEOUT;
-
-    // Set auth header
-    if (headers.Authorization) {
-      xhr.setRequestHeader("Authorization", headers.Authorization);
+  if (!presignRes.ok) {
+    if (presignRes.status === 429) {
+      const retry = parseInt(presignRes.headers.get("Retry-After") || "60", 10);
+      throw new RateLimitError(retry);
     }
+    if (presignRes.status === 401) {
+      throw new Error("Session expired. Please sign in again.");
+    }
+    if (presignRes.status === 403) {
+      const err = await presignRes.json().catch(() => ({}));
+      throw new Error(err.detail || "You don't have permission to do this.");
+    }
+    const err = await presignRes.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to prepare upload");
+  }
 
-    // Track upload progress — the key reason we use XHR over fetch
+  const { upload_url, file_key, lecture_id } = await presignRes.json();
+
+  // Step 2: Upload file directly to R2 via XHR (for progress tracking)
+  await new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const TIMEOUT = 1_800_000; // 30 minutes — R2 is fast, but allow for very large files
+
+    xhr.open("PUT", upload_url);
+    xhr.timeout = TIMEOUT;
+    xhr.setRequestHeader("Content-Type", file.type || "audio/mpeg");
+
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable && onProgress) {
         const pct = Math.round((e.loaded / e.total) * 100);
@@ -252,36 +287,16 @@ export async function uploadLecture(
 
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          resolve(JSON.parse(xhr.responseText));
-        } catch {
-          reject(new Error("Invalid response from server"));
-        }
-      } else if (xhr.status === 429) {
-        const retry = parseInt(xhr.getResponseHeader("Retry-After") || "60", 10);
-        reject(new RateLimitError(retry));
-      } else if (xhr.status === 401) {
-        reject(new Error("Session expired. Please sign in again."));
-      } else if (xhr.status === 403) {
-        // Try to extract detail from response
-        try {
-          const err = JSON.parse(xhr.responseText);
-          reject(new Error(err.detail || "You don't have permission to do this."));
-        } catch {
-          reject(new Error("You don't have permission to do this."));
-        }
+        resolve();
       } else {
-        try {
-          const err = JSON.parse(xhr.responseText);
-          reject(new Error(err.detail || "Upload failed"));
-        } catch {
-          reject(new Error(`Upload failed (${xhr.status})`));
-        }
+        reject(new Error(
+          `Upload to storage failed (${xhr.status}). Please try again.`
+        ));
       }
     };
 
     xhr.onerror = () => {
-      reject(new Error("Network error — check your internet connection and try again."));
+      reject(new Error("Network error during upload — check your internet connection and try again."));
     };
 
     xhr.ontimeout = () => {
@@ -291,8 +306,37 @@ export async function uploadLecture(
       ));
     };
 
-    xhr.send(formData);
+    xhr.send(file);
   });
+
+  onProgress?.(100);
+
+  // Step 3: Notify backend that upload is complete
+  const freshHeaders = await freshAuthHeaders();
+
+  const completeRes = await fetch(`${API_URL}/api/upload/complete`, {
+    method: "POST",
+    headers: {
+      ...freshHeaders,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ lecture_id, file_key }),
+  });
+
+  if (!completeRes.ok) {
+    const err = await completeRes.json().catch(() => ({}));
+    throw new Error(err.detail || "Upload confirmation failed. Please try again.");
+  }
+
+  // Return a LectureUpload-compatible response
+  return {
+    id: lecture_id,
+    filename: file.name,
+    size_bytes: file.size,
+    status: "uploaded",
+    message: "Upload confirmed. Processing started.",
+    created_at: new Date().toISOString(),
+  };
 }
 
 export async function processLecture(

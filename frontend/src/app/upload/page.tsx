@@ -184,14 +184,16 @@ export default function UploadPage() {
         updateStep(0, true, false);
       }
 
-      // Step 1: Upload (skip if retrying from a later step)
+      // Step 1: Upload directly to R2 (skip if retrying from a later step)
       if (startStep <= 1) {
         updateStep(1, false, true);
         setUploadPct(0);
+        // uploadLecture now handles: presign → R2 direct upload → complete
+        // The /upload/complete endpoint also starts background processing
         const uploadResult = await uploadLecture(
           fileToUpload,
           courseCode.trim() || undefined,
-          (pct) => setUploadPct(pct) // Real-time upload progress from XHR
+          (pct) => setUploadPct(pct) // Real-time upload progress from XHR → R2
         );
         currentLectureId = uploadResult.id;
         setLectureId(uploadResult.id);
@@ -199,7 +201,7 @@ export default function UploadPage() {
         updateStep(1, true, false);
       }
 
-      // Step 2-4: Process (transcribe + generate notes) — runs in background, polls for status
+      // Step 2-4: Poll for processing status (backend already started processing)
       if (startStep <= 2) {
         if (!currentLectureId) {
           throw new Error("No lecture ID available. Please try uploading again.");
@@ -209,6 +211,8 @@ export default function UploadPage() {
         // Notify the NotificationWatcher so it starts tracking this lecture
         window.dispatchEvent(new CustomEvent("lectly:upload-started"));
 
+        // Processing was already triggered by /upload/complete
+        // Use processLecture to start polling (it also calls /process as a safety net)
         await processLecture(currentLectureId, (status) => {
           // Update UI steps based on backend processing_step changes
           // Steps: 0=compress, 1=upload, 2=send to AI, 3=transcribe, 4=generate notes

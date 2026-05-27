@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     max_file_size_mb: int = 500
     allowed_audio_extensions: str = ".mp3,.wav,.m4a,.aac,.ogg"
 
+    # Cloudflare R2 (S3-compatible object storage for direct uploads)
+    r2_account_id: str = ""
+    r2_access_key_id: str = ""
+    r2_secret_access_key: str = ""
+    r2_bucket_name: str = "lectly-uploads"
+
     # Paystack (set in .env — get keys from dashboard.paystack.com)
     paystack_secret_key: str = ""
     paystack_public_key: str = ""

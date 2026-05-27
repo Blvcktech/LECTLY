@@ -70,6 +70,29 @@ export async function compressAudio(
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
     onProgress?.(30);
 
+    // Step 1b: Check if compression is worth it — estimate source bitrate
+    const durationSecs = audioBuffer.duration;
+    if (durationSecs > 0) {
+      const estimatedBitrateKbps = (file.size * 8) / durationSecs / 1000;
+      console.log(
+        `[Lectly] Source: ${durationSecs.toFixed(0)}s duration, ` +
+        `~${estimatedBitrateKbps.toFixed(0)}kbps effective bitrate`
+      );
+
+      // If already below 96kbps, compression won't meaningfully reduce size
+      // (re-encoding at 64kbps just wastes CPU and may increase size)
+      if (estimatedBitrateKbps <= 96) {
+        console.log(`[Lectly] Source bitrate already low (${estimatedBitrateKbps.toFixed(0)}kbps) — skipping compression`);
+        await audioContext.close();
+        return {
+          file,
+          originalSize: file.size,
+          compressedSize: file.size,
+          wasCompressed: false,
+        };
+      }
+    }
+
     // Step 2: Get raw samples (convert to mono if stereo)
     const sampleRate = audioBuffer.sampleRate;
     const numChannels = audioBuffer.numberOfChannels;

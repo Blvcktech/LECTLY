@@ -35,9 +35,17 @@ init_db()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup — run migrations and recover any stuck lectures
+    # Startup — run migrations, recover stuck lectures, configure R2 CORS
     run_migrations()
     recover_stuck_lectures()
+
+    # Configure R2 CORS for direct browser uploads (safe to call repeatedly)
+    try:
+        from app.services.storage import setup_cors
+        setup_cors()
+    except Exception as e:
+        print(f"[Lectly] R2 setup skipped: {e}")
+
     yield
     # Shutdown — close all pooled connections gracefully
     close_pool()

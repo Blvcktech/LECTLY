@@ -234,43 +234,53 @@ async def transcribe_audio(lecture_id: str) -> list[TranscriptSegment]:
 
     try:
         filepath = lecture["filepath"]
+        is_r2 = filepath.startswith("r2://")
+        r2_file_key = filepath.replace("r2://", "") if is_r2 else None
+
         print(f"[Lectly] Starting transcription for {lecture_id} using AssemblyAI...")
-        print(f"[Lectly] File: {filepath} ({lecture['size_bytes']} bytes)")
+        print(f"[Lectly] File: {filepath} ({lecture['size_bytes']} bytes) [{'R2' if is_r2 else 'local'}]")
 
         # ── Step 0: Clean the audio (noise reduction) ──
         # Skipped on Railway by default — uses too much RAM on free tier.
-        # AssemblyAI's universal-2 model handles noisy audio well on its own.
-        if not settings.skip_noise_reduction:
+        # Also skipped for R2 files (no local file to process).
+        if not is_r2 and not settings.skip_noise_reduction:
             update_lecture(lecture_id, {"status": LectureStatus.CLEANING})
             filepath = clean_audio(filepath)
             print(f"[Lectly] Using cleaned audio file: {filepath}")
         else:
-            print(f"[Lectly] Skipping noise reduction (disabled in settings)")
+            print(f"[Lectly] Skipping noise reduction ({'R2 file' if is_r2 else 'disabled in settings'})")
 
-        # ── Step 1: Upload the audio file to AssemblyAI ──
-        # Uses async httpx to avoid blocking the FastAPI event loop
+        # ── Step 1: Get audio URL for AssemblyAI ──
         update_lecture(lecture_id, {"processing_step": "uploading_to_ai"})
-        print(f"[Lectly] Uploading audio to AssemblyAI...")
-        upload_url = "https://api.assemblyai.com/v2/upload"
 
-        file_size = os.path.getsize(filepath)
-        # Scale upload timeout by file size: min 120s, ~30s per 10MB, max 900s
-        upload_timeout = min(900, max(120, int(file_size / (10 * 1024 * 1024) * 30)))
-        print(f"[Lectly] File size: {file_size / (1024*1024):.1f}MB, upload timeout: {upload_timeout}s")
+        if is_r2 and r2_file_key:
+            # R2 path: Generate a presigned download URL — AssemblyAI fetches directly
+            # No file bytes pass through Railway at all!
+            from app.services.storage import generate_presigned_download_url
+            audio_url = generate_presigned_download_url(r2_file_key, expires_in=7200)
+            print(f"[Lectly] Using R2 presigned URL for AssemblyAI (no re-upload needed)")
+        else:
+            # Legacy path: Upload local file to AssemblyAI directly
+            print(f"[Lectly] Uploading local audio to AssemblyAI...")
+            upload_url = "https://api.assemblyai.com/v2/upload"
 
-        async with httpx.AsyncClient(timeout=httpx.Timeout(upload_timeout, connect=30.0)) as client:
-            with open(filepath, "rb") as audio_file:
-                upload_response = await client.post(
-                    upload_url,
-                    headers=headers,
-                    content=audio_file.read(),
-                )
+            file_size = os.path.getsize(filepath)
+            upload_timeout = min(900, max(120, int(file_size / (10 * 1024 * 1024) * 30)))
+            print(f"[Lectly] File size: {file_size / (1024*1024):.1f}MB, upload timeout: {upload_timeout}s")
 
-        if upload_response.status_code != 200:
-            raise Exception(f"AssemblyAI upload failed ({upload_response.status_code}): {upload_response.text}")
+            async with httpx.AsyncClient(timeout=httpx.Timeout(upload_timeout, connect=30.0)) as client:
+                with open(filepath, "rb") as audio_file:
+                    upload_response = await client.post(
+                        upload_url,
+                        headers=headers,
+                        content=audio_file.read(),
+                    )
 
-        audio_url = upload_response.json()["upload_url"]
-        print(f"[Lectly] Audio uploaded successfully.")
+            if upload_response.status_code != 200:
+                raise Exception(f"AssemblyAI upload failed ({upload_response.status_code}): {upload_response.text}")
+
+            audio_url = upload_response.json()["upload_url"]
+            print(f"[Lectly] Audio uploaded successfully.")
 
         # ── Step 2: Submit transcription request ──
         print(f"[Lectly] Submitting transcription request...")
@@ -388,6 +398,15 @@ async def transcribe_audio(lecture_id: str) -> list[TranscriptSegment]:
         update_lecture(lecture_id, {"duration_seconds": duration})
 
         print(f"[Lectly] Transcribed lecture {lecture_id}: {len(segments)} segments, {len(transcript_text)} chars, {audio_duration:.0f}s duration")
+
+        # Clean up R2 file after successful transcription to free storage
+        if is_r2 and r2_file_key:
+            try:
+                from app.services.storage import delete_file
+                delete_file(r2_file_key)
+                print(f"[Lectly] Cleaned up R2 file: {r2_file_key}")
+            except Exception as cleanup_err:
+                print(f"[Lectly] R2 cleanup failed (non-critical): {cleanup_err}")
 
         return segments
 
