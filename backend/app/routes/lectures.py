@@ -202,11 +202,21 @@ async def complete_upload(
 @limiter.limit("10/hour")
 async def upload_lecture(
     request: Request,
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     subject: Optional[str] = Form(None),
     user_id: str = Depends(get_current_user_upload),
 ):
-    """Upload a lecture audio file for processing."""
+    """
+    Upload a lecture audio file for processing.
+
+    The file is streamed to disk in 1MB chunks (no OOM), then uploaded
+    to Cloudflare R2 server-side. AssemblyAI fetches from R2 via
+    presigned URL, so the file never needs to be re-uploaded.
+
+    Lecture record is only created AFTER the file is safely stored,
+    so failed uploads don't consume the user's lecture quota.
+    """
     settings = get_settings()
 
     # Ensure user exists in our database (Clerk handles real auth,
@@ -302,8 +312,79 @@ async def upload_lecture(
             detail="File does not appear to be a valid audio/video file. Please upload an actual recording.",
         )
 
-    # Save and create record — pass file path instead of content bytes
-    result = await save_upload_from_file(temp_path, file.filename or "audio.mp3", total_size, subject, user_id=user_id)
+    # ── Upload to R2 (server-side, no CORS needed) ──
+    # This runs server-to-server so there are no browser CORS restrictions.
+    # After upload, delete temp file to free disk space on Railway.
+    lecture_id = temp_id  # Reuse the UUID we already generated
+    file_key = f"uploads/{lecture_id}{ext}"
+    r2_uploaded = False
+
+    try:
+        from app.services.storage import _get_r2_client
+        r2_client = _get_r2_client()
+
+        print(f"[Lectly] Uploading {temp_path} to R2 as {file_key} ({total_size / (1024*1024):.1f}MB)...")
+        r2_client.upload_file(
+            temp_path,
+            settings.r2_bucket_name,
+            file_key,
+            ExtraArgs={"ContentType": file.content_type or "audio/mpeg"},
+        )
+        r2_uploaded = True
+        print(f"[Lectly] R2 upload complete: {file_key}")
+
+        # Delete temp file — it's safely in R2 now
+        os.remove(temp_path)
+        filepath = f"r2://{file_key}"
+    except Exception as r2_err:
+        print(f"[Lectly] R2 upload failed, keeping local file: {r2_err}")
+        # Fallback: keep the file locally and process from disk
+        # This means it still works even if R2 is misconfigured
+        filepath = temp_path
+        # Rename temp file to permanent name
+        perm_path = os.path.join(settings.upload_dir, f"{lecture_id}{ext}")
+        try:
+            os.rename(temp_path, perm_path)
+            filepath = perm_path
+        except Exception:
+            filepath = temp_path  # Keep temp path if rename fails
+
+    # ── Create lecture record ONLY after file is safely stored ──
+    # This fixes the quota deduction bug — failed uploads no longer
+    # consume the user's lecture count.
+    from app.database import create_lecture
+    from app.models.lecture import LectureStatus
+    from datetime import datetime as _dt
+
+    now = _dt.utcnow()
+    filename = file.filename or "audio.mp3"
+    lecture = {
+        "id": lecture_id,
+        "user_id": user_id,
+        "filename": filename,
+        "saved_filename": f"{lecture_id}{ext}",
+        "filepath": filepath,
+        "subject": subject,
+        "size_bytes": total_size,
+        "status": LectureStatus.UPLOADED,
+        "quality_score": None,
+        "duration_seconds": None,
+        "error": None,
+        "created_at": now,
+        "updated_at": now,
+    }
+    create_lecture(lecture)
+
+    print(f"[Lectly] Lecture {lecture_id} created ({'R2' if r2_uploaded else 'local'}): {filename} ({total_size} bytes)")
+
+    result = LectureUploadResponse(
+        id=lecture_id,
+        filename=filename,
+        size_bytes=total_size,
+        status=LectureStatus.UPLOADED,
+        message="File uploaded successfully. Processing will begin shortly.",
+        created_at=now,
+    )
     return result
 
 
@@ -674,9 +755,17 @@ async def delete_lecture(request: Request, lecture_id: str, user_id: str = Depen
     if lecture.get("user_id") and lecture["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="Not authorized to delete this lecture")
 
-    # Delete audio files from disk
+    # Delete audio files from disk or R2
     filepath = lecture.get("filepath", "")
-    if filepath and os.path.exists(filepath):
+    if filepath and filepath.startswith("r2://"):
+        # Delete from R2
+        try:
+            from app.services.storage import delete_file
+            file_key = filepath.replace("r2://", "")
+            delete_file(file_key)
+        except Exception as r2_err:
+            print(f"[Lectly] R2 delete failed (non-critical): {r2_err}")
+    elif filepath and os.path.exists(filepath):
         os.remove(filepath)
         # Also remove cleaned version if it exists
         clean_path = filepath.rsplit(".", 1)[0] + "_clean.mp3"

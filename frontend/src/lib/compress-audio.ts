@@ -14,6 +14,18 @@
 // @ts-expect-error lamejs has no type definitions
 import lamejs from "lamejs";
 
+// Fix lamejs MPEGMode bug: the npm build references MPEGMode but
+// doesn't export it, causing "ReferenceError: MPEGMode is not defined".
+// We define it on globalThis before the encoder tries to use it.
+if (typeof globalThis !== "undefined" && !(globalThis as Record<string, unknown>).MPEGMode) {
+  (globalThis as Record<string, unknown>).MPEGMode = {
+    STEREO: 0,
+    JOINT_STEREO: 1,
+    DUAL_CHANNEL: 2,
+    MONO: 3,
+  };
+}
+
 /** Threshold: only compress files larger than 8MB */
 const COMPRESS_THRESHOLD = 8 * 1024 * 1024;
 

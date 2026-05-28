@@ -214,70 +214,36 @@ export interface StudyProgress {
  * percentage on slow mobile connections (e.g. Nigerian mobile data
  * uploading 38MB at 100-500KB/s = 1-6 minutes).
  *
+ * The backend streams the file to Cloudflare R2 server-side, so
+ * Railway only proxies the upload briefly (streams in 1MB chunks,
+ * no OOM risk). AssemblyAI then fetches directly from R2 via
+ * presigned URL — no second upload needed.
+ *
  * @param file      - Audio file to upload
  * @param subject   - Optional course code / subject
  * @param onProgress - Callback with upload progress (0-100)
- */
-/**
- * Upload a lecture file using direct-to-R2 presigned URL flow.
- *
- * Flow:
- * 1. Ask backend for a presigned R2 upload URL (tiny request)
- * 2. Upload file directly to Cloudflare R2 via XHR (with progress)
- * 3. Notify backend that upload is complete → starts processing
- *
- * This bypasses Railway entirely for file transfer. The browser
- * uploads to Cloudflare's infrastructure which is built for large files.
  */
 export async function uploadLecture(
   file: File,
   subject?: string,
   onProgress?: (pct: number) => void
 ): Promise<LectureUpload> {
-  // Step 1: Get presigned upload URL from backend
   const headers = await freshAuthHeaders();
 
-  const presignRes = await fetch(`${API_URL}/api/upload/presign`, {
-    method: "POST",
-    headers: {
-      ...headers,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      filename: file.name,
-      size: file.size,
-      content_type: file.type || "audio/mpeg",
-      subject: subject || undefined,
-    }),
-  });
-
-  if (!presignRes.ok) {
-    if (presignRes.status === 429) {
-      const retry = parseInt(presignRes.headers.get("Retry-After") || "60", 10);
-      throw new RateLimitError(retry);
-    }
-    if (presignRes.status === 401) {
-      throw new Error("Session expired. Please sign in again.");
-    }
-    if (presignRes.status === 403) {
-      const err = await presignRes.json().catch(() => ({}));
-      throw new Error(err.detail || "You don't have permission to do this.");
-    }
-    const err = await presignRes.json().catch(() => ({}));
-    throw new Error(err.detail || "Failed to prepare upload");
-  }
-
-  const { upload_url, file_key, lecture_id } = await presignRes.json();
-
-  // Step 2: Upload file directly to R2 via XHR (for progress tracking)
-  await new Promise<void>((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    const TIMEOUT = 1_800_000; // 30 minutes — R2 is fast, but allow for very large files
+    // 30 min timeout — large files on slow connections need room
+    const TIMEOUT = 1_800_000;
 
-    xhr.open("PUT", upload_url);
+    xhr.open("POST", `${API_URL}/api/upload`);
     xhr.timeout = TIMEOUT;
-    xhr.setRequestHeader("Content-Type", file.type || "audio/mpeg");
 
+    // Set auth header (don't set Content-Type — browser sets multipart boundary)
+    if (headers["Authorization"]) {
+      xhr.setRequestHeader("Authorization", headers["Authorization"]);
+    }
+
+    // Track real upload progress
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable && onProgress) {
         const pct = Math.round((e.loaded / e.total) * 100);
@@ -287,16 +253,44 @@ export async function uploadLecture(
 
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
-        resolve();
+        try {
+          const data = JSON.parse(xhr.responseText);
+          resolve({
+            id: data.id,
+            filename: data.filename,
+            size_bytes: data.size_bytes,
+            status: data.status,
+            message: data.message || "Upload complete",
+            created_at: data.created_at,
+          });
+        } catch {
+          reject(new Error("Invalid response from server"));
+        }
+      } else if (xhr.status === 429) {
+        reject(new RateLimitError(60));
+      } else if (xhr.status === 401) {
+        reject(new Error("Session expired. Please sign in again."));
+      } else if (xhr.status === 403) {
+        try {
+          const err = JSON.parse(xhr.responseText);
+          reject(new Error(err.detail || "You don't have permission to do this."));
+        } catch {
+          reject(new Error("Upload limit reached. Upgrade your plan to upload more."));
+        }
       } else {
-        reject(new Error(
-          `Upload to storage failed (${xhr.status}). Please try again.`
-        ));
+        try {
+          const err = JSON.parse(xhr.responseText);
+          reject(new Error(err.detail || `Upload failed (${xhr.status})`));
+        } catch {
+          reject(new Error(`Upload failed (${xhr.status}). Please try again.`));
+        }
       }
     };
 
     xhr.onerror = () => {
-      reject(new Error("Network error during upload — check your internet connection and try again."));
+      reject(new Error(
+        "Network error during upload — check your internet connection and try again."
+      ));
     };
 
     xhr.ontimeout = () => {
@@ -306,37 +300,15 @@ export async function uploadLecture(
       ));
     };
 
-    xhr.send(file);
+    // Build multipart form data
+    const formData = new FormData();
+    formData.append("file", file, file.name);
+    if (subject) {
+      formData.append("subject", subject);
+    }
+
+    xhr.send(formData);
   });
-
-  onProgress?.(100);
-
-  // Step 3: Notify backend that upload is complete
-  const freshHeaders = await freshAuthHeaders();
-
-  const completeRes = await fetch(`${API_URL}/api/upload/complete`, {
-    method: "POST",
-    headers: {
-      ...freshHeaders,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ lecture_id, file_key }),
-  });
-
-  if (!completeRes.ok) {
-    const err = await completeRes.json().catch(() => ({}));
-    throw new Error(err.detail || "Upload confirmation failed. Please try again.");
-  }
-
-  // Return a LectureUpload-compatible response
-  return {
-    id: lecture_id,
-    filename: file.name,
-    size_bytes: file.size,
-    status: "uploaded",
-    message: "Upload confirmed. Processing started.",
-    created_at: new Date().toISOString(),
-  };
 }
 
 export async function processLecture(

@@ -184,12 +184,10 @@ export default function UploadPage() {
         updateStep(0, true, false);
       }
 
-      // Step 1: Upload directly to R2 (skip if retrying from a later step)
+      // Step 1: Upload to backend (streams to R2 server-side)
       if (startStep <= 1) {
         updateStep(1, false, true);
         setUploadPct(0);
-        // uploadLecture now handles: presign → R2 direct upload → complete
-        // The /upload/complete endpoint also starts background processing
         const uploadResult = await uploadLecture(
           fileToUpload,
           courseCode.trim() || undefined,

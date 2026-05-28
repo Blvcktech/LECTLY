@@ -35,16 +35,13 @@ init_db()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup — run migrations, recover stuck lectures, configure R2 CORS
+    # Startup — run migrations, recover stuck lectures
     run_migrations()
     recover_stuck_lectures()
 
-    # Configure R2 CORS for direct browser uploads (safe to call repeatedly)
-    try:
-        from app.services.storage import setup_cors
-        setup_cors()
-    except Exception as e:
-        print(f"[Lectly] R2 setup skipped: {e}")
+    # R2 is used server-side only (no browser CORS needed)
+    # The backend uploads to R2 after receiving the file, then
+    # AssemblyAI fetches from R2 via presigned download URL.
 
     yield
     # Shutdown — close all pooled connections gracefully
