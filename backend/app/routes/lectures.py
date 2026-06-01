@@ -37,6 +37,7 @@ from app.database import (
     update_lecture as update_lecture_db,
     ensure_clerk_user,
     count_user_lectures,
+    get_user_lecture_usage,
     save_progress as db_save_progress,
     get_progress as db_get_progress,
     get_lecture_progress as db_get_lecture_progress,
@@ -82,8 +83,9 @@ async def upload_lecture(
     ensure_clerk_user(user_id)
 
     # Enforce lecture limit based on subscription tier
+    # For paid users, this counts only lectures in the current billing period
     lecture_limit = get_user_lecture_limit(user_id)
-    current_count = count_user_lectures(user_id)
+    current_count = get_user_lecture_usage(user_id)
     tier = get_user_tier(user_id)
     if current_count >= lecture_limit:
         raise HTTPException(
@@ -722,7 +724,7 @@ async def get_user_limits(request: Request, user_id: str = Depends(get_current_u
 
     tier = get_user_tier(user_id)
     lecture_limit = get_user_lecture_limit(user_id)
-    current_count = count_user_lectures(user_id)
+    current_count = get_user_lecture_usage(user_id)
 
     return {
         "tier": tier,

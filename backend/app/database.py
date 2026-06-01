@@ -594,14 +594,27 @@ def delete_lecture(lecture_id: str) -> bool:
     return deleted
 
 
-def count_user_lectures(user_id: str) -> int:
-    """Count how many lectures a user has (excluding failed ones)."""
+def count_user_lectures(user_id: str, since: str = None) -> int:
+    """Count how many lectures a user has (excluding failed ones).
+
+    Args:
+        user_id: The user's ID.
+        since: Optional ISO datetime string. If provided, only count lectures
+               created on or after this date (for monthly quota reset).
+    """
     with _get_conn() as conn:
-        row = _fetchone(
-            conn,
-            f"SELECT COUNT(*) as cnt FROM lectures WHERE user_id = {P} AND status != 'failed'",
-            (user_id,),
-        )
+        if since:
+            row = _fetchone(
+                conn,
+                f"SELECT COUNT(*) as cnt FROM lectures WHERE user_id = {P} AND status != 'failed' AND created_at >= {P}",
+                (user_id, since),
+            )
+        else:
+            row = _fetchone(
+                conn,
+                f"SELECT COUNT(*) as cnt FROM lectures WHERE user_id = {P} AND status != 'failed'",
+                (user_id,),
+            )
     return row["cnt"] if row else 0
 
 
@@ -1003,15 +1016,12 @@ def get_user_tier(user_id: str) -> str:
 
 
 def get_user_lecture_limit(user_id: str) -> int:
-    """Get the effective lecture limit based on user's subscription tier.
+    """Get the lecture limit for a user's current billing period.
 
-    For free users: simple limit (e.g., 3).
-    For paid users: lectures_at_upgrade + plan allowance.
+    For free users: lifetime limit (e.g., 3 total).
+    For paid users: monthly plan allowance (e.g., 8 or 20 per period).
 
-    This means paid users always get the FULL plan allowance from the
-    moment they subscribe, regardless of how many free uploads they used.
-    Example: user had 3 free lectures, upgrades to Basic (8) →
-    effective limit = 3 + 8 = 11, so they can upload 8 more.
+    Pair this with get_user_lecture_usage() to get the correct count.
     """
     sub = get_subscription(user_id)
     if not sub or sub.get("status") != "active":
@@ -1029,13 +1039,46 @@ def get_user_lecture_limit(user_id: str) -> int:
             pass
 
     tier = sub.get("tier", "free")
-    if tier == "free":
-        return TIER_LIMITS.get("free", 3)
+    return TIER_LIMITS.get(tier, 3)
 
-    # Paid tier: baseline (lectures they had at upgrade) + full plan allowance
-    baseline = sub.get("lectures_at_upgrade", 0) or 0
-    plan_allowance = TIER_LIMITS.get(tier, 3)
-    return baseline + plan_allowance
+
+def get_user_lecture_usage(user_id: str) -> int:
+    """Get how many lectures count toward the user's current limit.
+
+    For free users: total lectures ever (lifetime quota).
+    For paid users: lectures created since current_period_start (monthly quota).
+
+    This is the counterpart to get_user_lecture_limit() — together they
+    determine whether a user can upload.
+    """
+    sub = get_subscription(user_id)
+
+    # Free or expired: count all lectures (lifetime)
+    if not sub or sub.get("status") != "active":
+        return count_user_lectures(user_id)
+
+    # Check expiry
+    period_end = sub.get("current_period_end")
+    if period_end:
+        from datetime import datetime
+        try:
+            end_dt = datetime.fromisoformat(period_end.replace("Z", "+00:00")) if isinstance(period_end, str) else period_end
+            if end_dt.replace(tzinfo=None) < datetime.utcnow():
+                return count_user_lectures(user_id)  # Expired → lifetime count
+        except (ValueError, TypeError):
+            pass
+
+    tier = sub.get("tier", "free")
+    if tier == "free":
+        return count_user_lectures(user_id)
+
+    # Paid user: count only lectures in current billing period
+    period_start = sub.get("current_period_start")
+    if period_start:
+        return count_user_lectures(user_id, since=period_start)
+
+    # Fallback if no period_start recorded (shouldn't happen, but safe)
+    return count_user_lectures(user_id)
 
 
 def upsert_subscription(user_id: str, data: dict) -> dict:
