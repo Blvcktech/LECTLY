@@ -29,6 +29,23 @@ settings = get_settings()
 # Set up structured logging before anything else
 setup_logging(debug=settings.debug)
 
+# ── SECURITY: Require CLERK_ISSUER in production ──
+# Without this, JWTs are decoded WITHOUT signature verification,
+# meaning anyone can forge a token and impersonate any user.
+_clerk_issuer = (settings.clerk_issuer or "").strip()
+if not _clerk_issuer or not _clerk_issuer.startswith("http"):
+    if settings.debug:
+        import logging as _logging
+        _logging.getLogger("lectly").warning(
+            "CLERK_ISSUER not set — running in INSECURE dev mode (JWT signatures not verified)"
+        )
+    else:
+        raise RuntimeError(
+            "CLERK_ISSUER environment variable is required in production. "
+            "Set it to your Clerk issuer URL (e.g. https://your-app.clerk.accounts.dev). "
+            "Without it, JWT signatures are NOT verified and anyone can forge tokens."
+        )
+
 # Initialize database on startup
 init_db()
 

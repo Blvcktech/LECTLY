@@ -164,7 +164,6 @@ export default function SubscriptionPage() {
                     "Full AI-generated notes",
                     "Learn Mode & Explain This",
                     "PDF export",
-                    "WhatsApp sharing",
                     "Notes saved for 6 months",
                   ].map((f) => (
                     <li key={f} className="flex items-center gap-2 text-[12px] text-white/70">
@@ -219,9 +218,7 @@ export default function SubscriptionPage() {
                 {[
                   "20 lectures per month",
                   "Everything in Basic",
-                  "No watermark on shares",
-                  "Priority processing (2x faster)",
-                  "Share with up to 3 students",
+                  "Solve Mode (ask questions)",
                   "Notes saved permanently",
                 ].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-[12px] text-ink-m">

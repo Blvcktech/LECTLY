@@ -595,11 +595,11 @@ def delete_lecture(lecture_id: str) -> bool:
 
 
 def count_user_lectures(user_id: str) -> int:
-    """Count how many lectures a user has."""
+    """Count how many lectures a user has (excluding failed ones)."""
     with _get_conn() as conn:
         row = _fetchone(
             conn,
-            f"SELECT COUNT(*) as cnt FROM lectures WHERE user_id = {P}",
+            f"SELECT COUNT(*) as cnt FROM lectures WHERE user_id = {P} AND status != 'failed'",
             (user_id,),
         )
     return row["cnt"] if row else 0
@@ -989,6 +989,16 @@ def get_user_tier(user_id: str) -> str:
     # If subscription has expired or is inactive, treat as free
     if sub.get("status") != "active":
         return "free"
+    # Check if subscription period has ended
+    period_end = sub.get("current_period_end")
+    if period_end:
+        from datetime import datetime
+        try:
+            end_dt = datetime.fromisoformat(period_end.replace("Z", "+00:00")) if isinstance(period_end, str) else period_end
+            if end_dt.replace(tzinfo=None) < datetime.utcnow():
+                return "free"
+        except (ValueError, TypeError):
+            pass  # If we can't parse it, don't block access
     return sub.get("tier", "free")
 
 
@@ -1006,6 +1016,17 @@ def get_user_lecture_limit(user_id: str) -> int:
     sub = get_subscription(user_id)
     if not sub or sub.get("status") != "active":
         return TIER_LIMITS.get("free", 3)
+
+    # Check if subscription period has ended
+    period_end = sub.get("current_period_end")
+    if period_end:
+        from datetime import datetime
+        try:
+            end_dt = datetime.fromisoformat(period_end.replace("Z", "+00:00")) if isinstance(period_end, str) else period_end
+            if end_dt.replace(tzinfo=None) < datetime.utcnow():
+                return TIER_LIMITS.get("free", 3)
+        except (ValueError, TypeError):
+            pass
 
     tier = sub.get("tier", "free")
     if tier == "free":

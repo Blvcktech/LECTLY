@@ -58,6 +58,7 @@ export default function DashboardPage() {
   const [allProgress, setAllProgress] = useState<StudyProgress[]>([]);
   const [lastStudied, setLastStudied] = useState<StudyProgress | null>(null);
   const [lectureLimit, setLectureLimit] = useState(3);
+  const [userTier, setUserTier] = useState("free");
   const { toast, confirm: showConfirm } = useToast();
 
   useEffect(() => {
@@ -88,6 +89,7 @@ export default function DashboardPage() {
           setAllProgress(progressData.progress);
           setLastStudied(progressData.last_studied);
           setLectureLimit(limitsData.lectures_limit || 3);
+          setUserTier(limitsData.tier || "free");
         }
       } catch (err) {
         if (!cancelled) {
@@ -257,8 +259,8 @@ export default function DashboardPage() {
         <div className="px-5 pb-5">
           <div className="bg-cream border border-[rgba(217,185,130,0.25)] rounded-xl p-3.5">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-xs text-ink-m font-medium">Free Plan</span>
-              <span className="text-xs text-accent font-semibold">{lectures.length}/3</span>
+              <span className="text-xs text-ink-m font-medium">{userTier === "free" ? "Free Plan" : `${userTier.charAt(0).toUpperCase() + userTier.slice(1)} Plan`}</span>
+              <span className="text-xs text-accent font-semibold">{lectures.length}/{lectureLimit}</span>
             </div>
             <div className="w-full h-2 bg-cream-d rounded-full overflow-hidden">
               <div
@@ -337,7 +339,7 @@ export default function DashboardPage() {
             </h1>
             {!loading && lectures.length > 0 && (
               <p className="text-sm text-ink-m mt-1">
-                {lectures.length} lecture{lectures.length !== 1 ? "s" : ""} uploaded. {Math.max(0, 3 - lectures.length)} remaining on free plan.
+                {lectures.length} lecture{lectures.length !== 1 ? "s" : ""} uploaded. {Math.max(0, lectureLimit - lectures.length)} remaining on {userTier === "free" ? "free" : userTier} plan.
               </p>
             )}
           </div>
