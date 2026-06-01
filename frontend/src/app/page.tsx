@@ -478,8 +478,8 @@ export default function Home() {
                 </h3>
               </div>
               <p className="text-sm text-ink-m leading-relaxed">
-                Export your notes as a clean PDF. Share with classmates via WhatsApp
-                or link. They upload, they learn — everyone benefits.
+                Export your notes as a clean PDF. Share with classmates
+                easily. They upload, they learn — everyone benefits.
               </p>
             </div>
           </div>
@@ -578,7 +578,6 @@ export default function Home() {
                   "Full AI-generated notes",
                   "Learn Mode & Explain This",
                   "PDF export",
-                  "WhatsApp sharing",
                   "Notes saved for 6 months",
                 ].map((f) => (
                   <li key={f} className="flex items-start gap-2">
@@ -609,9 +608,7 @@ export default function Home() {
                 {[
                   "20 lectures per month",
                   "Everything in Basic",
-                  "No watermark on shares",
-                  "Priority processing (2x faster)",
-                  "Share with up to 3 students",
+                  "Solve Mode (ask questions)",
                   "Notes saved permanently",
                 ].map((f) => (
                   <li key={f} className="flex items-start gap-2">
